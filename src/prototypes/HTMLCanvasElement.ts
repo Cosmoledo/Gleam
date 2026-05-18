@@ -83,7 +83,7 @@ HTMLCanvasElement.prototype.getUsedColors = function (): [number, string][] {
 
 	allColorArray.sort((a, b) => b[0] - a[0]);
 
-	return allColorArray as any;
+	return allColorArray;
 };
 
 HTMLCanvasElement.prototype.replaceColors = function (

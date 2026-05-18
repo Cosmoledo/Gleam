@@ -261,7 +261,7 @@ export const loadImageFromJson = async (
 export const loadBunch = (bunch: {
 	[key: string]: Promise<any>;
 }): Promise<any> => {
-	const output = {} as any;
+	const output = {};
 	const keys = Object.keys(bunch);
 
 	return Promise.all(Object.values(bunch)).then((datas: any[]) => {
@@ -313,11 +313,13 @@ export const randomItem = <T>(array: T[]): T => {
 export const generateArray = <T>(
 	height: number,
 	width: number,
-	defaultValue: T = null as any,
+	defaultValue: T,
 ): T[][] => {
 	const array: T[][] = [];
+
 	for (let y = 0; y < height; y++) {
 		array[y] = [];
+
 		for (let x = 0; x < width; x++) {
 			array[y][x] =
 				typeof defaultValue === "function"
@@ -325,6 +327,7 @@ export const generateArray = <T>(
 					: defaultValue;
 		}
 	}
+
 	return array;
 };
 
@@ -459,8 +462,8 @@ export function styleElement(
 	element: HTMLElement,
 	styles: Partial<CSSStyleDeclaration>,
 ): void {
-	for (const key in styles) {
-		(element.style as any)[key] = styles[key];
+	for (const [key, value] of Object.entries(styles)) {
+		element.style.setProperty(key, value as string);
 	}
 }
 

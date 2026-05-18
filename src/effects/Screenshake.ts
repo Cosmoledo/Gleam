@@ -24,7 +24,7 @@ export const SHAKE_TYPES = {
 			style.filter = "blur(" + blur + "px)";
 		},
 	},
-} as any;
+} satisfies Record<string, ShakeType>;
 
 export default class Screenshake {
 	private style: CSSStyleDeclaration;

@@ -28,17 +28,24 @@ export default abstract class Game {
 	public canvasHolder: Map<string, GameLIB.CanvasHolder> = new Map();
 	public levelTime = 0;
 	public mouse: GameLIB.Mouse = {
+		altKey: false,
+		ctrlKey: false,
+		hasMoved: false,
 		posReal: new Vec2(),
+		posRealLast: new Vec2(),
 		posScaled: new Vec2(),
+		posScaledLast: new Vec2(),
 		pressed: [],
 		released: [],
+		shiftKey: false,
 		size: new Vec2(10, 10),
 		type: MOUSE_TYPES.NONE,
+		target: null,
 		calcTarget() {
 			this.target = document.elementFromPoint(
 				this.posReal.x,
 				this.posReal.y,
-			);
+			) as HTMLElement;
 		},
 		update: (event: MouseEvent) => {
 			this.mouse.posRealLast = this.mouse.posReal.clone();
@@ -71,7 +78,7 @@ export default abstract class Game {
 				),
 			);
 		},
-	} as any;
+	};
 	public resizedSize!: Vec2;
 	public ratio = 1;
 	public canvasBoundingClientRect!: DOMRect;
@@ -114,13 +121,14 @@ export default abstract class Game {
 		if (this.settings.warnBeforeCLose) {
 			window.addEventListener(
 				"beforeunload",
-				(event: BeforeUnloadEvent = window.event as any) => {
+				(event: BeforeUnloadEvent) => {
 					if (this.settings.triedToClose) {
 						this.settings.triedToClose();
 					}
 
+					event.preventDefault();
 					event.returnValue = true;
-					return null;
+					return "Are you sure?";
 				},
 				false,
 			);
@@ -148,9 +156,9 @@ export default abstract class Game {
 			)
 		) {
 			localStorage.setItem(key, value);
-			(Game.settings as any).localStorage[key] = value;
+			Game.settings.localStorage[key] = value;
 		} else {
-			(Game.settings as any)[key] = value;
+			Game.settings[key] = value;
 		}
 	}
 
@@ -209,7 +217,7 @@ export default abstract class Game {
 		this.stop = true;
 
 		if ("sound" in this) {
-			((this as any).sound as Sound).pause();
+			(this.sound as Sound).pause();
 		}
 	}
 
@@ -221,7 +229,7 @@ export default abstract class Game {
 		}
 
 		for (let i = events.length - 1; i >= 0; i--) {
-			events[i].callback.apply(this, params as any);
+			events[i].callback.apply(this, [params]);
 
 			if (events[i].options.once) {
 				events.splice(i, 1);

@@ -1,3 +1,4 @@
+import { clamp } from "@/utilities/Number";
 import { randomItem } from "@/utilities/Functions";
 import { remove } from "@/utilities/Array";
 import BezierEasing from "bezier-easing";
@@ -112,9 +113,9 @@ export default class Sound {
 			if (cur) {
 				cur.volume =
 					this.registerVolume -
-					this.registerVolume * curBez(time).clamp(0, 1);
+					this.registerVolume * clamp(curBez(time), 0, 1);
 			}
-			next.volume = this.registerVolume * nextBez(time).clamp(0, 1);
+			next.volume = this.registerVolume * clamp(nextBez(time), 0, 1);
 
 			if (time < 1) {
 				requestAnimationFrame(myLopper);
@@ -159,7 +160,7 @@ export default class Sound {
 		instance: string,
 		...songs: RawRegisterData[] | string[]
 	): void {
-		(songs as any[]).forEach((song: RawRegisterData | string) => {
+		songs.forEach(song => {
 			if (typeof song === "string") {
 				song = {
 					name: song,

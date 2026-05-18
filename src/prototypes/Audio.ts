@@ -1,5 +1,5 @@
 HTMLAudioElement.prototype.clone = function clone(): HTMLAudioElement {
-	const node = this.cloneNode() as any;
+	const node = this.cloneNode() as HTMLAudioElement;
 	node.volume = this.volume;
 	return node;
 };

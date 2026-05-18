@@ -13,16 +13,16 @@ Storage.prototype.getOrSetDefault = function getOrSetDefault<T>(
 
 	switch (typeof defaultValue) {
 		case "boolean":
-			return (content === "true") as any;
+			return (content === "true") as T;
 
 		case "number":
 			if (isInteger(content)) {
-				return parseInt(content) as any;
+				return parseInt(content) as T;
 			}
 
 			this.setItem(key, defaultValue + "");
 			return defaultValue;
 	}
 
-	return content as any;
+	return content as T;
 };

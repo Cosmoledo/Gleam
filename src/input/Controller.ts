@@ -88,18 +88,18 @@ export default class Controller {
 	}
 
 	public vibrate(): boolean {
-		const vibrator = (this.getGamepad() as any).vibrationActuator;
+		const vibrator = this.getGamepad().vibrationActuator;
 
 		if (vibrator) {
-			vibrator.playEffect(vibrator.type, {
+			vibrator.playEffect("dual-rumble", {
 				duration: 400,
+				weakMagnitude: 1.0,
 				startDelay: 0,
 				strongMagnitude: 1.0,
-				weakMagnitude: 1.0,
 			});
 		}
 
-		return vibrator;
+		return !!vibrator;
 	}
 
 	public stick(index: number): Vec2 {
@@ -118,6 +118,6 @@ export default class Controller {
 	}
 
 	private getGamepad(): Gamepad {
-		return (navigator.getGamepads() as Gamepad[])[this.id];
+		return navigator.getGamepads()[this.id]!;
 	}
 }
