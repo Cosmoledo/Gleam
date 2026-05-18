@@ -7,9 +7,9 @@
 		"esModuleInterop": true,
 		"forceConsistentCasingInFileNames": true,
 		"isolatedModules": true,
-		"lib": ["ES2022", "DOM", "DOM.Iterable"],
-		"module": "nodenext",
-		"moduleResolution": "nodenext",
+		"lib": ["ESNext", "DOM"],
+		"module": "esnext",
+		"moduleResolution": "bundler",
 		"noFallthroughCasesInSwitch": true,
 		"noImplicitAny": false,
 		"noImplicitReturns": true,
@@ -30,8 +30,9 @@
 		"strictFunctionTypes": true,
 		"strictNullChecks": true,
 		"strictPropertyInitialization": true,
-		"target": "ES2022",
-		"useUnknownInCatchVariables": true
+		"target": "esnext",
+		"useUnknownInCatchVariables": true,
+		"plugins": [{ "transform": "typescript-transform-paths" }]
 	},
 	"include": ["src/**/*"],
 	"exclude": ["node_modules", "dist", "**/*.test.ts"]
