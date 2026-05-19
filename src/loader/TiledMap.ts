@@ -1,9 +1,11 @@
 import {
 	loadCanvas,
+	loadText,
+} from "@/loader/UrlLoaders";
+import {
 	SpriteSheetHandler,
 	createNewCanvas,
 	convert1DTo2D,
-	loadText,
 } from "@/utilities/Functions";
 import { isInteger } from "@/utilities/Math";
 import Polygon, { PolygonCollision } from "@/core/Polygon";

@@ -1,4 +1,4 @@
-import { loadImage } from "@/utilities/Functions";
+import { loadImage } from "@/loader/UrlLoaders";
 import Controller from "./Controller";
 import Game from "@/core/Game";
 import Vec2 from "@/core/Vec2";
