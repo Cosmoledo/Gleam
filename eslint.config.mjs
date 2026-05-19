@@ -3,14 +3,6 @@ import typescriptESLint from "@typescript-eslint/eslint-plugin";
 
 export default [
 	{
-		ignores: [
-			"src/**/*.js",
-			"src/**/*.{map,json}",
-			"**/*.test.ts",
-			"**/*.spec.ts",
-		],
-	},
-	{
 		files: ["**/*.ts"],
 		languageOptions: {
 			parser: tsParser,
@@ -37,7 +29,7 @@ export default [
 			"@typescript-eslint/type-annotation-spacing": "off",
 			"block-scoped-var": "error",
 			curly: ["error", "all"],
-			"linebreak-style": ["error", "windows"],
+			"linebreak-style": ["error", "unix"],
 			"no-alert": "off",
 			"no-case-declarations": "off",
 			"no-var": "error",

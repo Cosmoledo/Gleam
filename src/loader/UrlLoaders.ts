@@ -53,7 +53,7 @@ export function safeLoad<T>(
 			);
 
 			// Re-throw wrapped error to be caught by caller
-			throw new Error(`Failed: ${operationName.toLowerCase()}: ${url}`);
+			throw error;
 		})
 		.finally(() => clearTimeout(timeoutId));
 }
