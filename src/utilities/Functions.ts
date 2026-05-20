@@ -272,20 +272,15 @@ export const getUsedColors = (
 	const data = (
 		image.getContext("2d") as CanvasRenderingContext2D
 	).getImageData(0, 0, image.width, image.height).data;
-	const allColors: Map<string, number> = new Map();
+	const counts = new Map<number, number>();
 
 	for (let i = 0; i < data.length; i += 4) {
-		const color = rgb2hex(data[i], data[i + 1], data[i + 2]);
-
-		if (allColors.has(color)) {
-			allColors.set(color, allColors.get(color)! + 1);
-		} else {
-			allColors.set(color, 1);
-		}
+		const key = (data[i] << 16) | (data[i + 1] << 8) | data[i + 2];
+		counts.set(key, (counts.get(key) ?? 0) + 1);
 	}
 
 	if (pixelAmount < 1 || removeLowerThan > 0 || removeHigherThan > 0) {
-		allColors.forEach((value, key) => {
+		counts.forEach((value, key) => {
 			const newAmount = (value * pixelAmount) | 0;
 
 			if (
@@ -293,14 +288,18 @@ export const getUsedColors = (
 				(removeLowerThan > 0 && newAmount < removeLowerThan) ||
 				(removeHigherThan > 0 && newAmount > removeHigherThan)
 			) {
-				allColors.delete(key);
+				counts.delete(key);
 			} else {
-				allColors.set(key, newAmount);
+				counts.set(key, newAmount);
 			}
 		});
 	}
 
-	return allColors;
+	const result = new Map<string, number>();
+	counts.forEach((count, rgbInt) => {
+		result.set("#" + (0x1000000 + rgbInt).toString(16).slice(1), count);
+	});
+	return result;
 };
 
 export const doWhileClicked = (
