@@ -8,7 +8,7 @@ window._ = (): any => {
 	throw new Error("Call 'prepareLanguage' first!");
 };
 
-export const prepareLanguage = (languages: any): void => {
+export function prepareLanguage(languages: any): void {
 	const allKeys: string[] = [];
 
 	for (const lang in languages) {
@@ -37,4 +37,4 @@ export const prepareLanguage = (languages: any): void => {
 		}
 		return language[key];
 	};
-};
+}

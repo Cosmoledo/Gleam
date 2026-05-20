@@ -6,11 +6,11 @@ import Settings from "@/core/Settings";
  * preserving the alpha mask of the source image.
  * https://stackoverflow.com/a/45201094
  */
-export const changeColor = (
+export function changeColor(
 	context: CanvasRenderingContext2D,
 	oriImg: HTMLCanvasElement,
 	newColor: string,
-): void => {
+): void {
 	context.clearRect(0, 0, oriImg.width, oriImg.height);
 	context.globalCompositeOperation = "source-over";
 	context.drawImage(oriImg, 0, 0, oriImg.width, oriImg.height);
@@ -23,17 +23,17 @@ export const changeColor = (
 	context.drawImage(oriImg, 0, 0, oriImg.width, oriImg.height);
 
 	context.globalCompositeOperation = "source-over";
-};
+}
 
 /**
  * Create a new `<canvas>` of the given size with its 2D context, with all
  * vendor-prefixed `imageSmoothingEnabled` flags set. Antialiasing defaults to `Settings.antialias`.
  */
-export const createNewCanvas = (
+export function createNewCanvas(
 	width: number,
 	height: number,
 	antialias: boolean = Settings.antialias,
-): GameLIB.CanvasConstruct => {
+): GameLIB.CanvasConstruct {
 	const canvas = document.createElement("canvas");
 	canvas.width = width;
 	canvas.height = height;
@@ -48,55 +48,58 @@ export const createNewCanvas = (
 		canvas,
 		context,
 	};
-};
+}
 
 /**
  * Apply a CSS `filter` string to an image and return the result as a new canvas.
  */
-export const applyFilterOnCanvas = (
+export function applyFilterOnCanvas(
 	image: HTMLCanvasElement,
 	filter: string,
 	width: number = image.width,
 	height: number = image.height,
-): HTMLCanvasElement => {
+): HTMLCanvasElement {
 	const cc = createNewCanvas(width, height);
 
 	cc.context.filter = filter;
 	cc.context.drawImage(image, 0, 0);
 
 	return cc.canvas;
-};
+}
 
 /**
  * Rotate the hue of an image by `hue` degrees via CSS `hue-rotate(...)` filter.
  */
-export const rotateHue = (
+export function rotateHue(
 	image: HTMLCanvasElement,
 	hue: number,
 	width?: number,
 	height?: number,
-): HTMLCanvasElement => {
+): HTMLCanvasElement {
 	return applyFilterOnCanvas(
 		image,
 		"hue-rotate(" + hue + "deg)",
 		width,
 		height,
 	);
-};
+}
 
 /**
  * Convert an `(r, g, b)` triple (0-255) to a `#rrggbb` hex string.
  * Low-level; prefer `Color.toHex()` outside hot per-pixel loops.
  */
-export const rgb2hex = (red: number, green: number, blue: number): string =>
-	"#" +
-	(0x1000000 + (blue | (green << 8) | (red << 16))).toString(16).slice(1);
+export function rgb2hex(red: number, green: number, blue: number): string {
+	return (
+		"#" +
+		(0x1000000 + (blue | (green << 8) | (red << 16))).toString(16).slice(1)
+	);
+}
 
 /**
  * Convert a `#rgb` or `#rrggbb` hex string to an `[r, g, b]` integer array.
  * Low-level; prefer `Color.fromHex()` outside hot per-pixel loops.
  */
-export const hex2rgb = (hex: string): number[] => {
+export function hex2rgb(hex: string): number[] {
 	return hex
 		.replace(
 			/^#?([a-f\d])([a-f\d])([a-f\d])$/i,
@@ -106,18 +109,18 @@ export const hex2rgb = (hex: string): number[] => {
 		.substring(1)
 		.match(/.{2}/g)!
 		.map((x: string) => parseInt(x, 16));
-};
+}
 
 /**
  * Wrap `value` so it stays in `[min, max)`, repeatedly adding/subtracting `adjustBy`
  * (defaults to `max`). Useful for cyclic ranges like angles.
  */
-export const wrapValue = (
+export function wrapValue(
 	value: number,
 	min: number,
 	max: number,
 	adjustBy: number = max,
-): number => {
+): number {
 	while (value < min) {
 		value += adjustBy;
 	}
@@ -127,31 +130,33 @@ export const wrapValue = (
 	}
 
 	return value;
-};
+}
 
 /**
  * Wrap an angle in radians into `[-PI, PI)`.
  */
-export const wrapRadians = (angle: number): number => {
+export function wrapRadians(angle: number): number {
 	return wrapValue(angle, -Math.PI, Math.PI, Math.PI * 2);
-};
+}
 
 /**
  * Random `#rgb` short hex color.
  */
-export const randomHex = (): string =>
-	"#" + Math.random().toString(16).slice(2, 6);
+export function randomHex(): string {
+	return "#" + Math.random().toString(16).slice(2, 6);
+}
 
 /**
  * Random `[r, g, b]` integer array; each channel uniform in `[min, max]`.
  */
-export const randomRgb = (min = 0, max = 255): number[] =>
-	new Array(3).fill(0).map(() => randomBeetweenInt(min, max));
+export function randomRgb(min = 0, max = 255): number[] {
+	return new Array(3).fill(0).map(() => randomBeetweenInt(min, max));
+}
 
 /**
  * Split an array into chunks of at most `maxLength` elements each.
  */
-export const splitArray = <T = any>(array: T[], maxLength: number): T[][] => {
+export function splitArray<T = any>(array: T[], maxLength: number): T[][] {
 	const result: T[][] = [];
 	let part: T[] = [];
 
@@ -165,48 +170,45 @@ export const splitArray = <T = any>(array: T[], maxLength: number): T[][] => {
 	}
 
 	return result;
-};
+}
 
 /**
  * Convert a 1D index to `{x, y}` for a 2D grid of the given row width.
  */
-export const convert1DTo2D = (
-	index: number,
-	width: number,
-): GameLIB.Vector2 => {
+export function convert1DTo2D(index: number, width: number): GameLIB.Vector2 {
 	return {
 		x: index % width,
 		y: (index / width) | 0,
 	};
-};
+}
 
 /**
  * Convert 2D `(x, y)` coordinates to a 1D index for a grid of the given row width.
  */
-export const convert2DTo1D = (
+export function convert2DTo1D(
 	indexX: number,
 	indexY: number,
 	width: number,
-): number => {
+): number {
 	return indexX + width * indexY;
-};
+}
 
 /**
  * Pick a uniformly random element from `array`.
  */
-export const randomItem = <T>(array: T[]): T => {
+export function randomItem<T>(array: T[]): T {
 	return array[(Math.random() * array.length) | 0];
-};
+}
 
 /**
  * Generate a `height × width` 2D array filled with `defaultValue`.
  * If `defaultValue` is a function it is invoked per cell.
  */
-export const generateArray = <T>(
+export function generateArray<T>(
 	height: number,
 	width: number,
 	defaultValue: T,
-): T[][] => {
+): T[][] {
 	const array: T[][] = [];
 
 	for (let y = 0; y < height; y++) {
@@ -221,14 +223,12 @@ export const generateArray = <T>(
 	}
 
 	return array;
-};
+}
 
 /**
  * Look up an existing canvas by CSS selector and return it with its 2D context.
  */
-export const getCanvasConstruct = (
-	selector: string,
-): GameLIB.CanvasConstruct => {
+export function getCanvasConstruct(selector: string): GameLIB.CanvasConstruct {
 	const canvas = document.querySelector(selector) as HTMLCanvasElement;
 	const context = canvas.getContext("2d") as CanvasRenderingContext2D;
 
@@ -236,22 +236,23 @@ export const getCanvasConstruct = (
 		canvas,
 		context,
 	};
-};
+}
 
 /**
  * Promise that resolves after `time` milliseconds.
  */
-export const delay = (time: number): Promise<void> =>
-	new Promise(res => setTimeout(res, time));
+export function delay(time: number): Promise<void> {
+	return new Promise(res => setTimeout(res, time));
+}
 
 /**
  * Split a sprite-sheet image into individual sprite canvases laid out as `elementsX × elementsY`.
  */
-export const SpriteSheetHandler = (
+export function SpriteSheetHandler(
 	img: HTMLCanvasElement,
 	elementsX: number,
 	elementsY: number,
-): HTMLCanvasElement[] => {
+): HTMLCanvasElement[] {
 	const sprites: HTMLCanvasElement[] = [];
 
 	const sizeX = img.width / elementsX;
@@ -264,19 +265,19 @@ export const SpriteSheetHandler = (
 	}
 
 	return sprites;
-};
+}
 
 /**
  * Count occurrences of each color in an image, keyed by `#rrggbb`.
  * Optionally scale counts by `pixelAmount` and drop entries below/above thresholds
  * (`removeLowerThan` / `removeHigherThan`, both ignored when `0`).
  */
-export const getUsedColors = (
+export function getUsedColors(
 	image: HTMLCanvasElement,
 	pixelAmount = 1,
 	removeLowerThan = 0,
 	removeHigherThan = 0,
-): Map<string, number> => {
+): Map<string, number> {
 	const data = (
 		image.getContext("2d") as CanvasRenderingContext2D
 	).getImageData(0, 0, image.width, image.height).data;
@@ -308,17 +309,17 @@ export const getUsedColors = (
 		result.set("#" + (0x1000000 + rgbInt).toString(16).slice(1), count);
 	});
 	return result;
-};
+}
 
 /**
  * Call `callback` immediately on mousedown of the matched element, then keep
  * calling it every `delay` ms until mouseup or mouseout. Throws if no element matches.
  */
-export const doWhileClicked = (
+export function doWhileClicked(
 	querySelector: string,
 	callback: () => void,
 	delay = 200,
-): void => {
+): void {
 	const element = document.querySelector(querySelector);
 	if (!element) {
 		throw new Error("Element does not exists!");
@@ -336,7 +337,7 @@ export const doWhileClicked = (
 	);
 	element.addEventListener("mouseup", () => clearInterval(timeout), false);
 	element.addEventListener("mouseout", () => clearInterval(timeout), false);
-};
+}
 
 /**
  * `querySelector` variant that throws when no element matches.
