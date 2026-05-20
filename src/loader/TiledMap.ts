@@ -451,7 +451,7 @@ export default async function loadTiledMap(
 					) {
 						console.log(
 							tile.image["@attributes"].source +
-								" hat Kollision außerhalb des Bereichs!",
+								" has collision outside the tile bounds!",
 						);
 					}
 

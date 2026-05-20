@@ -474,7 +474,7 @@ export default abstract class Game {
 				this.dispatchEvent(EVENT_NAMES.STOP);
 				// this.eventListener = {};
 				this.keys.length = 0;
-				console.log("Simulation gestoppt.");
+				console.log("Simulation stopped.");
 				this.loopHasStarted = false;
 				return;
 			}
@@ -494,7 +494,7 @@ export default abstract class Game {
 		};
 		this.loopHasStarted = true;
 		requestAnimationFrame(myLopper);
-		console.log("Simulation gestartet.");
+		console.log("Simulation started.");
 	}
 
 	private preDraw(context: CanvasRenderingContext2D): void {

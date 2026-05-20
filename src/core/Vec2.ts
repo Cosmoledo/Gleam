@@ -252,7 +252,7 @@ export default class Vec2 {
 				inputX = x.x;
 				inputY = x.y;
 			} else {
-				throw new Error("Wenn x ein Vector2 ist, muss y leer sein!");
+				throw new Error("When x is a Vector2, y must be omitted!");
 			}
 		}
 
