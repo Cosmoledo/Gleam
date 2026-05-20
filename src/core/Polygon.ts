@@ -159,7 +159,8 @@ export default class Polygon {
 }
 
 /**
- * Creates an outline of a transparent image, points are stored in a Polygon
+ * Creates an outline of a transparent image.
+ * Then uses points to create a Polygon.
  *
  * @param {HTMLCanvasElement} sprite Source image
  * @param {number} d detail (lower = better)
@@ -189,6 +190,9 @@ export const generatePolygon = ((): ((
 
 		const w = canvas.width;
 		const h = canvas.height;
+		const data = (
+			canvas.getContext("2d") as CanvasRenderingContext2D
+		).getImageData(0, 0, w, h).data;
 
 		const vertexX = [0];
 		const vertexY = [0];
@@ -201,7 +205,7 @@ export const generatePolygon = ((): ((
 
 		for (let tx = 0; tx < w; tx += detail) {
 			for (let ty = 0; ty < h; ty += 1) {
-				if (canvas.getRGB(tx, ty) >> 24 !== 0) {
+				if (data[(ty * w + tx) * 4] !== 0) {
 					vertexX[numPoints] = tx;
 					vertexY[numPoints] = h - ty;
 					vertexK[numPoints] = 1;
@@ -218,7 +222,7 @@ export const generatePolygon = ((): ((
 
 		for (let ty = 0; ty < h; ty += detail) {
 			for (let tx = w - 1; tx >= 0; tx -= 1) {
-				if (canvas.getRGB(tx, ty) >> 24 !== 0 && ty > ly) {
+				if (data[(ty * w + tx) * 4] !== 0 && ty > ly) {
 					vertexX[numPoints] = tx;
 					vertexY[numPoints] = h - ty;
 					vertexK[numPoints] = 1;
@@ -232,7 +236,7 @@ export const generatePolygon = ((): ((
 
 		for (let tx = w - 1; tx >= 0; tx -= detail) {
 			for (let ty = h - 1; ty >= 0; ty -= 1) {
-				if (canvas.getRGB(tx, ty) >> 24 !== 0 && tx < lx) {
+				if (data[(ty * w + tx) * 4] !== 0 && tx < lx) {
 					vertexX[numPoints] = tx;
 					vertexY[numPoints] = h - ty;
 					vertexK[numPoints] = 1;
@@ -246,7 +250,7 @@ export const generatePolygon = ((): ((
 
 		for (let ty = h - 1; ty >= 0; ty -= detail) {
 			for (let tx = 0; tx < w; tx += 1) {
-				if (canvas.getRGB(tx, ty) >> 24 !== 0 && ty < ly && ty > fy) {
+				if (data[(ty * w + tx) * 4] !== 0 && ty < ly && ty > fy) {
 					vertexX[numPoints] = tx;
 					vertexY[numPoints] = h - ty;
 					vertexK[numPoints] = 1;
