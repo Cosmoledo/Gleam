@@ -1,0 +1,7 @@
+{
+	"options": { "file": "red-2x2.png" },
+	"sprites": [
+		{ "x": 1, "y": 1, "w": 1, "h": 1, "name": "topleft" },
+		{ "x": 1, "y": 1, "w": 2, "h": 2, "name": "full" }
+	]
+}
