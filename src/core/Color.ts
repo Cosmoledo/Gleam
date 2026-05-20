@@ -1,5 +1,5 @@
 import { clamp } from "@/utilities/Number";
-import { hueToRGB } from "./Functions";
+import { hueToRGB } from "@/utilities/Functions";
 
 export class Color {
 	public r!: number;
@@ -101,6 +101,26 @@ export class Color {
 		} else {
 			this.set(this.r * factor, this.g * factor, this.b * factor);
 		}
+	}
+
+	public shade(percent: number): void {
+		const target = percent < 0 ? 0 : 255;
+		const p = Math.abs(percent);
+		this.set(
+			this.r + (target - this.r) * p,
+			this.g + (target - this.g) * p,
+			this.b + (target - this.b) * p,
+		);
+	}
+
+	public mix(other: Color, amount: number): void {
+		const inv = 1 - amount;
+		this.set(
+			this.r * inv + other.r * amount,
+			this.g * inv + other.g * amount,
+			this.b * inv + other.b * amount,
+			this.alpha * inv + other.alpha * amount,
+		);
 	}
 
 	public saturate(value: number = 1): void {

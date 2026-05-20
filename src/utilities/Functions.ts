@@ -1,62 +1,9 @@
-import { clamp } from "./Number";
 import { randomBeetweenInt } from "./Math";
 import Settings from "@/core/Settings";
 
-export const shadeColor = (color: string, percent: number): string => {
-	const f = parseInt(color.slice(1), 16);
-	const t = percent < 0 ? 0 : 255;
-	const p = Math.abs(percent);
-	const R = f >> 16;
-	const G = (f >> 8) & 0x00ff;
-	const B = f & 0x0000ff;
-
-	return (
-		"#" +
-		(
-			0x1000000 +
-			(Math.round((t - R) * p) + R) * 0x10000 +
-			(Math.round((t - G) * p) + G) * 0x100 +
-			(Math.round((t - B) * p) + B)
-		)
-			.toString(16)
-			.slice(1)
-	);
-};
-
-export const _colorChannelMixer = (
-	colorChannelA: number,
-	colorChannelB: number,
-	amountToMix: number,
-): number => {
-	const channelA = colorChannelA * (1 - amountToMix);
-	const channelB = colorChannelB * amountToMix;
-	return (channelA + channelB) | 0;
-};
-
-/*
- * https://stackoverflow.com/a/32171077
- */
-export const colorMixer = (
-	start: number[],
-	end: number[],
-	amountToMix: number,
-	alpha = 1,
-	asString = true,
-): string | number[] => {
-	alpha = clamp(alpha, 0, 1);
-
-	const r = _colorChannelMixer(start[0], end[0], amountToMix);
-	const g = _colorChannelMixer(start[1], end[1], amountToMix);
-	const b = _colorChannelMixer(start[2], end[2], amountToMix);
-
-	if (asString) {
-		return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-	}
-
-	return [r, g, b, (alpha * 255) | 0];
-};
-
-/*
+/**
+ * Recolor an opaque canvas in place using composite operations,
+ * preserving the alpha mask of the source image.
  * https://stackoverflow.com/a/45201094
  */
 export const changeColor = (
@@ -78,6 +25,10 @@ export const changeColor = (
 	context.globalCompositeOperation = "source-over";
 };
 
+/**
+ * Create a new `<canvas>` of the given size with its 2D context, with all
+ * vendor-prefixed `imageSmoothingEnabled` flags set. Antialiasing defaults to `Settings.antialias`.
+ */
 export const createNewCanvas = (
 	width: number,
 	height: number,
@@ -99,6 +50,9 @@ export const createNewCanvas = (
 	};
 };
 
+/**
+ * Apply a CSS `filter` string to an image and return the result as a new canvas.
+ */
 export const applyFilterOnCanvas = (
 	image: HTMLCanvasElement,
 	filter: string,
@@ -113,6 +67,9 @@ export const applyFilterOnCanvas = (
 	return cc.canvas;
 };
 
+/**
+ * Rotate the hue of an image by `hue` degrees via CSS `hue-rotate(...)` filter.
+ */
 export const rotateHue = (
 	image: HTMLCanvasElement,
 	hue: number,
@@ -127,10 +84,18 @@ export const rotateHue = (
 	);
 };
 
+/**
+ * Convert an `(r, g, b)` triple (0-255) to a `#rrggbb` hex string.
+ * Low-level; prefer `Color.toHex()` outside hot per-pixel loops.
+ */
 export const rgb2hex = (red: number, green: number, blue: number): string =>
 	"#" +
 	(0x1000000 + (blue | (green << 8) | (red << 16))).toString(16).slice(1);
 
+/**
+ * Convert a `#rgb` or `#rrggbb` hex string to an `[r, g, b]` integer array.
+ * Low-level; prefer `Color.fromHex()` outside hot per-pixel loops.
+ */
 export const hex2rgb = (hex: string): number[] => {
 	return hex
 		.replace(
@@ -143,6 +108,10 @@ export const hex2rgb = (hex: string): number[] => {
 		.map((x: string) => parseInt(x, 16));
 };
 
+/**
+ * Wrap `value` so it stays in `[min, max)`, repeatedly adding/subtracting `adjustBy`
+ * (defaults to `max`). Useful for cyclic ranges like angles.
+ */
 export const wrapValue = (
 	value: number,
 	min: number,
@@ -160,16 +129,28 @@ export const wrapValue = (
 	return value;
 };
 
+/**
+ * Wrap an angle in radians into `[-PI, PI)`.
+ */
 export const wrapRadians = (angle: number): number => {
 	return wrapValue(angle, -Math.PI, Math.PI, Math.PI * 2);
 };
 
+/**
+ * Random `#rgb` short hex color.
+ */
 export const randomHex = (): string =>
 	"#" + Math.random().toString(16).slice(2, 6);
 
+/**
+ * Random `[r, g, b]` integer array; each channel uniform in `[min, max]`.
+ */
 export const randomRgb = (min = 0, max = 255): number[] =>
 	new Array(3).fill(0).map(() => randomBeetweenInt(min, max));
 
+/**
+ * Split an array into chunks of at most `maxLength` elements each.
+ */
 export const splitArray = <T = any>(array: T[], maxLength: number): T[][] => {
 	const result: T[][] = [];
 	let part: T[] = [];
@@ -186,6 +167,9 @@ export const splitArray = <T = any>(array: T[], maxLength: number): T[][] => {
 	return result;
 };
 
+/**
+ * Convert a 1D index to `{x, y}` for a 2D grid of the given row width.
+ */
 export const convert1DTo2D = (
 	index: number,
 	width: number,
@@ -196,6 +180,9 @@ export const convert1DTo2D = (
 	};
 };
 
+/**
+ * Convert 2D `(x, y)` coordinates to a 1D index for a grid of the given row width.
+ */
 export const convert2DTo1D = (
 	indexX: number,
 	indexY: number,
@@ -204,10 +191,17 @@ export const convert2DTo1D = (
 	return indexX + width * indexY;
 };
 
+/**
+ * Pick a uniformly random element from `array`.
+ */
 export const randomItem = <T>(array: T[]): T => {
 	return array[(Math.random() * array.length) | 0];
 };
 
+/**
+ * Generate a `height × width` 2D array filled with `defaultValue`.
+ * If `defaultValue` is a function it is invoked per cell.
+ */
 export const generateArray = <T>(
 	height: number,
 	width: number,
@@ -229,6 +223,9 @@ export const generateArray = <T>(
 	return array;
 };
 
+/**
+ * Look up an existing canvas by CSS selector and return it with its 2D context.
+ */
 export const getCanvasConstruct = (
 	selector: string,
 ): GameLIB.CanvasConstruct => {
@@ -241,9 +238,15 @@ export const getCanvasConstruct = (
 	};
 };
 
+/**
+ * Promise that resolves after `time` milliseconds.
+ */
 export const delay = (time: number): Promise<void> =>
 	new Promise(res => setTimeout(res, time));
 
+/**
+ * Split a sprite-sheet image into individual sprite canvases laid out as `elementsX × elementsY`.
+ */
 export const SpriteSheetHandler = (
 	img: HTMLCanvasElement,
 	elementsX: number,
@@ -263,6 +266,11 @@ export const SpriteSheetHandler = (
 	return sprites;
 };
 
+/**
+ * Count occurrences of each color in an image, keyed by `#rrggbb`.
+ * Optionally scale counts by `pixelAmount` and drop entries below/above thresholds
+ * (`removeLowerThan` / `removeHigherThan`, both ignored when `0`).
+ */
 export const getUsedColors = (
 	image: HTMLCanvasElement,
 	pixelAmount = 1,
@@ -302,6 +310,10 @@ export const getUsedColors = (
 	return result;
 };
 
+/**
+ * Call `callback` immediately on mousedown of the matched element, then keep
+ * calling it every `delay` ms until mouseup or mouseout. Throws if no element matches.
+ */
 export const doWhileClicked = (
 	querySelector: string,
 	callback: () => void,
@@ -326,6 +338,10 @@ export const doWhileClicked = (
 	element.addEventListener("mouseout", () => clearInterval(timeout), false);
 };
 
+/**
+ * `querySelector` variant that throws when no element matches.
+ * Optionally narrow the return type per tag, e.g. `getElement<HTMLCanvasElement>("canvas")`.
+ */
 export function getElement<T extends Element = HTMLElement>(
 	query: string,
 	parent: ParentNode = document,
@@ -337,6 +353,9 @@ export function getElement<T extends Element = HTMLElement>(
 	return el;
 }
 
+/**
+ * Resolves the next time `type` fires on `element` (one-shot listener).
+ */
 export async function waitForEvent<K extends keyof HTMLElementEventMap>(
 	type: K,
 	element: Element,
@@ -348,6 +367,9 @@ export async function waitForEvent<K extends keyof HTMLElementEventMap>(
 	);
 }
 
+/**
+ * Returns `get` / `set` helpers for CSS custom properties (`--name`) on the `:root` element.
+ */
 export function initCSSVariables() {
 	const root = getElement(":root");
 
@@ -362,6 +384,9 @@ export function initCSSVariables() {
 	};
 }
 
+/**
+ * Apply a partial `CSSStyleDeclaration` to an element.
+ */
 export function styleElement(
 	element: HTMLElement,
 	styles: Partial<CSSStyleDeclaration>,
@@ -371,14 +396,23 @@ export function styleElement(
 	}
 }
 
+/**
+ * Toggle `element.style.display` between `""` (active) and `"none"` (inactive).
+ */
 export function setDisplay(element: HTMLElement, active: boolean): void {
 	element.style.display = active ? "" : "none";
 }
 
+/**
+ * Toggle `element.style.visibility` between `""` (active) and `"hidden"` (inactive).
+ */
 export function setVisibility(element: HTMLElement, active: boolean): void {
 	element.style.visibility = active ? "" : "hidden";
 }
 
+/**
+ * Heuristic: returns `true` if the user-agent looks mobile or the page exposes `window.orientation`.
+ */
 export function isMobile(): boolean {
 	const mobileTest1 =
 		/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
@@ -393,6 +427,9 @@ export function isMobile(): boolean {
 	return mobileTest1 || mobileTest2;
 }
 
+/**
+ * HSL → RGB channel helper used by `Color.fromHSL`. Inputs are normalized to `[0, 1]`.
+ */
 export function hueToRGB(p: number, q: number, t: number): number {
 	if (t < 0) {
 		t += 1;

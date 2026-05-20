@@ -1,4 +1,11 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
+
+/**
+ * Recursively clone a value. Returns primitives and functions as-is (no copy).
+ * Handles cyclic references via the `hash` WeakMap, plus `Map` and `Set` instances.
+ * Attempts to preserve the prototype chain by calling `new obj.constructor()`;
+ * falls back to `Object.create(Object.getPrototypeOf(obj))` if the constructor requires args.
+ */
 export function deepClone<T>(obj: any, hash = new WeakMap()): T {
 	// Do not try to clone primitives or functions
 	if (Object(obj) !== obj || obj instanceof Function) {
