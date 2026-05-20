@@ -128,11 +128,11 @@ export async function loadText(url: string): Promise<string> {
 /**
  * Loads JSON data from URL with error handling
  */
-export async function loadJson(url: string): Promise<any> {
+export async function loadJson<T = unknown>(url: string): Promise<T> {
 	validateUrl(url);
 
 	return safeLoad(
-		loadText(url).then(text => JSON.parse(text)),
+		loadText(url).then(text => JSON.parse(text) as T),
 		url,
 		"JSON",
 	);
@@ -141,7 +141,7 @@ export async function loadJson(url: string): Promise<any> {
 /**
  * Loads JSON with inline comments
  */
-export async function loadJsonCommented(url: string): Promise<any> {
+export async function loadJsonCommented<T = unknown>(url: string): Promise<T> {
 	validateUrl(url);
 
 	return safeLoad(
@@ -158,11 +158,25 @@ export async function loadJsonCommented(url: string): Promise<any> {
 				})
 				.join("\n");
 
-			return JSON.parse(lines);
+			return JSON.parse(lines) as T;
 		}),
 		url,
 		"JSON (commented)",
 	);
+}
+
+interface SpriteJson {
+	x: number;
+	y: number;
+	w: number;
+	h: number;
+	name: string;
+	[key: string]: string | number;
+}
+
+interface SpriteJsonFile {
+	options: { file: string };
+	sprites: SpriteJson[];
 }
 
 /**
@@ -172,12 +186,12 @@ export async function loadImageFromJson(
 	baseUrl: string,
 	nameOrJson: string,
 	jsonInput = false,
-): Promise<any> {
+): Promise<Record<string, HTMLCanvasElement>> {
 	if (!baseUrl.endsWith("/")) {
 		baseUrl += "/";
 	}
 
-	let json: any;
+	let json: SpriteJsonFile;
 
 	// Handle both inline JSON and file loading cases
 	if (jsonInput) {
@@ -188,7 +202,7 @@ export async function loadImageFromJson(
 		}
 
 		try {
-			json = JSON.parse(nameOrJson);
+			json = JSON.parse(nameOrJson) as SpriteJsonFile;
 		} catch (parseError) {
 			throw new Error(
 				`Failed to parse inline JSON: ${(parseError as SyntaxError).message}`,
@@ -198,7 +212,7 @@ export async function loadImageFromJson(
 		const url = baseUrl + nameOrJson + ".json";
 
 		validateUrl(url);
-		json = await loadJson(url);
+		json = await loadJson<SpriteJsonFile>(url);
 	}
 
 	// Handle JSON parsing errors gracefully
@@ -214,7 +228,7 @@ export async function loadImageFromJson(
 
 	validateUrl(baseUrl + json.options.file);
 	const canvas = await loadCanvas(baseUrl + json.options.file);
-	const sprites: any = {};
+	const sprites: Record<string, HTMLCanvasElement> = {};
 
 	if (!json.sprites || !Array.isArray(json.sprites)) {
 		throw new Error(
@@ -239,7 +253,7 @@ export async function loadImageFromJson(
 		);
 
 		for (const key in sprite) {
-			newSprite.dataset[key] = sprite[key];
+			newSprite.dataset[key] = String(sprite[key]);
 		}
 
 		sprites[sprite.name] = newSprite;
@@ -251,15 +265,15 @@ export async function loadImageFromJson(
 /**
  * Loads multiple resources concurrently with error handling
  */
-export async function loadBunch(bunch: {
-	[key: string]: Promise<any>;
-}): Promise<Record<string, any>> {
-	const output = {};
-	const keys = Object.keys(bunch);
+export async function loadBunch<T extends Record<string, Promise<unknown>>>(
+	bunch: T,
+): Promise<{ [K in keyof T]: Awaited<T[K]> }> {
+	const output = {} as { [K in keyof T]: Awaited<T[K]> };
+	const keys = Object.keys(bunch) as (keyof T)[];
 
-	return Promise.all(Object.values(bunch)).then((datas: any[]) => {
+	return Promise.all(Object.values(bunch)).then(datas => {
 		datas.forEach((data, index) => {
-			output[keys[index]] = data;
+			output[keys[index]] = data as Awaited<T[keyof T]>;
 		});
 		return output;
 	});
