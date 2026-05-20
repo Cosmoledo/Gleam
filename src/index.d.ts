@@ -38,41 +38,6 @@ declare namespace GameLIB {
 		update: (event: MouseEvent) => void;
 	}
 
-	interface MaybeSettings {
-		antialias?: boolean;
-		autoloop?: boolean;
-		backgroundColor?: string;
-		debug?: boolean;
-		doNotClear?: boolean;
-		enableResize?: boolean;
-		font?: string;
-		fps?: number;
-		localStorage?: {
-			isMobile?: boolean;
-		};
-		triedToClose?: () => void;
-		useClearRect?: boolean;
-		warnBeforeCLose?: boolean;
-	}
-
-	interface Settings {
-		antialias: boolean;
-		autoloop: boolean;
-		backgroundColor: string;
-		debug: boolean;
-		doNotClear: boolean;
-		enableResize: boolean;
-		font: string;
-		fps: number;
-		localStorage: {
-			isMobile: boolean;
-			language: string;
-		};
-		triedToClose: () => void;
-		useClearRect: boolean;
-		warnBeforeCLose: boolean;
-	}
-
 	interface PolygonCollisionResult {
 		intersect: boolean;
 		minimumTranslationVector: Vec2;

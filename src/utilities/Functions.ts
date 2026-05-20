@@ -1,6 +1,6 @@
 import { clamp } from "./Number";
 import { randomBeetweenInt } from "./Math";
-import Game from "@/core/Game";
+import Settings from "@/core/Settings";
 
 export const shadeColor = (color: string, percent: number): string => {
 	const f = parseInt(color.slice(1), 16);
@@ -81,7 +81,7 @@ export const changeColor = (
 export const createNewCanvas = (
 	width: number,
 	height: number,
-	antialias: boolean = Game.settings.antialias,
+	antialias: boolean = Settings.antialias,
 ): GameLIB.CanvasConstruct => {
 	const canvas = document.createElement("canvas");
 	canvas.width = width;
@@ -378,4 +378,18 @@ export function setDisplay(element: HTMLElement, active: boolean): void {
 
 export function setVisibility(element: HTMLElement, active: boolean): void {
 	element.style.visibility = active ? "" : "hidden";
+}
+
+export function isMobile(): boolean {
+	const mobileTest1 =
+		/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+			navigator.userAgent,
+		);
+
+	// https://coderwall.com/p/i817wa/one-line-function-to-detect-mobile-devices-with-javascript
+	const mobileTest2 =
+		typeof window.orientation !== "undefined" ||
+		navigator.userAgent.indexOf("IEMobile") !== -1;
+
+	return mobileTest1 || mobileTest2;
 }

@@ -1,4 +1,4 @@
-import Game from "@/core/Game";
+import Settings from "@/core/Settings";
 
 declare global {
 	function _(key: string): string;
@@ -30,7 +30,7 @@ export const prepareLanguage = (languages: any): void => {
 	}
 
 	window._ = (key: string): string => {
-		const language = languages[Game.settings.localStorage.language];
+		const language = languages[Settings.localStorage.language];
 
 		if (language[key] === undefined) {
 			console.error("'" + key + "' has no translation");

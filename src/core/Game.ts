@@ -1,6 +1,7 @@
 import { clamp } from "@/utilities/Number";
 import { EVENT_NAMES, KEYBOARD_KEYS, MOUSE_TYPES } from "@/core/Constants";
 import { getCanvasConstruct } from "@/utilities/Functions";
+import Settings, { type SettingsOverrides } from "@/core/Settings";
 import Sound from "@/core/Sound";
 import Vec2 from "@/core/Vec2";
 
@@ -8,23 +9,6 @@ import "@/prototypes/index";
 import "@/localization/Translator";
 
 export default abstract class Game {
-	public static settings: GameLIB.Settings = {
-		antialias: false,
-		autoloop: true,
-		backgroundColor: "#444",
-		debug: false,
-		doNotClear: false,
-		enableResize: true,
-		font: "Arial",
-		fps: 1 / 60,
-		localStorage: {
-			isMobile: false,
-			language: "",
-		},
-		triedToClose: (): void => void 0,
-		useClearRect: true,
-		warnBeforeCLose: false,
-	};
 	public canvasHolder: Map<string, GameLIB.CanvasHolder> = new Map();
 	public levelTime = 0;
 	public mouse: GameLIB.Mouse = {
@@ -90,77 +74,12 @@ export default abstract class Game {
 	private keys: boolean[] = [];
 	private lastTime = 0;
 	private loopHasStarted = false;
-	private step!: number;
 	private stop = false;
 
-	public get settings(): GameLIB.Settings {
-		return Game.settings;
-	}
+	constructor(settingOverrides: SettingsOverrides = {}) {
+		Settings.init(settingOverrides, this);
 
-	public get isMobile(): boolean {
-		const mobileTest1 =
-			/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-				navigator.userAgent,
-			);
-
-		// https://coderwall.com/p/i817wa/one-line-function-to-detect-mobile-devices-with-javascript
-		const mobileTest2 =
-			typeof window.orientation !== "undefined" ||
-			navigator.userAgent.indexOf("IEMobile") !== -1;
-
-		return mobileTest1 || mobileTest2;
-	}
-
-	constructor(settings?: GameLIB.MaybeSettings) {
-		Object.assign(this.settings, settings);
-
-		if (this.settings.debug) {
-			// debug hook: expose instance on window for devtools inspection
-			(window as any).game = this;
-		}
-
-		if (this.settings.warnBeforeCLose) {
-			window.addEventListener(
-				"beforeunload",
-				(event: BeforeUnloadEvent) => {
-					if (this.settings.triedToClose) {
-						this.settings.triedToClose();
-					}
-
-					event.preventDefault();
-					event.returnValue = true;
-					return "Are you sure?";
-				},
-				false,
-			);
-		}
-
-		this.step = this.settings.fps;
 		history.scrollRestoration = "manual";
-
-		Game.settings.localStorage.isMobile = localStorage.getOrSetDefault(
-			"isMobile",
-			this.isMobile,
-		);
-
-		Game.settings.localStorage.language = localStorage.getOrSetDefault(
-			"language",
-			navigator.language.split("-")[0] || "en",
-		);
-	}
-
-	public changeSetting(key: string, value: string): void {
-		if (
-			Object.prototype.hasOwnProperty.call(
-				Game.settings.localStorage,
-				key,
-			)
-		) {
-			localStorage.setItem(key, value);
-			Game.settings.localStorage[key] = value;
-		} else {
-			Game.settings[key] = value;
-		}
 	}
 
 	public async init(): Promise<void> {
@@ -238,7 +157,7 @@ export default abstract class Game {
 		}
 	}
 
-	public setFontSize(size: number, font: string = this.settings.font): void {
+	public setFontSize(size: number, font: string = Settings.font): void {
 		this.getCanvasContext().font = `${size}px "${font}"`;
 	}
 
@@ -346,7 +265,7 @@ export default abstract class Game {
 			false,
 		);
 
-		if (this.settings.debug) {
+		if (Settings.debug) {
 			this.addEventListener(EVENT_NAMES.KEY, (keys: boolean[]): void => {
 				if (keys[KEYBOARD_KEYS.KEY_ESCAPE]) {
 					this.stopLoop();
@@ -354,7 +273,7 @@ export default abstract class Game {
 			});
 		}
 
-		if (this.settings.enableResize) {
+		if (Settings.enableResize) {
 			this.addEventListener(EVENT_NAMES.AFTER_RESIZE, (): void =>
 				this.resize(),
 			);
@@ -385,7 +304,7 @@ export default abstract class Game {
 
 		this.dispatchEvent(EVENT_NAMES.AFTER_RESIZE);
 
-		if (this.settings.autoloop) {
+		if (Settings.autoloop) {
 			this.looper();
 		}
 	}
@@ -485,9 +404,9 @@ export default abstract class Game {
 			this.levelTime += fullTime - this.lastTime;
 			this.lastTime = fullTime;
 
-			while (this.accumulator > this.step) {
-				this.preUpdate(this.step);
-				this.accumulator -= this.step;
+			while (this.accumulator > Settings.fps) {
+				this.preUpdate(Settings.fps);
+				this.accumulator -= Settings.fps;
 			}
 			this.preDraw(context);
 
@@ -499,8 +418,8 @@ export default abstract class Game {
 	}
 
 	private preDraw(context: CanvasRenderingContext2D): void {
-		if (!this.settings.doNotClear) {
-			if (this.settings.useClearRect) {
+		if (!Settings.doNotClear) {
+			if (Settings.useClearRect) {
 				context.clearRect(
 					0,
 					0,
@@ -508,7 +427,7 @@ export default abstract class Game {
 					this.getCanvas().height,
 				);
 			} else {
-				context.fillStyle = this.settings.backgroundColor;
+				context.fillStyle = Settings.backgroundColor;
 				context.fillRect(
 					0,
 					0,

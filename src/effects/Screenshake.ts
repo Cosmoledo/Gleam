@@ -1,5 +1,5 @@
 import { randomBeetweenFloat } from "@/utilities/Math";
-import Game from "@/core/Game";
+import Settings from "@/core/Settings";
 
 interface ShakeType {
 	step: number;
@@ -40,7 +40,7 @@ export default class Screenshake {
 	}
 
 	public shake(shakeType: ShakeType = SHAKE_TYPES.NORMAL): void {
-		if (Game.settings.localStorage.isMobile) {
+		if (Settings.localStorage.isMobile) {
 			return;
 		}
 
