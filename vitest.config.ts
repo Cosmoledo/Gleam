@@ -12,7 +12,7 @@ export default defineConfig({
 		coverage: {
 			enabled: true,
 			include: ["src/**/*"],
-			reporter: ["html"],
+			reporter: ["html", "json"],
 			reportOnFailure: true,
 		},
 		reporters: ["dot"],

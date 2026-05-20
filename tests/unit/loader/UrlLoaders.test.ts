@@ -128,6 +128,27 @@ describe("safeLoad", () => {
 		expect(timerSpy).toHaveBeenCalled();
 		timerSpy.mockRestore();
 	});
+
+	it("formats non-Error rejections through String()", async () => {
+		// Hits the `error?.message || String(error)` fallback branch: a
+		// raw string has no .message, so the catch handler logs via String().
+		const errorSpy = vi
+			.spyOn(console, "error")
+			.mockImplementation(() => {});
+
+		await expect(
+			safeLoad(
+				Promise.reject("plain string error"),
+				"http://test.com",
+				"test",
+			),
+		).rejects.toBe("plain string error");
+
+		expect(errorSpy).toHaveBeenCalledWith(
+			expect.stringContaining("plain string error"),
+		);
+		errorSpy.mockRestore();
+	});
 });
 
 // ==================== loadText ====================

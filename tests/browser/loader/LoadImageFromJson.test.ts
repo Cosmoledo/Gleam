@@ -150,4 +150,14 @@ describe("loadImageFromJson — file JSON", () => {
 			loadImageFromJson(baseUrl, "__nonexistent__"),
 		).rejects.toThrow("HTTP 404");
 	});
+
+	it("error message names the JSON file when options.file is missing", async () => {
+		// Hits the `${baseUrl}${nameOrJson}.json` source-name branch — the
+		// inline-JSON path uses the literal "inline JSON" source instead.
+		await expect(
+			loadImageFromJson(baseUrl, "sprites-no-options"),
+		).rejects.toThrow(
+			`Source: ${baseUrl}sprites-no-options.json`,
+		);
+	});
 });
