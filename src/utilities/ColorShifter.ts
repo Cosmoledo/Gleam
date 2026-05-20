@@ -143,7 +143,8 @@ class Solver {
 			Math.abs(color.r - this.target.r) +
 			Math.abs(color.g - this.target.g) +
 			Math.abs(color.b - this.target.b) +
-			Math.abs(colorHSL.h - this.targetHSL.h) +
+			// h is in 0-360 (CSS), the other terms are 0-100 / 0-255 — scale to keep loss balance
+			Math.abs(colorHSL.h - this.targetHSL.h) / 3.6 +
 			Math.abs(colorHSL.s - this.targetHSL.s) +
 			Math.abs(colorHSL.l - this.targetHSL.l)
 		);

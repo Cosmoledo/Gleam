@@ -1,4 +1,5 @@
 import { clamp } from "@/utilities/Number";
+import { hueToRGB } from "./Functions";
 
 export class Color {
 	public r!: number;
@@ -7,46 +8,32 @@ export class Color {
 	public alpha: number = 1;
 
 	public static fromHex(hex: string): Color {
-		const cleanHex = hex.replace("#", "").toUpperCase();
+		let cleanHex = hex.replace("#", "").toUpperCase();
 
 		if (cleanHex.length === 3) {
-			const expanded =
-				cleanHex[0] +
-				cleanHex[0] +
-				cleanHex[1] +
-				cleanHex[1] +
-				cleanHex[2] +
-				cleanHex[2];
-
-			return new Color(
-				parseInt(expanded[0], 16),
-				parseInt(expanded[1], 16),
-				parseInt(expanded[2], 16),
-			);
+			cleanHex = cleanHex
+				.split("")
+				.map(c => c + c)
+				.join("");
 		}
 
-		if (cleanHex.length === 6) {
-			const [, r, g, b] = cleanHex.match(/.{1,2}/g)!;
-
-			return new Color(parseInt(r, 16), parseInt(g, 16), parseInt(b, 16));
+		if (cleanHex.length !== 6 && cleanHex.length !== 8) {
+			throw new Error(`Invalid hex color: ${hex}`);
 		}
+
+		const r = parseInt(cleanHex.slice(0, 2), 16);
+		const g = parseInt(cleanHex.slice(2, 4), 16);
+		const b = parseInt(cleanHex.slice(4, 6), 16);
 
 		if (cleanHex.length === 8) {
-			const [, r, g, b, a] = cleanHex.match(/.{1,2}/g)!;
-
-			return new Color(
-				parseInt(r, 16),
-				parseInt(g, 16),
-				parseInt(b, 16),
-				parseInt(a, 16) / 255,
-			);
+			return new Color(r, g, b, parseInt(cleanHex.slice(6, 8), 16) / 255);
 		}
 
-		throw new Error(`Invalid hex color: ${hex}`);
+		return new Color(r, g, b);
 	}
 
 	public static fromHSL(h: number, s: number, l: number): Color {
-		const hNorm = h / 100;
+		const hNorm = h / 360;
 		const sNorm = s / 100;
 		const lNorm = l / 100;
 
@@ -80,39 +67,40 @@ export class Color {
 		this.r = Math.round(clamp(r, 0, 255));
 		this.g = Math.round(clamp(g, 0, 255));
 		this.b = Math.round(clamp(b, 0, 255));
-		this.alpha = clamp(a ?? 1, 0, 1);
-	}
 
-	public toHex(): string {
-		return `#${this.r.toString(16).padStart(2, "0")}${this.g.toString(16).padStart(2, "0")}${this.b.toString(16).padStart(2, "0")}`;
+		if (a !== undefined) {
+			this.alpha = clamp(a, 0, 1);
+		}
 	}
 
 	public invert(factor: number = 1): void {
-		this.r = clamp((255 - this.r) * factor, 0, 255);
-		this.g = clamp((255 - this.g) * factor, 0, 255);
-		this.b = clamp((255 - this.b) * factor, 0, 255);
+		this.set(
+			(255 - this.r) * factor,
+			(255 - this.g) * factor,
+			(255 - this.b) * factor,
+		);
 	}
 
-	public sepia(value: number = 1): void {
-		const m1 = 0.393 + 0.607 * (1 - value);
-		const m2 = 0.769 - 0.769 * (1 - value);
-		const m3 = 0.189 - 0.189 * (1 - value);
-		const m4 = 0.349 - 0.349 * (1 - value);
-		const m5 = 0.686 + 0.314 * (1 - value);
-		const m6 = 0.168 - 0.168 * (1 - value);
-		const m7 = 0.272 - 0.272 * (1 - value);
-		const m8 = 0.534 - 0.534 * (1 - value);
-		const m9 = 0.131 + 0.869 * (1 - value);
+	public brightness(factor: number): void {
+		this.set(
+			this.r * factor,
+			this.g * factor,
+			this.b * factor,
+			this.alpha * factor,
+		);
+	}
 
-		this.r = Math.round(
-			clamp(this.r * m1 + this.g * m2 + this.b * m3, 0, 255),
-		);
-		this.g = Math.round(
-			clamp(this.r * m4 + this.g * m5 + this.b * m6, 0, 255),
-		);
-		this.b = Math.round(
-			clamp(this.r * m7 + this.g * m8 + this.b * m9, 0, 255),
-		);
+	public contrast(factor: number): void {
+		if (this.alpha === 1) {
+			const midtone = 128;
+			this.set(
+				midtone + (this.r - midtone) * factor,
+				midtone + (this.g - midtone) * factor,
+				midtone + (this.b - midtone) * factor,
+			);
+		} else {
+			this.set(this.r * factor, this.g * factor, this.b * factor);
+		}
 	}
 
 	public saturate(value: number = 1): void {
@@ -126,14 +114,10 @@ export class Color {
 		const m8 = 0.715 - 0.715 * value;
 		const m9 = 0.072 + 0.928 * value;
 
-		this.r = Math.round(
-			clamp(this.r * m1 + this.g * m2 + this.b * m3, 0, 255),
-		);
-		this.g = Math.round(
-			clamp(this.r * m4 + this.g * m5 + this.b * m6, 0, 255),
-		);
-		this.b = Math.round(
-			clamp(this.r * m7 + this.g * m8 + this.b * m9, 0, 255),
+		this.set(
+			this.r * m1 + this.g * m2 + this.b * m3,
+			this.r * m4 + this.g * m5 + this.b * m6,
+			this.r * m7 + this.g * m8 + this.b * m9,
 		);
 	}
 
@@ -148,14 +132,28 @@ export class Color {
 		const m8 = 0.7152 - 0.7152 * (1 - value);
 		const m9 = 0.0722 + 0.9278 * (1 - value);
 
-		this.r = Math.round(
-			clamp(this.r * m1 + this.g * m2 + this.b * m3, 0, 255),
+		this.set(
+			this.r * m1 + this.g * m2 + this.b * m3,
+			this.r * m4 + this.g * m5 + this.b * m6,
+			this.r * m7 + this.g * m8 + this.b * m9,
 		);
-		this.g = Math.round(
-			clamp(this.r * m4 + this.g * m5 + this.b * m6, 0, 255),
-		);
-		this.b = Math.round(
-			clamp(this.r * m7 + this.g * m8 + this.b * m9, 0, 255),
+	}
+
+	public sepia(value: number = 1): void {
+		const m1 = 0.393 + 0.607 * (1 - value);
+		const m2 = 0.769 - 0.769 * (1 - value);
+		const m3 = 0.189 - 0.189 * (1 - value);
+		const m4 = 0.349 - 0.349 * (1 - value);
+		const m5 = 0.686 + 0.314 * (1 - value);
+		const m6 = 0.168 - 0.168 * (1 - value);
+		const m7 = 0.272 - 0.272 * (1 - value);
+		const m8 = 0.534 - 0.534 * (1 - value);
+		const m9 = 0.131 + 0.869 * (1 - value);
+
+		this.set(
+			this.r * m1 + this.g * m2 + this.b * m3,
+			this.r * m4 + this.g * m5 + this.b * m6,
+			this.r * m7 + this.g * m8 + this.b * m9,
 		);
 	}
 
@@ -168,45 +166,11 @@ export class Color {
 		const gNorm = this.g / 255;
 		const bNorm = this.b / 255;
 
-		const rPrime = rNorm * cosR + gNorm * sinR + bNorm * -sinR;
-		const gPrime = rNorm * -sinR + gNorm * cosR + bNorm * sinR;
-		const bPrime = rNorm * sinR + gNorm * -sinR + bNorm * (cosR - sinR);
-
-		this.r = Math.round(rPrime * 255);
-		this.g = Math.round(gPrime * 255);
-		this.b = Math.round(bPrime * 255);
-	}
-
-	public brightness(factor: number): void {
-		this.r = Math.round(this.r * factor);
-		this.g = Math.round(this.g * factor);
-		this.b = Math.round(this.b * factor);
-		this.alpha *= factor;
-	}
-
-	public contrast(factor: number): void {
-		if (this.alpha === 1) {
-			const midtone = 128;
-			this.r = clamp(
-				Math.round(midtone + (this.r - midtone) * factor),
-				0,
-				255,
-			);
-			this.g = clamp(
-				Math.round(midtone + (this.g - midtone) * factor),
-				0,
-				255,
-			);
-			this.b = clamp(
-				Math.round(midtone + (this.b - midtone) * factor),
-				0,
-				255,
-			);
-		} else {
-			this.r *= factor;
-			this.g *= factor;
-			this.b *= factor;
-		}
+		this.set(
+			(rNorm * cosR + gNorm * sinR + bNorm * -sinR) * 255,
+			(rNorm * -sinR + gNorm * cosR + bNorm * sinR) * 255,
+			(rNorm * sinR + gNorm * -sinR + bNorm * (cosR - sinR)) * 255,
+		);
 	}
 
 	public hsl(): { h: number; s: number; l: number } {
@@ -242,7 +206,29 @@ export class Color {
 			h /= 6;
 		}
 
-		return { h: h * 100, s: s * 100, l: l * 100 };
+		return { h: h * 360, s: s * 100, l: l * 100 };
+	}
+
+	public toHex(): string {
+		const rgb = `#${this.r.toString(16).padStart(2, "0")}${this.g.toString(16).padStart(2, "0")}${this.b.toString(16).padStart(2, "0")}`;
+
+		if (this.alpha === 1) {
+			return rgb;
+		}
+
+		const a = Math.round(this.alpha * 255);
+		return `${rgb}${a.toString(16).padStart(2, "0")}`;
+	}
+
+	public toHSL(): string {
+		const { h, s, l } = this.hsl();
+		const cssH = Math.round(h);
+		const cssS = Math.round(s);
+		const cssL = Math.round(l);
+
+		return this.alpha === 1
+			? `hsl(${cssH}, ${cssS}%, ${cssL}%)`
+			: `hsla(${cssH}, ${cssS}%, ${cssL}%, ${this.alpha.toFixed(2)})`;
 	}
 
 	public toCSS(): string {
@@ -254,28 +240,4 @@ export class Color {
 	public clone(): Color {
 		return new Color(this.r, this.g, this.b, this.alpha);
 	}
-}
-
-export function hueToRGB(p: number, q: number, t: number): number {
-	if (t < 0) {
-		t += 1;
-	}
-
-	if (t > 1) {
-		t -= 1;
-	}
-
-	if (t < 1 / 6) {
-		return p + (q - p) * 6 * t;
-	}
-
-	if (t < 1 / 2) {
-		return q;
-	}
-
-	if (t < 2 / 3) {
-		return p + (q - p) * (2 / 3 - t) * 6;
-	}
-
-	return p;
 }
