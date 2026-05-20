@@ -1,5 +1,4 @@
 import { clamp } from "@/utilities/Number";
-import { isInteger } from "@/utilities/Math";
 import Rect from "./Rect";
 
 /**
@@ -134,7 +133,7 @@ export default class Vec2 {
 	}
 
 	public isValid(): boolean {
-		return isInteger(this.x) && isInteger(this.y);
+		return Number.isFinite(this.x) && Number.isFinite(this.y);
 	}
 
 	public map(callback: (value: number, index: number) => number): Vec2 {

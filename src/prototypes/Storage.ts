@@ -1,4 +1,4 @@
-import { isInteger } from "@/utilities/Math";
+import { isNumeric } from "@/utilities/Math";
 
 Storage.prototype.getOrSetDefault = function getOrSetDefault<T>(
 	key: string,
@@ -16,7 +16,7 @@ Storage.prototype.getOrSetDefault = function getOrSetDefault<T>(
 			return (content === "true") as T;
 
 		case "number":
-			if (isInteger(content)) {
+			if (isNumeric(content)) {
 				return parseInt(content) as T;
 			}
 

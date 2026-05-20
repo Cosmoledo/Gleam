@@ -1,8 +1,10 @@
 /**
- * Check if a value is an integer
+ * Check if a value parses as a finite number.
+ * Accepts numeric strings ("3", "3.5") and rejects "3abc", "", NaN, Infinity.
  */
-export function isInteger(value: any): boolean {
-	return !isNaN(value) && !isNaN(parseFloat(value));
+export function isNumeric(value: unknown): boolean {
+	const n = parseFloat(value as string);
+	return Number.isFinite(n) && String(n) === String(value).trim();
 }
 
 /**
@@ -93,7 +95,7 @@ factorialsCache[0] = 1;
 export function getFactorial(n: number): number {
 	const intN = Math.floor(n);
 
-	if (intN < 0 || !isInteger(intN)) {
+	if (intN < 0 || !Number.isFinite(intN)) {
 		throw new Error("getFactorial requires non-negative integer");
 	}
 

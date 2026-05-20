@@ -4,7 +4,7 @@ import {
 	createNewCanvas,
 	convert1DTo2D,
 } from "@/utilities/Functions";
-import { isInteger } from "@/utilities/Math";
+import { isNumeric } from "@/utilities/Math";
 import Polygon, { PolygonCollision } from "@/core/Polygon";
 import Rect from "@/core/Rect";
 import Vec2 from "@/core/Vec2";
@@ -183,7 +183,7 @@ function xmlToJson(xml: any): any {
 			obj["@attributes"] = {};
 			for (let j = 0; j < xml.attributes.length; j++) {
 				const attribute = xml.attributes.item(j);
-				obj["@attributes"][attribute.nodeName] = isInteger(
+				obj["@attributes"][attribute.nodeName] = isNumeric(
 					attribute.nodeValue,
 				)
 					? Math.round(parseFloat(attribute.nodeValue))
