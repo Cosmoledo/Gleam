@@ -115,6 +115,7 @@ export default abstract class Game {
 		Object.assign(this.settings, settings);
 
 		if (this.settings.debug) {
+			// debug hook: expose instance on window for devtools inspection
 			(window as any).game = this;
 		}
 
