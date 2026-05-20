@@ -1,7 +1,4 @@
-import {
-	loadCanvas,
-	loadText,
-} from "@/loader/UrlLoaders";
+import { loadCanvas, loadText } from "@/loader/UrlLoaders";
 import {
 	SpriteSheetHandler,
 	createNewCanvas,

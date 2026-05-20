@@ -192,7 +192,7 @@ export default class Vec2 {
 	}
 
 	private _calculate(
-		operation: typeof Operation[keyof typeof Operation],
+		operation: (typeof Operation)[keyof typeof Operation],
 		x: GameLIB.Vector2 | number,
 		y?: number,
 	): Vec2 {
