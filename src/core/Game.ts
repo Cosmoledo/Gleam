@@ -9,7 +9,7 @@ import "@/localization/Translator";
 
 export default abstract class Game {
 	public static settings: GameLIB.Settings = {
-		antialis: false,
+		antialias: false,
 		autoloop: true,
 		backgroundColor: "#444",
 		debug: false,

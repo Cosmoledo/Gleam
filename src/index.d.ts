@@ -39,7 +39,7 @@ declare namespace GameLIB {
 	}
 
 	interface MaybeSettings {
-		antialis?: boolean;
+		antialias?: boolean;
 		autoloop?: boolean;
 		backgroundColor?: string;
 		debug?: boolean;
@@ -56,7 +56,7 @@ declare namespace GameLIB {
 	}
 
 	interface Settings {
-		antialis: boolean;
+		antialias: boolean;
 		autoloop: boolean;
 		backgroundColor: string;
 		debug: boolean;

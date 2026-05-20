@@ -81,7 +81,7 @@ export const changeColor = (
 export const createNewCanvas = (
 	width: number,
 	height: number,
-	antialias: boolean = Game.settings.antialis,
+	antialias: boolean = Game.settings.antialias,
 ): GameLIB.CanvasConstruct => {
 	const canvas = document.createElement("canvas");
 	canvas.width = width;
