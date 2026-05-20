@@ -327,8 +327,15 @@ export const doWhileClicked = (
 	element.addEventListener("mouseout", () => clearInterval(timeout), false);
 };
 
-export function getElement(query: string, parent: any = document): HTMLElement {
-	return parent.querySelector(query)!;
+export function getElement<T extends Element = HTMLElement>(
+	query: string,
+	parent: ParentNode = document,
+): T {
+	const el = parent.querySelector<T>(query);
+	if (!el) {
+		throw new Error(`Element not found: ${query}`);
+	}
+	return el;
 }
 
 export async function waitForEvent<K extends keyof HTMLElementEventMap>(
