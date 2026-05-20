@@ -3,6 +3,11 @@ import { randomItem } from "@/utilities/Functions";
 import { remove } from "@/utilities/Array";
 import BezierEasing from "bezier-easing";
 
+type BezierPoints = readonly [number, number, number, number];
+
+const EASE_IN: BezierPoints = [0.42, 0, 1, 1];
+const EASE_OUT: BezierPoints = [0, 0, 0.58, 1];
+
 export interface RawRegisterData {
 	data: string;
 	name: string;
@@ -70,11 +75,11 @@ export default class Sound {
 		name: string = "",
 		fadeTime: number = 1000,
 		timingFunctions: {
-			cur: [number, number, number, number];
-			next: [number, number, number, number];
+			cur: BezierPoints;
+			next: BezierPoints;
 		} = {
-			cur: [0.42, 0, 1, 1],
-			next: [0, 0, 0.58, 1],
+			cur: EASE_IN,
+			next: EASE_OUT,
 		},
 	): void {
 		if (!this.enabled) {

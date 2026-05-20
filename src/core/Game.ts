@@ -90,7 +90,7 @@ export default abstract class Game {
 	private keys: boolean[] = [];
 	private lastTime = 0;
 	private loopHasStarted = false;
-	private step: number = 1 / 60;
+	private step!: number;
 	private stop = false;
 
 	public get settings(): GameLIB.Settings {
