@@ -181,7 +181,6 @@ interface HTMLCanvasElement {
 	flipX(offsetX?: number): HTMLCanvasElement;
 	flipY(offsetY?: number): HTMLCanvasElement;
 	getRGB(x: number, y: number, output?: string): any;
-	getUsedColors(): [number, string][];
 	replaceColors(replacements: Record<string, string>): HTMLCanvasElement;
 	hasAnyColor(): boolean;
 	resize(size: number, isWidth?: boolean): HTMLCanvasElement;

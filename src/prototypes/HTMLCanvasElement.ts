@@ -58,34 +58,6 @@ HTMLCanvasElement.prototype.getRGB = function (
 	}
 };
 
-HTMLCanvasElement.prototype.getUsedColors = function (): [number, string][] {
-	const allColors: any = {};
-
-	const data = (
-		this.getContext("2d") as CanvasRenderingContext2D
-	).getImageData(0, 0, this.width, this.height).data;
-
-	for (let i = 0; i < data.length; i += 4) {
-		if (data[i + 0] && data[i + 1] && data[i + 2] && data[i + 3]) {
-			const hex = rgb2hex(data[i], data[i + 1], data[i + 2]);
-
-			if (!allColors[hex]) {
-				allColors[hex] = 0;
-			}
-			allColors[hex]++;
-		}
-	}
-
-	const allColorArray: [number, string][] = [];
-	for (const key in allColors) {
-		allColorArray.push([allColors[key], key]);
-	}
-
-	allColorArray.sort((a, b) => b[0] - a[0]);
-
-	return allColorArray;
-};
-
 HTMLCanvasElement.prototype.replaceColors = function (
 	replacements: Record<string, string>,
 ): HTMLCanvasElement {
