@@ -11,24 +11,37 @@ export default class Rect {
 	}
 
 	public static fromPolygon(polygon: Polygon): Rect {
-		const x = polygon.points.map((vec: Vec2) => vec.x);
-		const y = polygon.points.map((vec: Vec2) => vec.y);
+		let minX = Infinity;
+		let minY = Infinity;
+		let maxX = -Infinity;
+		let maxY = -Infinity;
 
-		const rect = new Rect(Math.min(...x), Math.min(...y));
+		polygon.points.forEach(point => {
+			if (point.x < minX) {
+				minX = point.x;
+			}
 
-		rect.w = Math.max(...x) - rect.x;
-		rect.h = Math.max(...y) - rect.y;
+			if (point.x > maxX) {
+				maxX = point.x;
+			}
 
-		rect.update();
+			if (point.y < minY) {
+				minY = point.y;
+			}
 
-		return rect;
+			if (point.y > maxY) {
+				maxY = point.y;
+			}
+		});
+
+		return new Rect(minX, minY, maxX - minX, maxY - minY);
 	}
 
 	public h = 0;
 	public sides!: {
 		bottom: number;
-		center: Vec2;
 		centerPos: Vec2;
+		halfSize: Vec2;
 		right: number;
 	};
 	public w = 0;
@@ -41,13 +54,13 @@ export default class Rect {
 
 	public set(
 		x: GameLIB.Vector4 | GameLIB.Vector2 | number = 0,
-		y?: number,
+		y: number = 0,
 		w?: number,
 		h?: number,
 	): Rect {
 		if (typeof x === "number") {
 			this.x = x;
-			this.y = y!;
+			this.y = y;
 		} else {
 			if ("w" in x) {
 				this.w = x.w;
@@ -71,13 +84,11 @@ export default class Rect {
 	}
 
 	public inflate(delta: number): Rect {
-		this.update();
-
 		return new Rect(
 			this.x - delta,
 			this.y - delta,
-			this.sides.right + delta,
-			this.sides.bottom + delta,
+			this.w + 2 * delta,
+			this.h + 2 * delta,
 		);
 	}
 
@@ -90,27 +101,27 @@ export default class Rect {
 	public update(): void {
 		this.sides = {
 			bottom: this.y + this.h,
-			center: new Vec2(this.w * 0.5, this.h * 0.5),
 			centerPos: new Vec2(this.x + this.w * 0.5, this.y + this.h * 0.5),
+			halfSize: new Vec2(this.w * 0.5, this.h * 0.5),
 			right: this.x + this.w,
 		};
 	}
 
 	public collide(rect: Rect): boolean {
 		return (
-			this.x <= rect.sides.right &&
-			this.sides.right >= rect.x &&
-			this.y <= rect.sides.bottom &&
-			this.sides.bottom >= rect.y
+			this.x <= rect.x + rect.w &&
+			this.x + this.w >= rect.x &&
+			this.y <= rect.y + rect.h &&
+			this.y + this.h >= rect.y
 		);
 	}
 
 	public collideFull(rect: Rect): boolean {
 		return (
-			rect.sides.right < this.sides.right &&
+			rect.x + rect.w < this.x + this.w &&
 			rect.x > this.x &&
 			rect.y > this.y &&
-			rect.sides.bottom < this.sides.bottom
+			rect.y + rect.h < this.y + this.h
 		);
 	}
 
@@ -123,14 +134,16 @@ export default class Rect {
 		);
 	}
 
-	public collideSide(rect: Rect): string {
+	public collideSide(
+		rect: Rect,
+	): "none" | "top" | "bottom" | "left" | "right" {
 		const dx = this.x + this.w * 0.5 - (rect.x + rect.w * 0.5);
 		const dy = this.y + this.h * 0.5 - (rect.y + rect.h * 0.5);
 		const width = (this.w + rect.w) * 0.5;
 		const height = (this.h + rect.h) * 0.5;
 		const crossWidth = width * dy;
 		const crossHeight = height * dx;
-		let collision = "none";
+		let collision: "none" | "top" | "bottom" | "left" | "right" = "none";
 
 		if (Math.abs(dx) <= width && Math.abs(dy) <= height) {
 			if (crossWidth > crossHeight) {
@@ -143,11 +156,11 @@ export default class Rect {
 		return collision;
 	}
 
-	public first(): Vec2 {
+	public pos(): Vec2 {
 		return new Vec2(this.x, this.y);
 	}
 
-	public last(): Vec2 {
+	public size(): Vec2 {
 		return new Vec2(this.w, this.h);
 	}
 
