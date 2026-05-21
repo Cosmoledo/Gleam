@@ -1,4 +1,4 @@
-import { createNewCanvas } from "@/utilities/Functions";
+import { createNewCanvas } from "@/utilities/Canvas";
 import { randomBeetweenFloat } from "@/utilities/Math";
 import Vec2 from "@/core/Vec2";
 

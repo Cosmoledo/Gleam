@@ -1,5 +1,5 @@
 import { clamp } from "@/utilities/Number";
-import { hueToRGB } from "@/utilities/Functions";
+import { hueToRGB } from "@/utilities/Color";
 
 export class Color {
 	public r!: number;

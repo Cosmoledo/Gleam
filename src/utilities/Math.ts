@@ -1,3 +1,5 @@
+import { wrapValue } from "./Number";
+
 /**
  * Check if a value parses as a finite number.
  * Accepts numeric strings ("3", "3.5") and rejects "3abc", "", NaN, Infinity.
@@ -68,6 +70,13 @@ export function toHHMMSS(time: number): string {
  */
 export function toDegrees(radians: number): number {
 	return (radians * 180) / Math.PI;
+}
+
+/**
+ * Wrap an angle in radians into `[-PI, PI)`.
+ */
+export function wrapRadians(angle: number): number {
+	return wrapValue(angle, -Math.PI, Math.PI, Math.PI * 2);
 }
 
 /**

@@ -1,4 +1,4 @@
-import { createNewCanvas } from "@/utilities/Functions";
+import { createNewCanvas } from "@/utilities/Canvas";
 
 const DEFAULT_TIMEOUT_MS = 10_000;
 

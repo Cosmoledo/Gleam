@@ -1,4 +1,4 @@
-import { createNewCanvas } from "@/utilities/Functions";
+import { createNewCanvas } from "@/utilities/Canvas";
 import Rect from "@/core/Rect";
 
 CanvasRenderingContext2D.prototype.drawBar = function (

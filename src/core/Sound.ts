@@ -1,5 +1,5 @@
 import { clamp } from "@/utilities/Number";
-import { randomItem } from "@/utilities/Functions";
+import { randomItem } from "@/utilities/Array";
 import { remove } from "@/utilities/Array";
 import BezierEasing from "bezier-easing";
 

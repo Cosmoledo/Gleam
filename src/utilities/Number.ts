@@ -50,6 +50,27 @@ export function toDotted(value: number): string {
 }
 
 /**
+ * Wrap `value` so it stays in `[min, max)`, repeatedly adding/subtracting `adjustBy`
+ * (defaults to `max`). Useful for cyclic ranges like angles.
+ */
+export function wrapValue(
+	value: number,
+	min: number,
+	max: number,
+	adjustBy: number = max,
+): number {
+	while (value < min) {
+		value += adjustBy;
+	}
+
+	while (value >= max) {
+		value -= adjustBy;
+	}
+
+	return value;
+}
+
+/**
  * Convert number to Roman numeral
  */
 export function toRoman(value: number): string {

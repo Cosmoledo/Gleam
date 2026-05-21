@@ -1,0 +1,164 @@
+import Settings from "@/core/Settings";
+
+/**
+ * Create a new `<canvas>` of the given size with its 2D context, with all
+ * vendor-prefixed `imageSmoothingEnabled` flags set. Antialiasing defaults to `Settings.antialias`.
+ */
+export function createNewCanvas(
+	width: number,
+	height: number,
+	antialias: boolean = Settings.antialias,
+): GameLIB.CanvasConstruct {
+	const canvas = document.createElement("canvas");
+	canvas.width = width;
+	canvas.height = height;
+
+	const context = canvas.getContext("2d") as CanvasRenderingContext2D;
+	context.imageSmoothingEnabled = antialias; // Standard
+	(context as any).oImageSmoothingEnabled = antialias; // Opera
+	(context as any).webkitImageSmoothingEnabled = antialias; // Safari
+	(context as any).msImageSmoothingEnabled = antialias; // IE
+
+	return {
+		canvas,
+		context,
+	};
+}
+
+/**
+ * Look up an existing canvas by CSS selector and return it with its 2D context.
+ */
+export function getCanvasConstruct(selector: string): GameLIB.CanvasConstruct {
+	const canvas = document.querySelector(selector) as HTMLCanvasElement;
+	const context = canvas.getContext("2d") as CanvasRenderingContext2D;
+
+	return {
+		canvas,
+		context,
+	};
+}
+
+/**
+ * Apply a CSS `filter` string to an image and return the result as a new canvas.
+ */
+export function applyFilterOnCanvas(
+	image: HTMLCanvasElement,
+	filter: string,
+	width: number = image.width,
+	height: number = image.height,
+): HTMLCanvasElement {
+	const cc = createNewCanvas(width, height);
+
+	cc.context.filter = filter;
+	cc.context.drawImage(image, 0, 0);
+
+	return cc.canvas;
+}
+
+/**
+ * Rotate the hue of an image by `hue` degrees via CSS `hue-rotate(...)` filter.
+ */
+export function rotateHue(
+	image: HTMLCanvasElement,
+	hue: number,
+	width?: number,
+	height?: number,
+): HTMLCanvasElement {
+	return applyFilterOnCanvas(
+		image,
+		"hue-rotate(" + hue + "deg)",
+		width,
+		height,
+	);
+}
+
+/**
+ * Recolor an opaque canvas in place using composite operations,
+ * preserving the alpha mask of the source image.
+ * https://stackoverflow.com/a/45201094
+ */
+export function changeColor(
+	context: CanvasRenderingContext2D,
+	oriImg: HTMLCanvasElement,
+	newColor: string,
+): void {
+	context.clearRect(0, 0, oriImg.width, oriImg.height);
+	context.globalCompositeOperation = "source-over";
+	context.drawImage(oriImg, 0, 0, oriImg.width, oriImg.height);
+
+	context.globalCompositeOperation = "color";
+	context.fillStyle = newColor;
+	context.fillRect(0, 0, oriImg.width, oriImg.height);
+
+	context.globalCompositeOperation = "destination-in";
+	context.drawImage(oriImg, 0, 0, oriImg.width, oriImg.height);
+
+	context.globalCompositeOperation = "source-over";
+}
+
+/**
+ * Split a sprite-sheet image into individual sprite canvases laid out as `elementsX × elementsY`.
+ */
+export function SpriteSheetHandler(
+	img: HTMLCanvasElement,
+	elementsX: number,
+	elementsY: number,
+): HTMLCanvasElement[] {
+	const sprites: HTMLCanvasElement[] = [];
+
+	const sizeX = img.width / elementsX;
+	const sizeY = img.height / elementsY;
+
+	for (let y = 0; y < img.height; y += sizeY) {
+		for (let x = 0; x < img.width; x += sizeX) {
+			sprites.push(img.subImage(x, y, sizeX, sizeY));
+		}
+	}
+
+	return sprites;
+}
+
+/**
+ * Count occurrences of each color in an image, keyed by `#rrggbb`.
+ * Optionally scale counts by `pixelAmount` and drop entries below/above thresholds
+ * (`removeLowerThan` / `removeHigherThan`, both ignored when `0`).
+ */
+export function getUsedColors(
+	image: HTMLCanvasElement,
+	pixelAmount = 1,
+	removeLowerThan = 0,
+	removeHigherThan = 0,
+): Map<string, number> {
+	const data = (
+		image.getContext("2d") as CanvasRenderingContext2D
+	).getImageData(0, 0, image.width, image.height).data;
+	const counts = new Map<number, number>();
+
+	for (let i = 0; i < data.length; i += 4) {
+		const key = (data[i] << 16) | (data[i + 1] << 8) | data[i + 2];
+		counts.set(key, (counts.get(key) ?? 0) + 1);
+	}
+
+	if (pixelAmount < 1 || removeLowerThan > 0 || removeHigherThan > 0) {
+		counts.forEach((value, key) => {
+			const newAmount = (value * pixelAmount) | 0;
+
+			if (
+				newAmount === 0 ||
+				(removeLowerThan > 0 && newAmount < removeLowerThan) ||
+				(removeHigherThan > 0 && newAmount > removeHigherThan)
+			) {
+				counts.delete(key);
+			} else {
+				counts.set(key, newAmount);
+			}
+		});
+	}
+
+	const result = new Map<string, number>();
+	counts.forEach((count, rgbInt) => {
+		result.set("#" + (0x1000000 + rgbInt).toString(16).slice(1), count);
+	});
+
+	return result;
+}

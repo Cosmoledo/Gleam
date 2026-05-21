@@ -1,9 +1,6 @@
 import { loadCanvas, loadText } from "@/loader/UrlLoaders";
-import {
-	SpriteSheetHandler,
-	createNewCanvas,
-	convert1DTo2D,
-} from "@/utilities/Functions";
+import { SpriteSheetHandler, createNewCanvas } from "@/utilities/Canvas";
+import { convert1DTo2D } from "@/utilities/Grid";
 import { isNumeric } from "@/utilities/Math";
 import Polygon from "@/core/Polygon";
 import Rect from "@/core/Rect";

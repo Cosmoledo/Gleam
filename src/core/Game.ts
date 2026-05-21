@@ -1,6 +1,6 @@
 import { clamp } from "@/utilities/Number";
 import { EVENT_NAMES, KEYBOARD_KEYS, MOUSE_TYPES } from "@/core/Constants";
-import { getCanvasConstruct } from "@/utilities/Functions";
+import { getCanvasConstruct } from "@/utilities/Canvas";
 import Settings, { type SettingsOverrides } from "@/core/Settings";
 import Sound from "@/core/Sound";
 import Vec2 from "@/core/Vec2";

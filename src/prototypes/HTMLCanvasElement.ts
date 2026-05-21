@@ -1,9 +1,6 @@
-import {
-	createNewCanvas,
-	convert2DTo1D,
-	rgb2hex,
-	hex2rgb,
-} from "@/utilities/Functions";
+import { createNewCanvas } from "@/utilities/Canvas";
+import { rgb2hex, hex2rgb } from "@/utilities/Color";
+import { convert2DTo1D } from "@/utilities/Grid";
 
 HTMLCanvasElement.prototype.hasAnyColor = function (): boolean {
 	const rgba = (
