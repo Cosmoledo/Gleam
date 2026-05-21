@@ -88,6 +88,10 @@ export default class Controller {
 	}
 
 	public vibrate(): boolean {
+		if (this.id < 0) {
+			return false;
+		}
+
 		const vibrator = this.getGamepad().vibrationActuator;
 
 		if (vibrator) {
