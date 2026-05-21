@@ -1,4 +1,5 @@
 import { clamp } from "@/utilities/Number";
+import { throttle } from "@/utilities/Functions";
 import Rect from "./Rect";
 
 /**
@@ -9,9 +10,18 @@ const Operation = {
 	Sub: 2,
 	Mult: 3,
 	Div: 4,
-	Mod: 5,
+	Rem: 5,
 	Equal: 6,
+	Mod: 7,
 } as const;
+
+const warnZeroNormalize = throttle(
+	count =>
+		console.trace(
+			`Vec2.normalize() called on zero vector ${count}× since last warning; returning zero.`,
+		),
+	1000,
+);
 
 export default class Vec2 {
 	public static fromAngle(
@@ -25,14 +35,12 @@ export default class Vec2 {
 	public x = 0;
 	public y = 0;
 
-	constructor(x: GameLIB.Vector2 | number = 0, y = 0) {
-		if (typeof x === "number") {
-			this.set(x, y);
-		} else {
-			this.set(x.x, x.y);
-		}
+	constructor(x: GameLIB.Vector2 | number = 0, y: number = 0) {
+		this.calculate(Operation.Equal, x, y);
 	}
 
+	public set(v: GameLIB.Vector2): Vec2;
+	public set(x: number, y?: number): Vec2;
 	public set(x: GameLIB.Vector2 | number, y?: number): Vec2 {
 		return this.calculate(Operation.Equal, x, y);
 	}
@@ -41,6 +49,8 @@ export default class Vec2 {
 		return this.map(Math.abs);
 	}
 
+	public add(v: GameLIB.Vector2): Vec2;
+	public add(x: number, y?: number): Vec2;
 	public add(x: GameLIB.Vector2 | number, y?: number): Vec2 {
 		return this.calculate(Operation.Add, x, y);
 	}
@@ -56,6 +66,8 @@ export default class Vec2 {
 		return this;
 	}
 
+	public div(v: GameLIB.Vector2): Vec2;
+	public div(x: number, y?: number): Vec2;
 	public div(x: GameLIB.Vector2 | number, y?: number): Vec2 {
 		return this.calculate(Operation.Div, x, y);
 	}
@@ -74,10 +86,14 @@ export default class Vec2 {
 		return this;
 	}
 
+	public mod(v: GameLIB.Vector2): Vec2;
+	public mod(x: number, y?: number): Vec2;
 	public mod(x: GameLIB.Vector2 | number, y?: number): Vec2 {
 		return this.calculate(Operation.Mod, x, y);
 	}
 
+	public mult(v: GameLIB.Vector2): Vec2;
+	public mult(x: number, y?: number): Vec2;
 	public mult(x: GameLIB.Vector2 | number, y?: number): Vec2 {
 		return this.calculate(Operation.Mult, x, y);
 	}
@@ -85,6 +101,7 @@ export default class Vec2 {
 	public normalize(): Vec2 {
 		const length = this.length();
 		if (length === 0) {
+			warnZeroNormalize();
 			return this;
 		}
 		return this.map(value => value / length);
@@ -98,12 +115,20 @@ export default class Vec2 {
 		return this.map(value => value / length);
 	}
 
+	public rem(v: GameLIB.Vector2): Vec2;
+	public rem(x: number, y?: number): Vec2;
+	public rem(x: GameLIB.Vector2 | number, y?: number): Vec2 {
+		return this.calculate(Operation.Rem, x, y);
+	}
+
 	public round(): Vec2 {
 		this.x = Math.round(this.x);
 		this.y = Math.round(this.y);
 		return this;
 	}
 
+	public sub(v: GameLIB.Vector2): Vec2;
+	public sub(x: number, y?: number): Vec2;
 	public sub(x: GameLIB.Vector2 | number, y?: number): Vec2 {
 		return this.calculate(Operation.Sub, x, y);
 	}
@@ -150,16 +175,19 @@ export default class Vec2 {
 		return Math.min(this.x, this.y);
 	}
 
-	public concatFirst(x: GameLIB.Vector2 | number, y?: number): Rect {
+	public toArray(): [number, number] {
+		return [this.x, this.y];
+	}
+
+	public toRectAddPos(x: GameLIB.Vector2 | number, y?: number): Rect {
 		return this.concat(true, x, y);
 	}
 
-	public concatLast(width: GameLIB.Vector2 | number, height?: number): Rect {
+	public toRectAddSize(
+		width: GameLIB.Vector2 | number,
+		height?: number,
+	): Rect {
 		return this.concat(false, width, height);
-	}
-
-	public toArray(): [number, number] {
-		return [this.x, this.y];
 	}
 
 	public toString(): string {
@@ -170,6 +198,8 @@ export default class Vec2 {
 		return new Vec2(this.x, this.y);
 	}
 
+	public equals(v: GameLIB.Vector2): boolean;
+	public equals(x: number, y?: number): boolean;
 	public equals(x: GameLIB.Vector2 | number, y?: number): boolean {
 		const [x2, y2]: number[] = this.getValues(x, y);
 
@@ -204,7 +234,7 @@ export default class Vec2 {
 				this.y /= y2;
 				break;
 
-			case Operation.Mod:
+			case Operation.Rem:
 				this.x %= x2;
 				this.y %= y2;
 				break;
@@ -212,6 +242,11 @@ export default class Vec2 {
 			case Operation.Equal:
 				this.x = x2;
 				this.y = y2;
+				break;
+
+			case Operation.Mod:
+				this.x = ((this.x % x2) + x2) % x2;
+				this.y = ((this.y % y2) + y2) % y2;
 				break;
 
 			default:

@@ -15,7 +15,7 @@ export default class Particle {
 	}
 
 	public get rect(): Rect {
-		return this.pos.concatLast(this.size, this.size);
+		return this.pos.toRectAddSize(this.size, this.size);
 	}
 
 	constructor(pos: Vec2, color: string, size: number = 2) {

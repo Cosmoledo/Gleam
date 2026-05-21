@@ -6,6 +6,31 @@ export function delay(time: number): Promise<void> {
 }
 
 /**
+ * Returns a throttled wrapper that runs `callback` at most once per `delay` ms (leading edge).
+ * The callback receives the number of wrapper calls since the previous firing (inclusive of this one).
+ */
+export function throttle(
+	callback: (callCount: number) => void,
+	delay: number,
+): () => void {
+	let lastCalled = 0;
+	let callCount = 0;
+
+	return () => {
+		callCount++;
+
+		const now = performance.now();
+
+		if (now - lastCalled > delay) {
+			lastCalled = now;
+			const count = callCount;
+			callCount = 0;
+			callback(count);
+		}
+	};
+}
+
+/**
  * Heuristic: returns `true` if the user-agent looks mobile or the page exposes `window.orientation`.
  */
 export function isMobile(): boolean {

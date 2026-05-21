@@ -16,7 +16,7 @@ export default class Projectile {
 	}
 
 	public get rect(): Rect {
-		return this.pos.concatLast(this.image.width, this.image.height);
+		return this.pos.toRectAddSize(this.image.width, this.image.height);
 	}
 
 	constructor(pos: Vec2, image: HTMLCanvasElement, vel: Vec2 = new Vec2()) {
