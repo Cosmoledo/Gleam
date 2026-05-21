@@ -1,5 +1,4 @@
 import { randomBetweenFloat } from "@/utilities/Math";
-import Settings from "@/core/Settings";
 
 interface ShakeType {
 	step: number;
@@ -39,10 +38,6 @@ export default class Screenshake {
 	}
 
 	public shake(shakeType: ShakeType = SHAKE_TYPES.NORMAL): void {
-		if (Settings.localStorage.isMobile) {
-			return;
-		}
-
 		this.shakeType = shakeType;
 		this.step = shakeType.step;
 		this.time = 1;

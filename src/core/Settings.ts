@@ -1,5 +1,4 @@
 import "@/prototypes/Storage";
-import { isTouchPrimary } from "@/utilities/Functions";
 import type Game from "./Game";
 
 export type SettingsOverrides = Partial<
@@ -21,7 +20,6 @@ export default class Settings {
 	public static font = "Arial";
 	public static fps = 1 / 60;
 	private static readonly _localStorage = {
-		isMobile: false,
 		language: "",
 	};
 	public static triedToClose?: () => void;
@@ -71,7 +69,6 @@ export default class Settings {
 			);
 		}
 
-		this._localStorage.isMobile = isTouchPrimary();
 		this._localStorage.language = navigator.language.split("-")[0] || "en";
 
 		const storage = localStorage.getItem(LOCAL_STORAGE_KEY);
