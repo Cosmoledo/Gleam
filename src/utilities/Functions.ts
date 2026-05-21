@@ -2,27 +2,171 @@ import { randomBeetweenInt } from "./Math";
 import Settings from "@/core/Settings";
 
 /**
- * Recolor an opaque canvas in place using composite operations,
- * preserving the alpha mask of the source image.
- * https://stackoverflow.com/a/45201094
+ * Wrap `value` so it stays in `[min, max)`, repeatedly adding/subtracting `adjustBy`
+ * (defaults to `max`). Useful for cyclic ranges like angles.
  */
-export function changeColor(
-	context: CanvasRenderingContext2D,
-	oriImg: HTMLCanvasElement,
-	newColor: string,
-): void {
-	context.clearRect(0, 0, oriImg.width, oriImg.height);
-	context.globalCompositeOperation = "source-over";
-	context.drawImage(oriImg, 0, 0, oriImg.width, oriImg.height);
+export function wrapValue(
+	value: number,
+	min: number,
+	max: number,
+	adjustBy: number = max,
+): number {
+	while (value < min) {
+		value += adjustBy;
+	}
 
-	context.globalCompositeOperation = "color";
-	context.fillStyle = newColor;
-	context.fillRect(0, 0, oriImg.width, oriImg.height);
+	while (value >= max) {
+		value -= adjustBy;
+	}
 
-	context.globalCompositeOperation = "destination-in";
-	context.drawImage(oriImg, 0, 0, oriImg.width, oriImg.height);
+	return value;
+}
 
-	context.globalCompositeOperation = "source-over";
+/**
+ * Wrap an angle in radians into `[-PI, PI)`.
+ */
+export function wrapRadians(angle: number): number {
+	return wrapValue(angle, -Math.PI, Math.PI, Math.PI * 2);
+}
+
+/**
+ * Convert a 1D index to `{x, y}` for a 2D grid of the given row width.
+ */
+export function convert1DTo2D(index: number, width: number): GameLIB.Vector2 {
+	return {
+		x: index % width,
+		y: (index / width) | 0,
+	};
+}
+
+/**
+ * Convert 2D `(x, y)` coordinates to a 1D index for a grid of the given row width.
+ */
+export function convert2DTo1D(
+	indexX: number,
+	indexY: number,
+	width: number,
+): number {
+	return indexX + width * indexY;
+}
+
+/**
+ * Split an array into chunks of at most `maxLength` elements each.
+ */
+export function splitArray<T = any>(array: T[], maxLength: number): T[][] {
+	const result: T[][] = [];
+	let part: T[] = [];
+
+	for (let i = 0; i < array.length; i++) {
+		part.push(array[i]);
+
+		if (part.length === maxLength || i === array.length - 1) {
+			result.push(part);
+			part = [];
+		}
+	}
+
+	return result;
+}
+
+/**
+ * Pick a uniformly random element from `array`.
+ */
+export function randomItem<T>(array: T[]): T {
+	return array[(Math.random() * array.length) | 0];
+}
+
+/**
+ * Generate a `height × width` 2D array filled with `defaultValue`.
+ * If `defaultValue` is a function it is invoked per cell.
+ */
+export function generateArray<T>(
+	height: number,
+	width: number,
+	defaultValue: T,
+): T[][] {
+	const array: T[][] = [];
+
+	for (let y = 0; y < height; y++) {
+		array[y] = [];
+
+		for (let x = 0; x < width; x++) {
+			array[y][x] =
+				typeof defaultValue === "function"
+					? defaultValue()
+					: defaultValue;
+		}
+	}
+
+	return array;
+}
+
+/**
+ * Convert an `(r, g, b)` triple (0-255) to a `#rrggbb` hex string.
+ * Low-level; prefer `Color.toHex()` outside hot per-pixel loops.
+ */
+export function rgb2hex(red: number, green: number, blue: number): string {
+	return (
+		"#" +
+		(0x1000000 + (blue | (green << 8) | (red << 16))).toString(16).slice(1)
+	);
+}
+
+/**
+ * Convert a `#rgb` or `#rrggbb` hex string to an `[r, g, b]` integer array.
+ * Low-level; prefer `Color.fromHex()` outside hot per-pixel loops.
+ */
+export function hex2rgb(hex: string): number[] {
+	return hex
+		.replace(
+			/^#?([a-f\d])([a-f\d])([a-f\d])$/i,
+			(_: string, r: string, g: string, b: string) =>
+				"#" + r + r + g + g + b + b,
+		)
+		.substring(1)
+		.match(/.{2}/g)!
+		.map((x: string) => parseInt(x, 16));
+}
+
+/**
+ * HSL → RGB channel helper used by `Color.fromHSL`. Inputs are normalized to `[0, 1]`.
+ */
+export function hueToRGB(p: number, q: number, t: number): number {
+	if (t < 0) {
+		t += 1;
+	}
+
+	if (t > 1) {
+		t -= 1;
+	}
+
+	if (t < 1 / 6) {
+		return p + (q - p) * 6 * t;
+	}
+
+	if (t < 1 / 2) {
+		return q;
+	}
+
+	if (t < 2 / 3) {
+		return p + (q - p) * (2 / 3 - t) * 6;
+	}
+
+	return p;
+}
+
+/**
+ * Random `#rgb` short hex color.
+ */
+export function randomHex(): string {
+	return "#" + Math.random().toString(16).slice(2, 6);
+}
+
+/**
+ * Random `[r, g, b]` integer array; each channel uniform in `[min, max]`.
+ */
+export function randomRgb(min = 0, max = 255): number[] {
+	return new Array(3).fill(0).map(() => randomBeetweenInt(min, max));
 }
 
 /**
@@ -43,6 +187,19 @@ export function createNewCanvas(
 	(context as any).oImageSmoothingEnabled = antialias; // Opera
 	(context as any).webkitImageSmoothingEnabled = antialias; // Safari
 	(context as any).msImageSmoothingEnabled = antialias; // IE
+
+	return {
+		canvas,
+		context,
+	};
+}
+
+/**
+ * Look up an existing canvas by CSS selector and return it with its 2D context.
+ */
+export function getCanvasConstruct(selector: string): GameLIB.CanvasConstruct {
+	const canvas = document.querySelector(selector) as HTMLCanvasElement;
+	const context = canvas.getContext("2d") as CanvasRenderingContext2D;
 
 	return {
 		canvas,
@@ -85,164 +242,27 @@ export function rotateHue(
 }
 
 /**
- * Convert an `(r, g, b)` triple (0-255) to a `#rrggbb` hex string.
- * Low-level; prefer `Color.toHex()` outside hot per-pixel loops.
+ * Recolor an opaque canvas in place using composite operations,
+ * preserving the alpha mask of the source image.
+ * https://stackoverflow.com/a/45201094
  */
-export function rgb2hex(red: number, green: number, blue: number): string {
-	return (
-		"#" +
-		(0x1000000 + (blue | (green << 8) | (red << 16))).toString(16).slice(1)
-	);
-}
+export function changeColor(
+	context: CanvasRenderingContext2D,
+	oriImg: HTMLCanvasElement,
+	newColor: string,
+): void {
+	context.clearRect(0, 0, oriImg.width, oriImg.height);
+	context.globalCompositeOperation = "source-over";
+	context.drawImage(oriImg, 0, 0, oriImg.width, oriImg.height);
 
-/**
- * Convert a `#rgb` or `#rrggbb` hex string to an `[r, g, b]` integer array.
- * Low-level; prefer `Color.fromHex()` outside hot per-pixel loops.
- */
-export function hex2rgb(hex: string): number[] {
-	return hex
-		.replace(
-			/^#?([a-f\d])([a-f\d])([a-f\d])$/i,
-			(_: string, r: string, g: string, b: string) =>
-				"#" + r + r + g + g + b + b,
-		)
-		.substring(1)
-		.match(/.{2}/g)!
-		.map((x: string) => parseInt(x, 16));
-}
+	context.globalCompositeOperation = "color";
+	context.fillStyle = newColor;
+	context.fillRect(0, 0, oriImg.width, oriImg.height);
 
-/**
- * Wrap `value` so it stays in `[min, max)`, repeatedly adding/subtracting `adjustBy`
- * (defaults to `max`). Useful for cyclic ranges like angles.
- */
-export function wrapValue(
-	value: number,
-	min: number,
-	max: number,
-	adjustBy: number = max,
-): number {
-	while (value < min) {
-		value += adjustBy;
-	}
+	context.globalCompositeOperation = "destination-in";
+	context.drawImage(oriImg, 0, 0, oriImg.width, oriImg.height);
 
-	while (value >= max) {
-		value -= adjustBy;
-	}
-
-	return value;
-}
-
-/**
- * Wrap an angle in radians into `[-PI, PI)`.
- */
-export function wrapRadians(angle: number): number {
-	return wrapValue(angle, -Math.PI, Math.PI, Math.PI * 2);
-}
-
-/**
- * Random `#rgb` short hex color.
- */
-export function randomHex(): string {
-	return "#" + Math.random().toString(16).slice(2, 6);
-}
-
-/**
- * Random `[r, g, b]` integer array; each channel uniform in `[min, max]`.
- */
-export function randomRgb(min = 0, max = 255): number[] {
-	return new Array(3).fill(0).map(() => randomBeetweenInt(min, max));
-}
-
-/**
- * Split an array into chunks of at most `maxLength` elements each.
- */
-export function splitArray<T = any>(array: T[], maxLength: number): T[][] {
-	const result: T[][] = [];
-	let part: T[] = [];
-
-	for (let i = 0; i < array.length; i++) {
-		part.push(array[i]);
-
-		if (part.length === maxLength || i === array.length - 1) {
-			result.push(part);
-			part = [];
-		}
-	}
-
-	return result;
-}
-
-/**
- * Convert a 1D index to `{x, y}` for a 2D grid of the given row width.
- */
-export function convert1DTo2D(index: number, width: number): GameLIB.Vector2 {
-	return {
-		x: index % width,
-		y: (index / width) | 0,
-	};
-}
-
-/**
- * Convert 2D `(x, y)` coordinates to a 1D index for a grid of the given row width.
- */
-export function convert2DTo1D(
-	indexX: number,
-	indexY: number,
-	width: number,
-): number {
-	return indexX + width * indexY;
-}
-
-/**
- * Pick a uniformly random element from `array`.
- */
-export function randomItem<T>(array: T[]): T {
-	return array[(Math.random() * array.length) | 0];
-}
-
-/**
- * Generate a `height × width` 2D array filled with `defaultValue`.
- * If `defaultValue` is a function it is invoked per cell.
- */
-export function generateArray<T>(
-	height: number,
-	width: number,
-	defaultValue: T,
-): T[][] {
-	const array: T[][] = [];
-
-	for (let y = 0; y < height; y++) {
-		array[y] = [];
-
-		for (let x = 0; x < width; x++) {
-			array[y][x] =
-				typeof defaultValue === "function"
-					? defaultValue()
-					: defaultValue;
-		}
-	}
-
-	return array;
-}
-
-/**
- * Look up an existing canvas by CSS selector and return it with its 2D context.
- */
-export function getCanvasConstruct(selector: string): GameLIB.CanvasConstruct {
-	const canvas = document.querySelector(selector) as HTMLCanvasElement;
-	const context = canvas.getContext("2d") as CanvasRenderingContext2D;
-
-	return {
-		canvas,
-		context,
-	};
-}
-
-/**
- * Promise that resolves after `time` milliseconds.
- */
-export function delay(time: number): Promise<void> {
-	return new Promise(res => setTimeout(res, time));
+	context.globalCompositeOperation = "source-over";
 }
 
 /**
@@ -312,34 +332,6 @@ export function getUsedColors(
 }
 
 /**
- * Call `callback` immediately on mousedown of the matched element, then keep
- * calling it every `delay` ms until mouseup or mouseout. Throws if no element matches.
- */
-export function doWhileClicked(
-	querySelector: string,
-	callback: () => void,
-	delay = 200,
-): void {
-	const element = document.querySelector(querySelector);
-	if (!element) {
-		throw new Error("Element does not exists!");
-	}
-
-	let timeout: any;
-
-	element.addEventListener(
-		"mousedown",
-		() => {
-			callback();
-			timeout = setInterval(() => callback(), delay);
-		},
-		false,
-	);
-	element.addEventListener("mouseup", () => clearInterval(timeout), false);
-	element.addEventListener("mouseout", () => clearInterval(timeout), false);
-}
-
-/**
  * `querySelector` variant that throws when no element matches.
  * Optionally narrow the return type per tag, e.g. `getElement<HTMLCanvasElement>("canvas")`.
  */
@@ -352,37 +344,6 @@ export function getElement<T extends Element = HTMLElement>(
 		throw new Error(`Element not found: ${query}`);
 	}
 	return el;
-}
-
-/**
- * Resolves the next time `type` fires on `element` (one-shot listener).
- */
-export async function waitForEvent<K extends keyof HTMLElementEventMap>(
-	type: K,
-	element: Element,
-): Promise<void> {
-	return new Promise(res =>
-		element.addEventListener(type, () => res(), {
-			once: true,
-		}),
-	);
-}
-
-/**
- * Returns `get` / `set` helpers for CSS custom properties (`--name`) on the `:root` element.
- */
-export function initCSSVariables() {
-	const root = getElement(":root");
-
-	return {
-		root,
-		get(name: string): string {
-			return getComputedStyle(root).getPropertyValue("--" + name);
-		},
-		set(name: string, value: string): void {
-			root.style.setProperty("--" + name, value);
-		},
-	};
 }
 
 /**
@@ -412,6 +373,72 @@ export function setVisibility(element: HTMLElement, active: boolean): void {
 }
 
 /**
+ * Returns `get` / `set` helpers for CSS custom properties (`--name`) on the `:root` element.
+ */
+export function initCSSVariables() {
+	const root = getElement(":root");
+
+	return {
+		root,
+		get(name: string): string {
+			return getComputedStyle(root).getPropertyValue("--" + name);
+		},
+		set(name: string, value: string): void {
+			root.style.setProperty("--" + name, value);
+		},
+	};
+}
+
+/**
+ * Call `callback` immediately on mousedown of the matched element, then keep
+ * calling it every `delay` ms until mouseup or mouseout. Throws if no element matches.
+ */
+export function doWhileClicked(
+	querySelector: string,
+	callback: () => void,
+	delay = 200,
+): void {
+	const element = document.querySelector(querySelector);
+	if (!element) {
+		throw new Error("Element does not exists!");
+	}
+
+	let timeout: any;
+
+	element.addEventListener(
+		"mousedown",
+		() => {
+			callback();
+			timeout = setInterval(() => callback(), delay);
+		},
+		false,
+	);
+	element.addEventListener("mouseup", () => clearInterval(timeout), false);
+	element.addEventListener("mouseout", () => clearInterval(timeout), false);
+}
+
+/**
+ * Resolves the next time `type` fires on `element` (one-shot listener).
+ */
+export async function waitForEvent<K extends keyof HTMLElementEventMap>(
+	type: K,
+	element: Element,
+): Promise<void> {
+	return new Promise(res =>
+		element.addEventListener(type, () => res(), {
+			once: true,
+		}),
+	);
+}
+
+/**
+ * Promise that resolves after `time` milliseconds.
+ */
+export function delay(time: number): Promise<void> {
+	return new Promise(res => setTimeout(res, time));
+}
+
+/**
  * Heuristic: returns `true` if the user-agent looks mobile or the page exposes `window.orientation`.
  */
 export function isMobile(): boolean {
@@ -426,31 +453,4 @@ export function isMobile(): boolean {
 		navigator.userAgent.indexOf("IEMobile") !== -1;
 
 	return mobileTest1 || mobileTest2;
-}
-
-/**
- * HSL → RGB channel helper used by `Color.fromHSL`. Inputs are normalized to `[0, 1]`.
- */
-export function hueToRGB(p: number, q: number, t: number): number {
-	if (t < 0) {
-		t += 1;
-	}
-
-	if (t > 1) {
-		t -= 1;
-	}
-
-	if (t < 1 / 6) {
-		return p + (q - p) * 6 * t;
-	}
-
-	if (t < 1 / 2) {
-		return q;
-	}
-
-	if (t < 2 / 3) {
-		return p + (q - p) * (2 / 3 - t) * 6;
-	}
-
-	return p;
 }
