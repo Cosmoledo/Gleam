@@ -27,11 +27,10 @@ export const SHAKE_TYPES = {
 } satisfies Record<string, ShakeType>;
 
 export default class Screenshake {
+	private shakeType!: ShakeType;
+	private step: number;
 	private style: CSSStyleDeclaration;
 	private time: number;
-	private step: number;
-
-	private shakeType!: ShakeType;
 
 	constructor(element: HTMLElement) {
 		this.style = element.style;

@@ -36,57 +36,6 @@ function projectPolygon(axis: Vec2, polygon: Polygon, bounds: Vec2): void {
 }
 
 export default class Polygon {
-	public points: Vec2[] = [];
-	public edges: Vec2[] = [];
-
-	public static fromRect(rect: Rect): Polygon {
-		const polygon = new Polygon();
-
-		polygon.addPoint(rect.x, rect.y);
-		polygon.addPoint(rect.x + rect.w, rect.y);
-		polygon.addPoint(rect.x + rect.w, rect.y + rect.h);
-		polygon.addPoint(rect.x, rect.y + rect.h);
-
-		polygon.close();
-
-		return polygon;
-	}
-
-	public static fromEdges(edges: number, size: Vec2 | number): Polygon {
-		const s = size instanceof Vec2 ? size : new Vec2(size, size);
-
-		const rad = Math.min(s.x, s.y) * 0.5;
-		const Xcenter = s.x * 0.5;
-		const Ycenter = s.y * 0.5;
-
-		const polygon = new Polygon();
-
-		for (let i = 1; i <= edges; i++) {
-			polygon.addPoint(
-				new Vec2(
-					Math.round(
-						Xcenter + rad * Math.cos((i * 2 * Math.PI) / edges),
-					),
-					Math.round(
-						Ycenter + rad * Math.sin((i * 2 * Math.PI) / edges),
-					),
-				),
-			);
-		}
-
-		polygon.buildEdges();
-		return polygon;
-	}
-
-	/**
-	 * Creates an outline of a transparent image.
-	 * Then uses those points to create a Polygon.
-	 *
-	 * @param {HTMLCanvasElement} sprite Source image
-	 * @param {number} d detail (lower = better)
-	 * @param {number} angle angle threshold in degrees (will remove points with angle differences below this level; 15 is a good value) making this larger will make the body faster but less accurate;
-	 * @returns {Polygon}
-	 */
 	public static fromCanvas(
 		canvas: HTMLCanvasElement,
 		detail: number,
@@ -227,6 +176,48 @@ export default class Polygon {
 		return poly;
 	}
 
+	public static fromEdges(edges: number, size: Vec2 | number): Polygon {
+		const s = size instanceof Vec2 ? size : new Vec2(size, size);
+
+		const rad = Math.min(s.x, s.y) * 0.5;
+		const Xcenter = s.x * 0.5;
+		const Ycenter = s.y * 0.5;
+
+		const polygon = new Polygon();
+
+		for (let i = 1; i <= edges; i++) {
+			polygon.addPoint(
+				new Vec2(
+					Math.round(
+						Xcenter + rad * Math.cos((i * 2 * Math.PI) / edges),
+					),
+					Math.round(
+						Ycenter + rad * Math.sin((i * 2 * Math.PI) / edges),
+					),
+				),
+			);
+		}
+
+		polygon.buildEdges();
+		return polygon;
+	}
+
+	public static fromRect(rect: Rect): Polygon {
+		const polygon = new Polygon();
+
+		polygon.addPoint(rect.x, rect.y);
+		polygon.addPoint(rect.x + rect.w, rect.y);
+		polygon.addPoint(rect.x + rect.w, rect.y + rect.h);
+		polygon.addPoint(rect.x, rect.y + rect.h);
+
+		polygon.close();
+
+		return polygon;
+	}
+
+	public edges: Vec2[] = [];
+	public points: Vec2[] = [];
+
 	public get center(): Vec2 {
 		let totalX = 0;
 		let totalY = 0;
@@ -240,78 +231,6 @@ export default class Polygon {
 			totalX / this.points.length,
 			totalY / this.points.length,
 		);
-	}
-
-	public addPoint(x: GameLIB.Vector2 | number, y?: number): Polygon {
-		if (typeof x === "number") {
-			this.points.push(new Vec2(x, y));
-		} else {
-			this.points.push((x as Vec2).clone());
-		}
-
-		return this;
-	}
-
-	public rotate(angle: number, pos: Vec2 = this.center) {
-		if (!angle) {
-			return this;
-		}
-
-		const cos = Math.cos(angle);
-		const sin = Math.sin(angle);
-
-		this.points.forEach(point => {
-			const dx = point.x - pos.x;
-			const dy = point.y - pos.y;
-			point.set(dx * cos - dy * sin + pos.x, dx * sin + dy * cos + pos.y);
-		});
-
-		this.buildEdges();
-
-		return this;
-	}
-
-	public close(): void {
-		if (this.points.length > 0) {
-			this.points.push(this.points[0].clone());
-		}
-
-		this.buildEdges();
-	}
-
-	public offset(x = 0, y = 0): Polygon {
-		for (const point of this.points) {
-			point.add(x, y);
-		}
-
-		this.buildEdges();
-
-		return this;
-	}
-
-	public buildEdges(): void {
-		this.edges.length = 0;
-		let p1: Vec2;
-		let p2: Vec2;
-
-		for (let i = 0; i < this.points.length; i++) {
-			p1 = this.points[i];
-
-			if (i + 1 >= this.points.length) {
-				p2 = this.points[0];
-			} else {
-				p2 = this.points[i + 1];
-			}
-
-			this.edges.push(p2.clone().sub(p1));
-		}
-	}
-
-	public clone(): Polygon {
-		const polygon = new Polygon();
-		this.points.forEach(point => polygon.addPoint(point.clone()));
-		polygon.buildEdges();
-		return polygon;
 	}
 
 	public draw(
@@ -338,6 +257,71 @@ export default class Polygon {
 
 		context.closePath();
 		context.stroke();
+	}
+
+	public addPoint(x: GameLIB.Vector2 | number, y?: number): Polygon {
+		if (typeof x === "number") {
+			this.points.push(new Vec2(x, y));
+		} else {
+			this.points.push((x as Vec2).clone());
+		}
+
+		return this;
+	}
+
+	public buildEdges(): void {
+		this.edges.length = 0;
+		let p1: Vec2;
+		let p2: Vec2;
+
+		for (let i = 0; i < this.points.length; i++) {
+			p1 = this.points[i];
+
+			if (i + 1 >= this.points.length) {
+				p2 = this.points[0];
+			} else {
+				p2 = this.points[i + 1];
+			}
+
+			this.edges.push(p2.clone().sub(p1));
+		}
+	}
+
+	public close(): void {
+		if (this.points.length > 0) {
+			this.points.push(this.points[0].clone());
+		}
+
+		this.buildEdges();
+	}
+
+	public offset(x = 0, y = 0): Polygon {
+		for (const point of this.points) {
+			point.add(x, y);
+		}
+
+		this.buildEdges();
+
+		return this;
+	}
+
+	public rotate(angle: number, pos: Vec2 = this.center) {
+		if (!angle) {
+			return this;
+		}
+
+		const cos = Math.cos(angle);
+		const sin = Math.sin(angle);
+
+		this.points.forEach(point => {
+			const dx = point.x - pos.x;
+			const dy = point.y - pos.y;
+			point.set(dx * cos - dy * sin + pos.x, dx * sin + dy * cos + pos.y);
+		});
+
+		this.buildEdges();
+
+		return this;
 	}
 
 	public collide(
@@ -420,5 +404,12 @@ export default class Polygon {
 		}
 
 		return result;
+	}
+
+	public clone(): Polygon {
+		const polygon = new Polygon();
+		this.points.forEach(point => polygon.addPoint(point.clone()));
+		polygon.buildEdges();
+		return polygon;
 	}
 }

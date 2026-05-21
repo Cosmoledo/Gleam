@@ -2,7 +2,15 @@ import Polygon from "@/core/Polygon";
 import Vec2 from "@/core/Vec2";
 
 export default class Rect {
-	public static from(polygon: Polygon): Rect {
+	public static fromBoundingClientRect(rect: DOMRect | HTMLElement): Rect {
+		if (rect instanceof HTMLElement) {
+			rect = rect.getBoundingClientRect();
+		}
+
+		return new Rect(rect.left, rect.top, rect.width, rect.height);
+	}
+
+	public static fromPolygon(polygon: Polygon): Rect {
 		const x = polygon.points.map((vec: Vec2) => vec.x);
 		const y = polygon.points.map((vec: Vec2) => vec.y);
 
@@ -16,17 +24,6 @@ export default class Rect {
 		return rect;
 	}
 
-	public static fromBoundingClientRect(rect: DOMRect | HTMLElement): Rect {
-		if (rect instanceof HTMLElement) {
-			rect = rect.getBoundingClientRect();
-		}
-
-		return new Rect(rect.left, rect.top, rect.width, rect.height);
-	}
-
-	public x = 0;
-	public y = 0;
-	public w = 0;
 	public h = 0;
 	public sides!: {
 		bottom: number;
@@ -34,6 +31,9 @@ export default class Rect {
 		centerPos: Vec2;
 		right: number;
 	};
+	public w = 0;
+	public x = 0;
+	public y = 0;
 
 	constructor(x = 0, y = 0, w = 0, h = 0) {
 		this.set(x, y, w, h);
@@ -70,24 +70,6 @@ export default class Rect {
 		return this;
 	}
 
-	public round(): void {
-		this.x = Math.round(this.x);
-		this.y = Math.round(this.y);
-		this.update();
-	}
-
-	public equals(other: Rect, withSize: boolean): boolean {
-		let output = this.x === other.x && this.y === other.y;
-		if (output && withSize) {
-			output = this.w === other.w && this.h === other.h;
-		}
-		return output;
-	}
-
-	public clone(): Rect {
-		return new Rect(this.x, this.y, this.w, this.h);
-	}
-
 	public inflate(delta: number): Rect {
 		this.update();
 
@@ -99,6 +81,21 @@ export default class Rect {
 		);
 	}
 
+	public round(): void {
+		this.x = Math.round(this.x);
+		this.y = Math.round(this.y);
+		this.update();
+	}
+
+	public update(): void {
+		this.sides = {
+			bottom: this.y + this.h,
+			center: new Vec2(this.w * 0.5, this.h * 0.5),
+			centerPos: new Vec2(this.x + this.w * 0.5, this.y + this.h * 0.5),
+			right: this.x + this.w,
+		};
+	}
+
 	public collide(rect: Rect): boolean {
 		return (
 			this.x <= rect.sides.right &&
@@ -108,21 +105,21 @@ export default class Rect {
 		);
 	}
 
-	public collidePoint(vec: GameLIB.Vector2): boolean {
-		return (
-			this.x <= vec.x &&
-			vec.x <= this.x + this.w &&
-			this.y <= vec.y &&
-			vec.y <= this.y + this.h
-		);
-	}
-
 	public collideFull(rect: Rect): boolean {
 		return (
 			rect.sides.right < this.sides.right &&
 			rect.x > this.x &&
 			rect.y > this.y &&
 			rect.sides.bottom < this.sides.bottom
+		);
+	}
+
+	public collidePoint(vec: GameLIB.Vector2): boolean {
+		return (
+			this.x <= vec.x &&
+			vec.x <= this.x + this.w &&
+			this.y <= vec.y &&
+			vec.y <= this.y + this.h
 		);
 	}
 
@@ -154,16 +151,19 @@ export default class Rect {
 		return new Vec2(this.w, this.h);
 	}
 
-	public update(): void {
-		this.sides = {
-			bottom: this.y + this.h,
-			center: new Vec2(this.w * 0.5, this.h * 0.5),
-			centerPos: new Vec2(this.x + this.w * 0.5, this.y + this.h * 0.5),
-			right: this.x + this.w,
-		};
-	}
-
 	public toString(): string {
 		return `Rect [x: ${this.x}, y: ${this.y}, w: ${this.w}, h: ${this.h}]`;
+	}
+
+	public clone(): Rect {
+		return new Rect(this.x, this.y, this.w, this.h);
+	}
+
+	public equals(other: Rect, withSize: boolean): boolean {
+		let output = this.x === other.x && this.y === other.y;
+		if (output && withSize) {
+			output = this.w === other.w && this.h === other.h;
+		}
+		return output;
 	}
 }

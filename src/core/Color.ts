@@ -2,27 +2,6 @@ import { clamp } from "@/utilities/Number";
 import { hue2rgb } from "@/utilities/Color";
 
 export class Color {
-	private _r!: number;
-	private _g!: number;
-	private _b!: number;
-	private _alpha: number = 1;
-
-	public get r(): number {
-		return this._r;
-	}
-
-	public get g(): number {
-		return this._g;
-	}
-
-	public get b(): number {
-		return this._b;
-	}
-
-	public get alpha(): number {
-		return this._alpha;
-	}
-
 	public static fromHex(hex: string): Color {
 		let cleanHex = hex.replace("#", "").toUpperCase();
 
@@ -77,6 +56,27 @@ export class Color {
 		);
 	}
 
+	private _r!: number;
+	private _g!: number;
+	private _b!: number;
+	private _alpha: number = 1;
+
+	public get r(): number {
+		return this._r;
+	}
+
+	public get g(): number {
+		return this._g;
+	}
+
+	public get b(): number {
+		return this._b;
+	}
+
+	public get alpha(): number {
+		return this._alpha;
+	}
+
 	constructor(r: number, g: number, b: number, a?: number) {
 		this.set(r, g, b, a);
 	}
@@ -89,14 +89,6 @@ export class Color {
 		if (a !== undefined) {
 			this._alpha = clamp(a, 0, 1);
 		}
-	}
-
-	public invert(factor: number = 1): void {
-		this.set(
-			this.r * (1 - factor) + (255 - this.r) * factor,
-			this.g * (1 - factor) + (255 - this.g) * factor,
-			this.b * (1 - factor) + (255 - this.b) * factor,
-		);
 	}
 
 	public brightness(factor: number): void {
@@ -112,13 +104,51 @@ export class Color {
 		);
 	}
 
-	public shade(percent: number): void {
-		const target = percent < 0 ? 0 : 255;
-		const p = Math.abs(percent);
+	public grayscale(value: number = 1): void {
+		const m1 = 0.2126 + 0.7874 * (1 - value);
+		const m2 = 0.7152 - 0.7152 * (1 - value);
+		const m3 = 0.0722 - 0.0722 * (1 - value);
+		const m4 = 0.2126 - 0.2126 * (1 - value);
+		const m5 = 0.7874 + 0.2126 * (1 - value);
+		const m6 = 0.0722 - 0.0722 * (1 - value);
+		const m7 = 0.2126 - 0.2126 * (1 - value);
+		const m8 = 0.7152 - 0.7152 * (1 - value);
+		const m9 = 0.0722 + 0.9278 * (1 - value);
+
 		this.set(
-			this.r + (target - this.r) * p,
-			this.g + (target - this.g) * p,
-			this.b + (target - this.b) * p,
+			this.r * m1 + this.g * m2 + this.b * m3,
+			this.r * m4 + this.g * m5 + this.b * m6,
+			this.r * m7 + this.g * m8 + this.b * m9,
+		);
+	}
+
+	public hueRotate(degrees: number): void {
+		const radians = (degrees * Math.PI) / 180;
+		const cos = Math.cos(radians);
+		const sin = Math.sin(radians);
+
+		const m1 = 0.213 + cos * 0.787 - sin * 0.213;
+		const m2 = 0.715 - cos * 0.715 - sin * 0.715;
+		const m3 = 0.072 - cos * 0.072 + sin * 0.928;
+		const m4 = 0.213 - cos * 0.213 + sin * 0.143;
+		const m5 = 0.715 + cos * 0.285 + sin * 0.14;
+		const m6 = 0.072 - cos * 0.072 - sin * 0.283;
+		const m7 = 0.213 - cos * 0.213 - sin * 0.787;
+		const m8 = 0.715 - cos * 0.715 + sin * 0.715;
+		const m9 = 0.072 + cos * 0.928 + sin * 0.072;
+
+		this.set(
+			this.r * m1 + this.g * m2 + this.b * m3,
+			this.r * m4 + this.g * m5 + this.b * m6,
+			this.r * m7 + this.g * m8 + this.b * m9,
+		);
+	}
+
+	public invert(factor: number = 1): void {
+		this.set(
+			this.r * (1 - factor) + (255 - this.r) * factor,
+			this.g * (1 - factor) + (255 - this.g) * factor,
+			this.b * (1 - factor) + (255 - this.b) * factor,
 		);
 	}
 
@@ -150,24 +180,6 @@ export class Color {
 		);
 	}
 
-	public grayscale(value: number = 1): void {
-		const m1 = 0.2126 + 0.7874 * (1 - value);
-		const m2 = 0.7152 - 0.7152 * (1 - value);
-		const m3 = 0.0722 - 0.0722 * (1 - value);
-		const m4 = 0.2126 - 0.2126 * (1 - value);
-		const m5 = 0.7874 + 0.2126 * (1 - value);
-		const m6 = 0.0722 - 0.0722 * (1 - value);
-		const m7 = 0.2126 - 0.2126 * (1 - value);
-		const m8 = 0.7152 - 0.7152 * (1 - value);
-		const m9 = 0.0722 + 0.9278 * (1 - value);
-
-		this.set(
-			this.r * m1 + this.g * m2 + this.b * m3,
-			this.r * m4 + this.g * m5 + this.b * m6,
-			this.r * m7 + this.g * m8 + this.b * m9,
-		);
-	}
-
 	public sepia(value: number = 1): void {
 		const m1 = 0.393 + 0.607 * (1 - value);
 		const m2 = 0.769 - 0.769 * (1 - value);
@@ -186,25 +198,13 @@ export class Color {
 		);
 	}
 
-	public hueRotate(degrees: number): void {
-		const radians = (degrees * Math.PI) / 180;
-		const cos = Math.cos(radians);
-		const sin = Math.sin(radians);
-
-		const m1 = 0.213 + cos * 0.787 - sin * 0.213;
-		const m2 = 0.715 - cos * 0.715 - sin * 0.715;
-		const m3 = 0.072 - cos * 0.072 + sin * 0.928;
-		const m4 = 0.213 - cos * 0.213 + sin * 0.143;
-		const m5 = 0.715 + cos * 0.285 + sin * 0.14;
-		const m6 = 0.072 - cos * 0.072 - sin * 0.283;
-		const m7 = 0.213 - cos * 0.213 - sin * 0.787;
-		const m8 = 0.715 - cos * 0.715 + sin * 0.715;
-		const m9 = 0.072 + cos * 0.928 + sin * 0.072;
-
+	public shade(percent: number): void {
+		const target = percent < 0 ? 0 : 255;
+		const p = Math.abs(percent);
 		this.set(
-			this.r * m1 + this.g * m2 + this.b * m3,
-			this.r * m4 + this.g * m5 + this.b * m6,
-			this.r * m7 + this.g * m8 + this.b * m9,
+			this.r + (target - this.r) * p,
+			this.g + (target - this.g) * p,
+			this.b + (target - this.b) * p,
 		);
 	}
 
@@ -242,6 +242,12 @@ export class Color {
 		return { h: h * 360, s: s * 100, l: l * 100 };
 	}
 
+	public toCSS(): string {
+		const alpha = this.alpha.toFixed(2);
+
+		return `rgba(${this.r}, ${this.g}, ${this.b}, ${alpha})`;
+	}
+
 	public toHex(): string {
 		const rgb = `#${this.r.toString(16).padStart(2, "0")}${this.g.toString(16).padStart(2, "0")}${this.b.toString(16).padStart(2, "0")}`;
 
@@ -262,12 +268,6 @@ export class Color {
 		return this.alpha === 1
 			? `hsl(${cssH}, ${cssS}%, ${cssL}%)`
 			: `hsla(${cssH}, ${cssS}%, ${cssL}%, ${this.alpha.toFixed(2)})`;
-	}
-
-	public toCSS(): string {
-		const alpha = this.alpha.toFixed(2);
-
-		return `rgba(${this.r}, ${this.g}, ${this.b}, ${alpha})`;
 	}
 
 	public clone(): Color {

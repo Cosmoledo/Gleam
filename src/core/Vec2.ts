@@ -33,48 +33,20 @@ export default class Vec2 {
 		}
 	}
 
-	public concatLast(width: GameLIB.Vector2 | number, height?: number): Rect {
-		return this._concat(false, width, height);
+	public set(x: GameLIB.Vector2 | number, y?: number): Vec2 {
+		return this._calculate(Operation.Equal, x, y);
 	}
 
-	public concatFirst(x: GameLIB.Vector2 | number, y?: number): Rect {
-		return this._concat(true, x, y);
-	}
-
-	public clone(): Vec2 {
-		return new Vec2(this.x, this.y);
-	}
-
-	public angle(...other: GameLIB.Vector2[]): number {
-		const out = this.clone();
-
-		other.forEach(vec2 => out.sub(vec2));
-
-		return Math.atan2(out.y, out.x);
+	public abs(): Vec2 {
+		return this.map(Math.abs);
 	}
 
 	public add(x: GameLIB.Vector2 | number, y?: number): Vec2 {
 		return this._calculate(Operation.Add, x, y);
 	}
 
-	public sub(x: GameLIB.Vector2 | number, y?: number): Vec2 {
-		return this._calculate(Operation.Sub, x, y);
-	}
-
-	public mult(x: GameLIB.Vector2 | number, y?: number): Vec2 {
-		return this._calculate(Operation.Mult, x, y);
-	}
-
-	public div(x: GameLIB.Vector2 | number, y?: number): Vec2 {
-		return this._calculate(Operation.Div, x, y);
-	}
-
-	public mod(x: GameLIB.Vector2 | number, y?: number): Vec2 {
-		return this._calculate(Operation.Mod, x, y);
-	}
-
-	public set(x: GameLIB.Vector2 | number, y?: number): Vec2 {
-		return this._calculate(Operation.Equal, x, y);
+	public ceil(): Vec2 {
+		return this.map(Math.ceil);
 	}
 
 	public clamp(x: number[], y: number[] = x): Vec2 {
@@ -84,36 +56,30 @@ export default class Vec2 {
 		return this;
 	}
 
+	public div(x: GameLIB.Vector2 | number, y?: number): Vec2 {
+		return this._calculate(Operation.Div, x, y);
+	}
+
 	public floor(): Vec2 {
 		return this.map(Math.floor);
-	}
-
-	public ceil(): Vec2 {
-		return this.map(Math.ceil);
-	}
-
-	public abs(): Vec2 {
-		return this.map(Math.abs);
-	}
-
-	public max(): number {
-		return Math.max(this.x, this.y);
-	}
-
-	public min(): number {
-		return Math.min(this.x, this.y);
 	}
 
 	public inv(): Vec2 {
 		return this.mult(-1);
 	}
 
-	public length(): number {
-		return Math.sqrt(this.x * this.x + this.y * this.y);
+	public map(callback: (value: number, index: number) => number): Vec2 {
+		this.x = callback(this.x, 0);
+		this.y = callback(this.y, 1);
+		return this;
 	}
 
-	public lengthManhattan(): number {
-		return Math.abs(this.x) + Math.abs(this.y);
+	public mod(x: GameLIB.Vector2 | number, y?: number): Vec2 {
+		return this._calculate(Operation.Mod, x, y);
+	}
+
+	public mult(x: GameLIB.Vector2 | number, y?: number): Vec2 {
+		return this._calculate(Operation.Mult, x, y);
 	}
 
 	public normalize(): Vec2 {
@@ -132,14 +98,22 @@ export default class Vec2 {
 		return this.map(value => value / length);
 	}
 
-	public isValid(): boolean {
-		return Number.isFinite(this.x) && Number.isFinite(this.y);
+	public round(): Vec2 {
+		this.x = Math.round(this.x);
+		this.y = Math.round(this.y);
+		return this;
 	}
 
-	public map(callback: (value: number, index: number) => number): Vec2 {
-		this.x = callback(this.x, 0);
-		this.y = callback(this.y, 1);
-		return this;
+	public sub(x: GameLIB.Vector2 | number, y?: number): Vec2 {
+		return this._calculate(Operation.Sub, x, y);
+	}
+
+	public angle(...other: GameLIB.Vector2[]): number {
+		const out = this.clone();
+
+		other.forEach(vec2 => out.sub(vec2));
+
+		return Math.atan2(out.y, out.x);
 	}
 
 	public distance(other: GameLIB.Vector2): number {
@@ -156,38 +130,50 @@ export default class Vec2 {
 		return this.x * other.x + this.y * other.y;
 	}
 
-	public round(): Vec2 {
-		this.x = Math.round(this.x);
-		this.y = Math.round(this.y);
-		return this;
+	public isValid(): boolean {
+		return Number.isFinite(this.x) && Number.isFinite(this.y);
 	}
 
-	public equals(x: GameLIB.Vector2 | number, y?: number): boolean {
-		const [x2, y2]: number[] = this._getValues(x, y);
-
-		return this.x === x2 && this.y === y2;
+	public length(): number {
+		return Math.sqrt(this.x * this.x + this.y * this.y);
 	}
 
-	public toString(): string {
-		return `Vec2 [x: ${this.x}, y: ${this.y}]`;
+	public lengthManhattan(): number {
+		return Math.abs(this.x) + Math.abs(this.y);
+	}
+
+	public max(): number {
+		return Math.max(this.x, this.y);
+	}
+
+	public min(): number {
+		return Math.min(this.x, this.y);
+	}
+
+	public concatFirst(x: GameLIB.Vector2 | number, y?: number): Rect {
+		return this._concat(true, x, y);
+	}
+
+	public concatLast(width: GameLIB.Vector2 | number, height?: number): Rect {
+		return this._concat(false, width, height);
 	}
 
 	public toArray(): [number, number] {
 		return [this.x, this.y];
 	}
 
-	private _concat(
-		first: boolean,
-		x: GameLIB.Vector2 | number,
-		y?: number,
-	): Rect {
+	public toString(): string {
+		return `Vec2 [x: ${this.x}, y: ${this.y}]`;
+	}
+
+	public clone(): Vec2 {
+		return new Vec2(this.x, this.y);
+	}
+
+	public equals(x: GameLIB.Vector2 | number, y?: number): boolean {
 		const [x2, y2]: number[] = this._getValues(x, y);
 
-		if (first) {
-			return new Rect(x2, y2, this.x, this.y);
-		}
-
-		return new Rect(this.x, this.y, x2, y2);
+		return this.x === x2 && this.y === y2;
 	}
 
 	private _calculate(
@@ -233,6 +219,20 @@ export default class Vec2 {
 				break;
 		}
 		return this;
+	}
+
+	private _concat(
+		first: boolean,
+		x: GameLIB.Vector2 | number,
+		y?: number,
+	): Rect {
+		const [x2, y2]: number[] = this._getValues(x, y);
+
+		if (first) {
+			return new Rect(x2, y2, this.x, this.y);
+		}
+
+		return new Rect(this.x, this.y, x2, y2);
 	}
 
 	private _getValues(x: GameLIB.Vector2 | number, y?: number): number[] {

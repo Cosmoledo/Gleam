@@ -9,6 +9,7 @@ import "@/prototypes/index";
 import "@/localization/Translator";
 
 export default abstract class Game {
+	public canvasBoundingClientRect!: DOMRect;
 	public canvasHolder: Map<string, GameLIB.CanvasHolder> = new Map();
 	public levelTime = 0;
 	public mouse: GameLIB.Mouse = {
@@ -63,9 +64,8 @@ export default abstract class Game {
 			);
 		},
 	};
-	public resizedSize!: Vec2;
 	public ratio = 1;
-	public canvasBoundingClientRect!: DOMRect;
+	public resizedSize!: Vec2;
 	private accumulator = 0;
 	private eventListener: Record<
 		string,
@@ -76,14 +76,30 @@ export default abstract class Game {
 	private loopHasStarted = false;
 	private stop = false;
 
+	public get height(): number {
+		return this.getCanvas().height;
+	}
+
+	public set height(height: number) {
+		this.getCanvas().height = height;
+	}
+
+	public get size(): Vec2 {
+		return new Vec2(this.width, this.height);
+	}
+
+	public get width(): number {
+		return this.getCanvas().width;
+	}
+
+	public set width(width: number) {
+		this.getCanvas().width = width;
+	}
+
 	constructor(settingOverrides: SettingsOverrides = {}) {
 		Settings.init(settingOverrides, this);
 
 		history.scrollRestoration = "manual";
-	}
-
-	public async init(): Promise<void> {
-		throw new Error("Override init function!");
 	}
 
 	public draw(_context: CanvasRenderingContext2D): void {
@@ -94,12 +110,8 @@ export default abstract class Game {
 		throw new Error("Override update function!");
 	}
 
-	public getCanvas(): HTMLCanvasElement {
-		return this.canvasHolder.get("main")!.canvas;
-	}
-
-	public getCanvasContext(): CanvasRenderingContext2D {
-		return this.canvasHolder.get("main")!.context;
+	public async init(): Promise<void> {
+		throw new Error("Override init function!");
 	}
 
 	public addEventListener(
@@ -113,31 +125,6 @@ export default abstract class Game {
 			this.eventListener[eventName].push(event);
 		} else {
 			this.eventListener[eventName] = [event];
-		}
-	}
-
-	public isKeyPressed(keyCode: number): boolean {
-		return this.keys[keyCode];
-	}
-
-	public stopKeyPress(keyCode: number): void {
-		this.keys[keyCode] = false;
-	}
-
-	public isStopped(): boolean {
-		return this.stop;
-	}
-
-	public startLoop(): void {
-		this.stop = false;
-		this.looper();
-	}
-
-	public stopLoop(): void {
-		this.stop = true;
-
-		if ("sound" in this) {
-			(this.sound as Sound).pause();
 		}
 	}
 
@@ -161,93 +148,37 @@ export default abstract class Game {
 		this.getCanvasContext().font = `${size}px "${font}"`;
 	}
 
-	public get width(): number {
-		return this.getCanvas().width;
+	public startLoop(): void {
+		this.stop = false;
+		this.looper();
 	}
 
-	public set width(width: number) {
-		this.getCanvas().width = width;
+	public stopKeyPress(keyCode: number): void {
+		this.keys[keyCode] = false;
 	}
 
-	public get height(): number {
-		return this.getCanvas().height;
-	}
+	public stopLoop(): void {
+		this.stop = true;
 
-	public set height(height: number) {
-		this.getCanvas().height = height;
-	}
-
-	public get size(): Vec2 {
-		return new Vec2(this.width, this.height);
-	}
-
-	protected setupCanvas(
-		canvasType: symbol,
-		selector: string,
-		resize: boolean = true,
-	): GameLIB.CanvasHolder {
-		if (!document.querySelector(selector)) {
-			throw new Error("Canvas '" + selector + "' does not exist!");
+		if ("sound" in this) {
+			(this.sound as Sound).pause();
 		}
-
-		const newCanvas: GameLIB.CanvasHolder = Object.assign(
-			{},
-			getCanvasConstruct(selector),
-			{
-				id: selector,
-				resize,
-				type: canvasType,
-			},
-		);
-		newCanvas.context.fillStyle = "white";
-		newCanvas.context.strokeStyle = "white";
-		newCanvas.context.font = "12px Arial";
-
-		this.canvasHolder.set(selector.replace("#", ""), newCanvas);
-
-		this.canvasBoundingClientRect =
-			this.getCanvas().getBoundingClientRect();
-
-		this.addEventListener(EVENT_NAMES.AFTER_RESIZE, () =>
-			setTimeout(
-				() =>
-					(this.canvasBoundingClientRect =
-						this.getCanvas().getBoundingClientRect()),
-				0,
-			),
-		);
-
-		return newCanvas;
 	}
 
-	protected resize(): void {
-		const windowRatio = window.innerHeight / window.innerWidth;
+	public getCanvas(): HTMLCanvasElement {
+		return this.canvasHolder.get("main")!.canvas;
+	}
 
-		this.canvasHolder.forEach(ch => {
-			if (!ch.resize) {
-				return;
-			}
+	public getCanvasContext(): CanvasRenderingContext2D {
+		return this.canvasHolder.get("main")!.context;
+	}
 
-			const canvasRatio = ch.canvas.height / ch.canvas.width;
-			let width: number;
-			let height: number;
+	public isKeyPressed(keyCode: number): boolean {
+		return this.keys[keyCode];
+	}
 
-			if (windowRatio < canvasRatio) {
-				height = window.innerHeight;
-				width = height / canvasRatio;
-			} else {
-				width = window.innerWidth;
-				height = width * canvasRatio;
-			}
-
-			if (ch.canvas === this.getCanvas()) {
-				this.resizedSize = new Vec2(width, height);
-				this.ratio = width / this.width;
-			}
-
-			ch.canvas.style.width = width + "px";
-			ch.canvas.style.height = height + "px";
-		});
+	public isStopped(): boolean {
+		return this.stop;
 	}
 
 	protected async preInit(doInit = true): Promise<void> {
@@ -309,75 +240,73 @@ export default abstract class Game {
 		}
 	}
 
-	private setupMouseListener(): void {
-		const TYPES: {
-			[key: string]: symbol;
-		} = {
-			pointermove: MOUSE_TYPES.MOVE,
-			mousedown: MOUSE_TYPES.DOWN,
-			mouseup: MOUSE_TYPES.UP,
-		};
+	protected resize(): void {
+		const windowRatio = window.innerHeight / window.innerWidth;
 
-		const mouseMoveEvent = (event: MouseEvent): void => {
-			if (event.target === this.getCanvas()) {
-				event.preventDefault();
+		this.canvasHolder.forEach(ch => {
+			if (!ch.resize) {
+				return;
 			}
 
-			this.mouse.type = TYPES[event.type];
-			this.mouse.altKey = event.altKey;
-			this.mouse.ctrlKey = event.ctrlKey;
-			this.mouse.shiftKey = event.shiftKey;
-			this.mouse.target = event.target as HTMLElement;
+			const canvasRatio = ch.canvas.height / ch.canvas.width;
+			let width: number;
+			let height: number;
 
-			this.mouse.hasMoved = true;
-
-			this.mouse.update(event);
-
-			this.dispatchEvent(EVENT_NAMES.MOUSE, this.mouse);
-		};
-
-		const mouseStateChangeEvent = (event: MouseEvent): void => {
-			if (event.target === this.getCanvas()) {
-				event.preventDefault();
+			if (windowRatio < canvasRatio) {
+				height = window.innerHeight;
+				width = height / canvasRatio;
+			} else {
+				width = window.innerWidth;
+				height = width * canvasRatio;
 			}
 
-			this.mouse.type = TYPES[event.type];
-
-			if (event.type === "mousedown") {
-				this.mouse.pressed[event.button] = true;
-				this.mouse.released[event.button] = false;
-			} else if (event.type === "mouseup") {
-				this.mouse.pressed[event.button] = false;
-				this.mouse.released[event.button] = true;
+			if (ch.canvas === this.getCanvas()) {
+				this.resizedSize = new Vec2(width, height);
+				this.ratio = width / this.width;
 			}
 
-			this.dispatchEvent(EVENT_NAMES.MOUSE, this.mouse);
-		};
-
-		window.addEventListener("pointermove", mouseMoveEvent, false);
-		window.addEventListener("mousedown", mouseStateChangeEvent, false);
-		window.addEventListener("mouseup", mouseStateChangeEvent, false);
+			ch.canvas.style.width = width + "px";
+			ch.canvas.style.height = height + "px";
+		});
 	}
 
-	private setupKeyListener(): void {
-		const keyValues = Object.values(KEYBOARD_KEYS) as number[];
+	protected setupCanvas(
+		canvasType: symbol,
+		selector: string,
+		resize: boolean = true,
+	): GameLIB.CanvasHolder {
+		if (!document.querySelector(selector)) {
+			throw new Error("Canvas '" + selector + "' does not exist!");
+		}
 
-		const keyEvent = (event: KeyboardEvent): void => {
-			const keyCode = event.which || event.keyCode;
+		const newCanvas: GameLIB.CanvasHolder = Object.assign(
+			{},
+			getCanvasConstruct(selector),
+			{
+				id: selector,
+				resize,
+				type: canvasType,
+			},
+		);
+		newCanvas.context.fillStyle = "white";
+		newCanvas.context.strokeStyle = "white";
+		newCanvas.context.font = "12px Arial";
 
-			if (keyValues.includes(keyCode)) {
-				if (event.type === "keydown") {
-					this.keys[keyCode] = true;
-				} else if (event.type === "keyup") {
-					this.keys[keyCode] = false;
-				}
+		this.canvasHolder.set(selector.replace("#", ""), newCanvas);
 
-				this.dispatchEvent(EVENT_NAMES.KEY, this.keys, keyCode);
-			}
-		};
+		this.canvasBoundingClientRect =
+			this.getCanvas().getBoundingClientRect();
 
-		window.addEventListener("keydown", keyEvent, false);
-		window.addEventListener("keyup", keyEvent, false);
+		this.addEventListener(EVENT_NAMES.AFTER_RESIZE, () =>
+			setTimeout(
+				() =>
+					(this.canvasBoundingClientRect =
+						this.getCanvas().getBoundingClientRect()),
+				0,
+			),
+		);
+
+		return newCanvas;
 	}
 
 	private looper(): void {
@@ -442,5 +371,76 @@ export default abstract class Game {
 
 	private preUpdate(dt: number): void {
 		this.update(dt);
+	}
+
+	private setupKeyListener(): void {
+		const keyValues = Object.values(KEYBOARD_KEYS) as number[];
+
+		const keyEvent = (event: KeyboardEvent): void => {
+			const keyCode = event.which || event.keyCode;
+
+			if (keyValues.includes(keyCode)) {
+				if (event.type === "keydown") {
+					this.keys[keyCode] = true;
+				} else if (event.type === "keyup") {
+					this.keys[keyCode] = false;
+				}
+
+				this.dispatchEvent(EVENT_NAMES.KEY, this.keys, keyCode);
+			}
+		};
+
+		window.addEventListener("keydown", keyEvent, false);
+		window.addEventListener("keyup", keyEvent, false);
+	}
+
+	private setupMouseListener(): void {
+		const TYPES: {
+			[key: string]: symbol;
+		} = {
+			pointermove: MOUSE_TYPES.MOVE,
+			mousedown: MOUSE_TYPES.DOWN,
+			mouseup: MOUSE_TYPES.UP,
+		};
+
+		const mouseMoveEvent = (event: MouseEvent): void => {
+			if (event.target === this.getCanvas()) {
+				event.preventDefault();
+			}
+
+			this.mouse.type = TYPES[event.type];
+			this.mouse.altKey = event.altKey;
+			this.mouse.ctrlKey = event.ctrlKey;
+			this.mouse.shiftKey = event.shiftKey;
+			this.mouse.target = event.target as HTMLElement;
+
+			this.mouse.hasMoved = true;
+
+			this.mouse.update(event);
+
+			this.dispatchEvent(EVENT_NAMES.MOUSE, this.mouse);
+		};
+
+		const mouseStateChangeEvent = (event: MouseEvent): void => {
+			if (event.target === this.getCanvas()) {
+				event.preventDefault();
+			}
+
+			this.mouse.type = TYPES[event.type];
+
+			if (event.type === "mousedown") {
+				this.mouse.pressed[event.button] = true;
+				this.mouse.released[event.button] = false;
+			} else if (event.type === "mouseup") {
+				this.mouse.pressed[event.button] = false;
+				this.mouse.released[event.button] = true;
+			}
+
+			this.dispatchEvent(EVENT_NAMES.MOUSE, this.mouse);
+		};
+
+		window.addEventListener("pointermove", mouseMoveEvent, false);
+		window.addEventListener("mousedown", mouseStateChangeEvent, false);
+		window.addEventListener("mouseup", mouseStateChangeEvent, false);
 	}
 }

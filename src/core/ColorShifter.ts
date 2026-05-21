@@ -18,18 +18,55 @@ export function colorShifter(rgb: number[]) {
 }
 
 class Solver {
+	private reusedColor: Color;
 	private target: Color;
 	private targetHSL: {
 		h: number;
 		s: number;
 		l: number;
 	};
-	private reusedColor: Color;
 
 	constructor(target: Color) {
 		this.target = target;
 		this.targetHSL = target.hsl();
 		this.reusedColor = new Color(0, 0, 0);
+	}
+
+	public css(filters) {
+		function fmt(idx, multiplier = 1) {
+			return Math.round(filters[idx] * multiplier);
+		}
+
+		return `filter: invert(${fmt(0)}%) sepia(${fmt(1)}%) saturate(${fmt(
+			2,
+		)}%) hue-rotate(${fmt(3, 3.6)}deg) brightness(${fmt(
+			4,
+		)}%) contrast(${fmt(5)}%);`;
+	}
+
+	public loss(filters) {
+		// Argument is array of percentages.
+		const color = this.reusedColor;
+		color.set(0, 0, 0);
+
+		color.invert(filters[0] / 100);
+		color.sepia(filters[1] / 100);
+		color.saturate(filters[2] / 100);
+		color.hueRotate(filters[3] * 3.6);
+		color.brightness(filters[4] / 100);
+		color.contrast(filters[5] / 100);
+
+		const colorHSL = color.hsl();
+
+		return (
+			Math.abs(color.r - this.target.r) +
+			Math.abs(color.g - this.target.g) +
+			Math.abs(color.b - this.target.b) +
+			// h is in 0-360 (CSS), the other terms are 0-100 / 0-255 — scale to keep loss balance
+			Math.abs(colorHSL.h - this.targetHSL.h) / 3.6 +
+			Math.abs(colorHSL.s - this.targetHSL.s) +
+			Math.abs(colorHSL.l - this.targetHSL.l)
+		);
 	}
 
 	public solve() {
@@ -40,6 +77,15 @@ class Solver {
 			loss: result.loss,
 			filter: this.css(result.values),
 		};
+	}
+
+	public solveNarrow(wide) {
+		const A = wide.loss;
+		const c = 2;
+		const A1 = A + 1;
+		const a = [0.25 * A1, 0.25 * A1, A1, 0.25 * A1, 0.2 * A1, 0.2 * A1];
+
+		return this.spsa(A, a, c, wide.values, 500);
 	}
 
 	public solveWide() {
@@ -57,15 +103,6 @@ class Solver {
 		}
 
 		return best;
-	}
-
-	public solveNarrow(wide) {
-		const A = wide.loss;
-		const c = 2;
-		const A1 = A + 1;
-		const a = [0.25 * A1, 0.25 * A1, A1, 0.25 * A1, 0.2 * A1, 0.2 * A1];
-
-		return this.spsa(A, a, c, wide.values, 500);
 	}
 
 	public spsa(A, a, c, values, iters) {
@@ -123,42 +160,5 @@ class Solver {
 			}
 			return value;
 		}
-	}
-
-	public loss(filters) {
-		// Argument is array of percentages.
-		const color = this.reusedColor;
-		color.set(0, 0, 0);
-
-		color.invert(filters[0] / 100);
-		color.sepia(filters[1] / 100);
-		color.saturate(filters[2] / 100);
-		color.hueRotate(filters[3] * 3.6);
-		color.brightness(filters[4] / 100);
-		color.contrast(filters[5] / 100);
-
-		const colorHSL = color.hsl();
-
-		return (
-			Math.abs(color.r - this.target.r) +
-			Math.abs(color.g - this.target.g) +
-			Math.abs(color.b - this.target.b) +
-			// h is in 0-360 (CSS), the other terms are 0-100 / 0-255 — scale to keep loss balance
-			Math.abs(colorHSL.h - this.targetHSL.h) / 3.6 +
-			Math.abs(colorHSL.s - this.targetHSL.s) +
-			Math.abs(colorHSL.l - this.targetHSL.l)
-		);
-	}
-
-	public css(filters) {
-		function fmt(idx, multiplier = 1) {
-			return Math.round(filters[idx] * multiplier);
-		}
-
-		return `filter: invert(${fmt(0)}%) sepia(${fmt(1)}%) saturate(${fmt(
-			2,
-		)}%) hue-rotate(${fmt(3, 3.6)}deg) brightness(${fmt(
-			4,
-		)}%) contrast(${fmt(5)}%);`;
 	}
 }

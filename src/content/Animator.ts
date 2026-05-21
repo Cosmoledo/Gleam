@@ -20,10 +20,10 @@ interface BaseEntity {
 export default class Animator {
 	public active = true;
 	public image!: HTMLCanvasElement;
-	public size: Vec2 = new Vec2();
 	public imageId = 0;
 	public lookLeft = false;
 	public onEnd: onEndType | undefined;
+	public size: Vec2 = new Vec2();
 	private animations: Animation[] = [];
 	private currentAnimation = 0;
 	private entity: BaseEntity;
@@ -31,12 +31,12 @@ export default class Animator {
 	private onFrame: onFrameType;
 	private timer = 0;
 
-	constructor(entity: BaseEntity) {
-		this.entity = entity;
-	}
-
 	public get current(): Animation {
 		return this.animations[this.currentAnimation];
+	}
+
+	constructor(entity: BaseEntity) {
+		this.entity = entity;
 	}
 
 	public draw(
@@ -48,21 +48,6 @@ export default class Animator {
 			this.entity.pos.x + offset.x - this.size.x,
 			this.entity.pos.y + offset.y,
 		);
-	}
-
-	public drawRotated(
-		context: CanvasRenderingContext2D,
-		angle: number,
-		offset: Vec2 = new Vec2(),
-	): void {
-		const x = this.entity.pos.x + offset.x;
-		const y = this.entity.pos.y + offset.y;
-		const w = this.image.width * 0.75;
-		const h = this.image.height * 0.5;
-		context.setTransform(1, 0, 0, 1, x + w - this.size.x, y + h);
-		context.rotate(angle);
-		context.drawImage(this.image, -w, -h);
-		context.setTransform(1, 0, 0, 1, 0, 0);
 	}
 
 	public update(dt: number): void {
@@ -103,39 +88,6 @@ export default class Animator {
 		}
 	}
 
-	public randomTimer(): void {
-		this.timer = randomBetweenFloat(0, this.current.timing);
-	}
-
-	public reset(): void {
-		const defaultAnim = this.animations.find(
-			(anim: Animation) => anim.default,
-		);
-
-		if (defaultAnim) {
-			this.play(defaultAnim.name);
-			this.active = true;
-		} else {
-			this.active = false;
-		}
-	}
-
-	public removeAllAnimations(): void {
-		this.animations.length = 0;
-		this.active = true;
-		this.onEnd = undefined;
-		this.onFrame = undefined;
-	}
-
-	public addAnimation(anim: Animation, defaultAnim = false): void {
-		this.add(
-			anim.name,
-			anim.sprites,
-			anim.timing,
-			anim.default || defaultAnim,
-		);
-	}
-
 	public add(
 		name: string,
 		sprites: HTMLCanvasElement[] | HTMLImageElement[],
@@ -165,6 +117,30 @@ export default class Animator {
 		}
 	}
 
+	public addAnimation(anim: Animation, defaultAnim = false): void {
+		this.add(
+			anim.name,
+			anim.sprites,
+			anim.timing,
+			anim.default || defaultAnim,
+		);
+	}
+
+	public drawRotated(
+		context: CanvasRenderingContext2D,
+		angle: number,
+		offset: Vec2 = new Vec2(),
+	): void {
+		const x = this.entity.pos.x + offset.x;
+		const y = this.entity.pos.y + offset.y;
+		const w = this.image.width * 0.75;
+		const h = this.image.height * 0.5;
+		context.setTransform(1, 0, 0, 1, x + w - this.size.x, y + h);
+		context.rotate(angle);
+		context.drawImage(this.image, -w, -h);
+		context.setTransform(1, 0, 0, 1, 0, 0);
+	}
+
 	public play(name: string, onEnd?: onEndType, onFrame?: onFrameType): void {
 		this.imageId = 0;
 		this.timer = 0;
@@ -187,15 +163,6 @@ export default class Animator {
 		this.active = this.current.sprites.length > 1;
 	}
 
-	public playOnce(
-		name: string,
-		onEnd?: onEndType,
-		onFrame?: onFrameType,
-	): void {
-		this.lastPlayed = this.current?.name;
-		this.play(name, onEnd, onFrame);
-	}
-
 	public playIfNot(
 		name: string,
 		onEnd?: onEndType,
@@ -210,6 +177,39 @@ export default class Animator {
 
 	public playNextOnce(name: string | undefined): void {
 		this.lastPlayed = name;
+	}
+
+	public playOnce(
+		name: string,
+		onEnd?: onEndType,
+		onFrame?: onFrameType,
+	): void {
+		this.lastPlayed = this.current?.name;
+		this.play(name, onEnd, onFrame);
+	}
+
+	public randomTimer(): void {
+		this.timer = randomBetweenFloat(0, this.current.timing);
+	}
+
+	public removeAllAnimations(): void {
+		this.animations.length = 0;
+		this.active = true;
+		this.onEnd = undefined;
+		this.onFrame = undefined;
+	}
+
+	public reset(): void {
+		const defaultAnim = this.animations.find(
+			(anim: Animation) => anim.default,
+		);
+
+		if (defaultAnim) {
+			this.play(defaultAnim.name);
+			this.active = true;
+		} else {
+			this.active = false;
+		}
 	}
 
 	public isPlaying(name: string): boolean {

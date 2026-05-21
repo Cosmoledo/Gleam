@@ -7,13 +7,13 @@ import Vec2 from "@/core/Vec2";
 const AXIS_THRESHOLD = 0.3;
 
 export default class Controller {
-	public id = -1;
 	public buttons: boolean[] = [];
 	public cursors: ControllerCursor[] = [];
+	public id = -1;
 	private axes: Vec2[] = [];
+	private game: Game;
 	private hasSupport: boolean = "getGamepads" in navigator;
 	private lastTime = 0;
-	private game: Game;
 
 	constructor(game: Game) {
 		this.game = game;
@@ -42,6 +42,14 @@ export default class Controller {
 				this.id = -1;
 			}
 		});
+	}
+
+	public draw(context: CanvasRenderingContext2D): void {
+		if (this.id < 0) {
+			return;
+		}
+
+		this.cursors.forEach(cursor => cursor.draw(context));
 	}
 
 	public update(dt: number): void {
@@ -77,14 +85,6 @@ export default class Controller {
 		}
 
 		this.game.dispatchEvent(EVENT_NAMES.CONTROLLER, this);
-	}
-
-	public draw(context: CanvasRenderingContext2D): void {
-		if (this.id < 0) {
-			return;
-		}
-
-		this.cursors.forEach(cursor => cursor.draw(context));
 	}
 
 	public vibrate(): boolean {

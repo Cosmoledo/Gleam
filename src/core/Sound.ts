@@ -17,26 +17,17 @@ export default class Sound {
 	public registerVolume = 1;
 	private allSounds: HTMLAudioElement[] = [];
 	private currentMusic = "";
-	private lastMusic = "";
 	private enabled: boolean;
+	private fadeCur: HTMLAudioElement | null = null;
+	private fadeRaf: number | null = null;
+	private lastMusic = "";
 	private music: Map<string, HTMLAudioElement> = new Map();
 	private sounds: Map<string, HTMLAudioElement> = new Map();
 	private useSupDir: boolean;
-	private fadeRaf: number | null = null;
-	private fadeCur: HTMLAudioElement | null = null;
 
 	constructor(useSupDir = true, enabled = true) {
 		this.useSupDir = useSupDir;
 		this.enabled = enabled;
-	}
-
-	public pause(): void {
-		if (this.music.has(this.currentMusic)) {
-			this.music.get(this.currentMusic)!.pause();
-		}
-		this.allSounds.forEach(audio => audio.pause());
-		this.currentMusic = "";
-		this.allSounds.length = 0;
 	}
 
 	public disable(): void {
@@ -48,28 +39,6 @@ export default class Sound {
 		this.enabled = true;
 		if (!this.isPlayingMusic()) {
 			this.fadeMusic();
-		}
-	}
-
-	public switchEnable(): void {
-		if (this.enabled) {
-			this.disable();
-		} else {
-			this.enable();
-		}
-	}
-
-	public playSound(name: string): void {
-		if (!this.enabled) {
-			return;
-		}
-
-		if (this.sounds.has(name)) {
-			const newSound = this.sounds.get(name)!.clone();
-			this.allSounds.push(newSound);
-			newSound.play();
-		} else {
-			console.error("Can't play '" + name + "'");
 		}
 	}
 
@@ -146,12 +115,27 @@ export default class Sound {
 		this.fadeRaf = requestAnimationFrame(myLopper);
 	}
 
-	public isPlayingMusic(): boolean {
-		return this.currentMusic.length > 0;
+	public pause(): void {
+		if (this.music.has(this.currentMusic)) {
+			this.music.get(this.currentMusic)!.pause();
+		}
+		this.allSounds.forEach(audio => audio.pause());
+		this.currentMusic = "";
+		this.allSounds.length = 0;
 	}
 
-	public isEnabled(): boolean {
-		return this.enabled;
+	public playSound(name: string): void {
+		if (!this.enabled) {
+			return;
+		}
+
+		if (this.sounds.has(name)) {
+			const newSound = this.sounds.get(name)!.clone();
+			this.allSounds.push(newSound);
+			newSound.play();
+		} else {
+			console.error("Can't play '" + name + "'");
+		}
 	}
 
 	public registerMusic(...names: RawRegisterData[] | string[]): void {
@@ -162,17 +146,36 @@ export default class Sound {
 		this.register("sound", ...names);
 	}
 
-	private getRandomMusic(): string | null {
-		const allMusic: string[] = Array.from(this.music.keys());
-		if (this.lastMusic) {
-			remove(allMusic, this.lastMusic);
+	public switchEnable(): void {
+		if (this.enabled) {
+			this.disable();
+		} else {
+			this.enable();
 		}
-		if (this.currentMusic) {
-			remove(allMusic, this.currentMusic);
-		}
-		const name = randomItem(allMusic);
+	}
 
-		return name && name.length > 0 ? name : null;
+	public isEnabled(): boolean {
+		return this.enabled;
+	}
+
+	public isPlayingMusic(): boolean {
+		return this.currentMusic.length > 0;
+	}
+
+	private playMusic(name: string): void {
+		this.currentMusic = name;
+		this.music
+			.get(name)!
+			.play()
+			.then(() => {
+				console.log("Playing music: '" + name + "'");
+
+				this.music.get(name)!.onended = (): void => {
+					this.lastMusic = this.currentMusic;
+					this.currentMusic = "";
+					this.fadeMusic();
+				};
+			});
 	}
 
 	private register(
@@ -206,19 +209,16 @@ export default class Sound {
 		});
 	}
 
-	private playMusic(name: string): void {
-		this.currentMusic = name;
-		this.music
-			.get(name)!
-			.play()
-			.then(() => {
-				console.log("Playing music: '" + name + "'");
+	private getRandomMusic(): string | null {
+		const allMusic: string[] = Array.from(this.music.keys());
+		if (this.lastMusic) {
+			remove(allMusic, this.lastMusic);
+		}
+		if (this.currentMusic) {
+			remove(allMusic, this.currentMusic);
+		}
+		const name = randomItem(allMusic);
 
-				this.music.get(name)!.onended = (): void => {
-					this.lastMusic = this.currentMusic;
-					this.currentMusic = "";
-					this.fadeMusic();
-				};
-			});
+		return name && name.length > 0 ? name : null;
 	}
 }

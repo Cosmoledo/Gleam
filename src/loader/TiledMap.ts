@@ -533,7 +533,7 @@ export default async function loadTiledMap(
 							polygon.offset(real.x, real.y);
 							collisions.push({
 								polygon,
-								rect: Rect.from(polygon),
+								rect: Rect.fromPolygon(polygon),
 							});
 						}
 					}

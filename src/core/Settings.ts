@@ -23,6 +23,14 @@ export default class Settings {
 	public static useClearRect = true;
 	public static warnBeforeClose = false;
 
+	public static change<K extends keyof typeof this.localStorage>(
+		key: K,
+		value: (typeof this.localStorage)[K],
+	): void {
+		localStorage.setItem(key, String(value));
+		this.localStorage[key] = value;
+	}
+
 	public static init(overrides: SettingsOverrides, game: Game): void {
 		Object.assign(this, overrides);
 
@@ -56,13 +64,5 @@ export default class Settings {
 			"language",
 			navigator.language.split("-")[0] || "en",
 		);
-	}
-
-	public static change<K extends keyof typeof this.localStorage>(
-		key: K,
-		value: (typeof this.localStorage)[K],
-	): void {
-		localStorage.setItem(key, String(value));
-		this.localStorage[key] = value;
 	}
 }
