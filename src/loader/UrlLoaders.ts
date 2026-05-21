@@ -238,8 +238,14 @@ export async function loadImageFromJson(
 
 	for (let i = 0; i < json.sprites.length; i++) {
 		const sprite = json.sprites[i];
-		// Validate sprite properties before processing
-		if (!sprite.x || !sprite.y || !sprite.w || !sprite.h || !sprite.name) {
+
+		if (
+			sprite.x === undefined ||
+			sprite.y === undefined ||
+			!sprite.w ||
+			!sprite.h ||
+			!sprite.name
+		) {
 			throw new Error(
 				`Invalid sprite data at index ${i}: ${JSON.stringify(sprite, null, 2)}`,
 			);
