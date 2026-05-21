@@ -5,10 +5,28 @@ import { randomBetweenInt } from "./Math";
  * Low-level; prefer `Color.toHex()` outside hot per-pixel loops.
  */
 export function rgb2hex(red: number, green: number, blue: number): string {
-	return (
-		"#" +
-		(0x1000000 + (blue | (green << 8) | (red << 16))).toString(16).slice(1)
-	);
+	return "#" + (0x1000000 + rgb2Int(red, green, blue)).toString(16).slice(1);
+}
+
+/**
+ * Pack `(r, g, b[, a])` channels into a single integer key.
+ * RGB are 0-255. Alpha may be 0-1 (CSS convention) or 0-255 (canvas);
+ * values `<= 1` are scaled up to 0-255.
+ * Without alpha: 24-bit `RGB`. With alpha: 32-bit `RGBA` (forced unsigned).
+ * Useful for fast per-pixel lookups: cheaper than building a hex string.
+ */
+export function rgb2Int(
+	red: number,
+	green: number,
+	blue: number,
+	alpha?: number,
+): number {
+	if (alpha === undefined) {
+		return (red << 16) | (green << 8) | blue;
+	}
+
+	const a = alpha <= 1 ? Math.round(alpha * 255) : alpha;
+	return ((red << 24) | (green << 16) | (blue << 8) | a) >>> 0;
 }
 
 /**
@@ -30,7 +48,7 @@ export function hex2rgb(hex: string): number[] {
 /**
  * HSL → RGB channel helper used by `Color.fromHSL`. Inputs are normalized to `[0, 1]`.
  */
-export function hueToRGB(p: number, q: number, t: number): number {
+export function hue2rgb(p: number, q: number, t: number): number {
 	if (t < 0) {
 		t += 1;
 	}

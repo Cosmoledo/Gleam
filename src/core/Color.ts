@@ -1,5 +1,5 @@
 import { clamp } from "@/utilities/Number";
-import { hueToRGB } from "@/utilities/Color";
+import { hue2rgb } from "@/utilities/Color";
 
 export class Color {
 	public r!: number;
@@ -47,9 +47,9 @@ export class Color {
 					? lNorm * (1 + sNorm)
 					: lNorm + sNorm - lNorm * sNorm;
 			const p = 2 * lNorm - q;
-			r = hueToRGB(p, q, hNorm + 1 / 3);
-			g = hueToRGB(p, q, hNorm);
-			b = hueToRGB(p, q, hNorm - 1 / 3);
+			r = hue2rgb(p, q, hNorm + 1 / 3);
+			g = hue2rgb(p, q, hNorm);
+			b = hue2rgb(p, q, hNorm - 1 / 3);
 		}
 
 		return new Color(

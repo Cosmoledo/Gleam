@@ -1,4 +1,5 @@
 import Settings from "@/core/Settings";
+import { rgb2Int } from "./Color";
 
 /**
  * Create a new `<canvas>` of the given size with its 2D context, with all
@@ -141,7 +142,7 @@ export function getUsedColors(
 	const counts = new Map<number, number>();
 
 	for (let i = 0; i < data.length; i += 4) {
-		const key = (data[i] << 16) | (data[i + 1] << 8) | data[i + 2];
+		const key = rgb2Int(data[i], data[i + 1], data[i + 2]);
 		counts.set(key, (counts.get(key) ?? 0) + 1);
 	}
 

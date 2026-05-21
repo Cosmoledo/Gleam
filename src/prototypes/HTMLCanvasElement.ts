@@ -1,5 +1,5 @@
 import { createNewCanvas } from "@/utilities/Canvas";
-import { rgb2hex, hex2rgb } from "@/utilities/Color";
+import { hex2rgb, rgb2Int } from "@/utilities/Color";
 import { convert2DTo1D } from "@/utilities/Grid";
 
 HTMLCanvasElement.prototype.hasAnyColor = function (): boolean {
@@ -49,40 +49,33 @@ HTMLCanvasElement.prototype.getPixelAt = function (
 
 		case "integer":
 		default:
-			return (r << 24) + (g << 16) + (b << 8) + a;
+			return rgb2Int(r, g, b, a);
 	}
 } as HTMLCanvasElement["getPixelAt"];
 
 HTMLCanvasElement.prototype.replaceColors = function (
 	replacements: Record<string, string>,
 ): HTMLCanvasElement {
-	const repl: any = {};
-	for (const key in replacements) {
-		repl[key.toLowerCase()] = replacements[key].toLowerCase();
+	const lookup = new Map<number, [number, number, number]>();
+	for (const from in replacements) {
+		const [fr, fg, fb] = hex2rgb(from);
+		const [tr, tg, tb] = hex2rgb(replacements[from]);
+		lookup.set(rgb2Int(fr, fg, fb), [tr, tg, tb]);
 	}
-	replacements = repl;
 
 	const context = this.getContext("2d")!;
-
 	const image = context.getImageData(0, 0, this.width, this.height);
 	const { data } = image;
 
 	for (let i = 0; i < data.length; i += 4) {
-		const r = data[i + 0];
-		const g = data[i + 1];
-		const b = data[i + 2];
+		const replacement = lookup.get(
+			rgb2Int(data[i], data[i + 1], data[i + 2]),
+		);
 
-		const value = rgb2hex(r, g, b);
-
-		for (const key in replacements) {
-			if (value !== key) {
-				continue;
-			}
-
-			const newValue = hex2rgb(replacements[key]);
-			data[i + 0] = newValue[0];
-			data[i + 1] = newValue[1];
-			data[i + 2] = newValue[2];
+		if (replacement !== undefined) {
+			data[i] = replacement[0];
+			data[i + 1] = replacement[1];
+			data[i + 2] = replacement[2];
 		}
 	}
 
