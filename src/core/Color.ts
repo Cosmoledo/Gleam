@@ -75,9 +75,9 @@ export class Color {
 
 	public invert(factor: number = 1): void {
 		this.set(
-			(255 - this.r) * factor,
-			(255 - this.g) * factor,
-			(255 - this.b) * factor,
+			this.r * (1 - factor) + (255 - this.r) * factor,
+			this.g * (1 - factor) + (255 - this.g) * factor,
+			this.b * (1 - factor) + (255 - this.b) * factor,
 		);
 	}
 
@@ -86,16 +86,12 @@ export class Color {
 	}
 
 	public contrast(factor: number): void {
-		if (this.alpha === 1) {
-			const midtone = 128;
-			this.set(
-				midtone + (this.r - midtone) * factor,
-				midtone + (this.g - midtone) * factor,
-				midtone + (this.b - midtone) * factor,
-			);
-		} else {
-			this.set(this.r * factor, this.g * factor, this.b * factor);
-		}
+		const midtone = 127.5;
+		this.set(
+			midtone + (this.r - midtone) * factor,
+			midtone + (this.g - midtone) * factor,
+			midtone + (this.b - midtone) * factor,
+		);
 	}
 
 	public shade(percent: number): void {
@@ -174,17 +170,23 @@ export class Color {
 
 	public hueRotate(degrees: number): void {
 		const radians = (degrees * Math.PI) / 180;
-		const cosR = Math.cos(radians);
-		const sinR = Math.sin(radians);
+		const cos = Math.cos(radians);
+		const sin = Math.sin(radians);
 
-		const rNorm = this.r / 255;
-		const gNorm = this.g / 255;
-		const bNorm = this.b / 255;
+		const m1 = 0.213 + cos * 0.787 - sin * 0.213;
+		const m2 = 0.715 - cos * 0.715 - sin * 0.715;
+		const m3 = 0.072 - cos * 0.072 + sin * 0.928;
+		const m4 = 0.213 - cos * 0.213 + sin * 0.143;
+		const m5 = 0.715 + cos * 0.285 + sin * 0.140;
+		const m6 = 0.072 - cos * 0.072 - sin * 0.283;
+		const m7 = 0.213 - cos * 0.213 - sin * 0.787;
+		const m8 = 0.715 - cos * 0.715 + sin * 0.715;
+		const m9 = 0.072 + cos * 0.928 + sin * 0.072;
 
 		this.set(
-			(rNorm * cosR + gNorm * sinR + bNorm * -sinR) * 255,
-			(rNorm * -sinR + gNorm * cosR + bNorm * sinR) * 255,
-			(rNorm * sinR + gNorm * -sinR + bNorm * (cosR - sinR)) * 255,
+			this.r * m1 + this.g * m2 + this.b * m3,
+			this.r * m4 + this.g * m5 + this.b * m6,
+			this.r * m7 + this.g * m8 + this.b * m9,
 		);
 	}
 
