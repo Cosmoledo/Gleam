@@ -257,13 +257,13 @@ export default class Polygon {
 			return this;
 		}
 
+		const cos = Math.cos(angle);
+		const sin = Math.sin(angle);
+
 		this.points.forEach(point => {
-			point.set(
-				(point.x - pos.x) * Math.cos(angle) -
-					(point.y - pos.y) * Math.sin(angle),
-				(point.x - pos.x) * Math.sin(angle) +
-					(point.y - pos.y) * Math.cos(angle),
-			);
+			const dx = point.x - pos.x;
+			const dy = point.y - pos.y;
+			point.set(dx * cos - dy * sin + pos.x, dx * sin + dy * cos + pos.y);
 		});
 
 		this.buildEdges();
