@@ -10,6 +10,12 @@ declare namespace GameLIB {
 		type: symbol;
 	}
 
+	interface CSSVariables {
+		root: HTMLElement;
+		get(name: string): string;
+		set(name: string, value: string): void;
+	}
+
 	type RGB = [number, number, number];
 
 	interface Vector2 {

@@ -20,9 +20,7 @@ export function styleElement(
 	element: HTMLElement,
 	styles: Partial<CSSStyleDeclaration>,
 ): void {
-	for (const [key, value] of Object.entries(styles)) {
-		element.style.setProperty(key, value as string);
-	}
+	Object.assign(element.style, styles);
 }
 
 /**
@@ -42,7 +40,7 @@ export function setVisibility(element: HTMLElement, active: boolean): void {
 /**
  * Returns `get` / `set` helpers for CSS custom properties (`--name`) on the `:root` element.
  */
-export function initCSSVariables() {
+export function initCSSVariables(): GameLIB.CSSVariables {
 	const root = getElement(":root");
 
 	return {
@@ -67,26 +65,31 @@ export function doWhileClicked(
 ): void {
 	const element = getElement(querySelector);
 
-	let timeout: ReturnType<typeof setInterval>;
+	let intervalId: ReturnType<typeof setInterval> | undefined;
 
 	element.addEventListener(
 		"mousedown",
 		() => {
+			clearInterval(intervalId);
 			callback();
-			timeout = setInterval(() => callback(), delay);
+			intervalId = setInterval(() => callback(), delay);
 		},
 		false,
 	);
-	element.addEventListener("mouseup", () => clearInterval(timeout), false);
-	element.addEventListener("mouseout", () => clearInterval(timeout), false);
+	element.addEventListener("mouseup", () => clearInterval(intervalId), false);
+	element.addEventListener(
+		"mouseout",
+		() => clearInterval(intervalId),
+		false,
+	);
 }
 
 /**
  * Resolves the next time `type` fires on `element` (one-shot listener).
  */
 export async function waitForEvent<K extends keyof HTMLElementEventMap>(
+	element: HTMLElement,
 	type: K,
-	element: Element,
 ): Promise<void> {
 	return new Promise(res =>
 		element.addEventListener(type, () => res(), {
