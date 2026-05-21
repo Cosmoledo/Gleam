@@ -1,12 +1,20 @@
 import { wrapValue } from "./Number";
 
+const NUMERIC_PATTERN = /^-?\d+(\.\d+)?$/;
+
 /**
- * Check if a value parses as a finite number.
- * Accepts numeric strings ("3", "3.5") and rejects "3abc", "", NaN, Infinity.
+ * Check if a value is a finite number or a string holding one in plain decimal form.
  */
 export function isNumeric(value: unknown): boolean {
-	const n = parseFloat(value as string);
-	return Number.isFinite(n) && String(n) === String(value).trim();
+	if (typeof value === "number") {
+		return Number.isFinite(value);
+	}
+
+	if (typeof value === "string") {
+		return NUMERIC_PATTERN.test(value.trim());
+	}
+
+	return false;
 }
 
 /**
@@ -24,10 +32,10 @@ export function randomBetweenFloat(min: number, max: number): number {
 }
 
 /**
- * Generate a random integer between two values
+ * Generate a random integer in `[min, max]` (both bounds inclusive).
  */
 export function randomBetweenInt(min: number, max: number): number {
-	return Math.floor(randomBetweenFloat(min, max));
+	return Math.floor(min + Math.random() * (max - min + 1));
 }
 
 /**
@@ -59,10 +67,10 @@ export function toHHMMSS(time: number): string {
 	const seconds = s < 10 ? "0" + s : "" + s;
 
 	if (h === 0) {
-		return `${minutes}m:${seconds}s`;
+		return `${minutes}:${seconds}`;
 	}
 
-	return `${hours}h:${minutes}m:${seconds}s`;
+	return `${hours}:${minutes}:${seconds}`;
 }
 
 /**
@@ -95,12 +103,14 @@ export function roundTo(number: number, digitsAfterPoint: number): number {
 	return Math.round(number * power) / power;
 }
 
-/**
- * Calculate factorial of a non-negative integer
- */
-const factorialsCache: Record<number, number> = {};
-factorialsCache[0] = 1;
+const factorialsCache: Record<number, number> = { 0: 1 };
+let largestCachedFactorial = 0;
+let factorialOverflowAt = Infinity;
 
+/**
+ * Calculate factorial of a non-negative integer. Memoized — repeat calls reuse cached intermediates.
+ * Returns `Infinity` once `n!` overflows the IEEE 754 double range (around `n = 171`).
+ */
 export function getFactorial(n: number): number {
 	const intN = Math.floor(n);
 
@@ -108,14 +118,25 @@ export function getFactorial(n: number): number {
 		throw new Error("getFactorial requires non-negative integer");
 	}
 
+	if (intN >= factorialOverflowAt) {
+		return Infinity;
+	}
+
 	if (factorialsCache[intN] !== undefined) {
 		return factorialsCache[intN];
 	}
 
-	let result = 1;
-	for (let i = 2; i <= intN; i++) {
+	let result = factorialsCache[largestCachedFactorial];
+	for (let i = largestCachedFactorial + 1; i <= intN; i++) {
 		result *= i;
+
+		if (!Number.isFinite(result)) {
+			factorialOverflowAt = i;
+			return Infinity;
+		}
+
 		factorialsCache[i] = result;
+		largestCachedFactorial = i;
 	}
 
 	return result;
