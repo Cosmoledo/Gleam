@@ -1,10 +1,10 @@
 import Settings from "@/core/Settings";
 import { rgb2Int } from "./Color";
 import { getElement } from "./DOM";
+import "@/prototypes/HTMLCanvasElement"; // splitSpriteSheet relies on the subImage patch
 
 /**
- * Create a new `<canvas>` of the given size with its 2D context, with all
- * vendor-prefixed `imageSmoothingEnabled` flags set. Antialiasing defaults to `Settings.antialias`.
+ * Create a new `<canvas>` of the given size with its 2D context. Antialiasing defaults to `Settings.antialias`.
  */
 export function createNewCanvas(
 	width: number,
@@ -15,11 +15,8 @@ export function createNewCanvas(
 	canvas.width = width;
 	canvas.height = height;
 
-	const context = canvas.getContext("2d") as CanvasRenderingContext2D;
-	context.imageSmoothingEnabled = antialias; // Standard
-	(context as any).oImageSmoothingEnabled = antialias; // Opera
-	(context as any).webkitImageSmoothingEnabled = antialias; // Safari
-	(context as any).msImageSmoothingEnabled = antialias; // IE
+	const context = canvas.getContext("2d")!;
+	context.imageSmoothingEnabled = antialias;
 
 	return {
 		canvas,
@@ -44,7 +41,7 @@ export function getCanvasConstruct(selector: string): GameLIB.CanvasConstruct {
  * Apply a CSS `filter` string to an image and return the result as a new canvas.
  */
 export function applyFilterOnCanvas(
-	image: HTMLCanvasElement,
+	image: HTMLCanvasElement | HTMLImageElement,
 	filter: string,
 	width: number = image.width,
 	height: number = image.height,
@@ -61,7 +58,7 @@ export function applyFilterOnCanvas(
  * Rotate the hue of an image by `hue` degrees via CSS `hue-rotate(...)` filter.
  */
 export function rotateHue(
-	image: HTMLCanvasElement,
+	image: HTMLCanvasElement | HTMLImageElement,
 	hue: number,
 	width?: number,
 	height?: number,
@@ -102,7 +99,7 @@ export function changeColor(
  * Split a sprite-sheet image into individual sprite canvases laid out as `elementsX × elementsY`.
  * Throws if the image dimensions don't divide evenly — sheets are expected to be authored that way.
  */
-export function SpriteSheetHandler(
+export function splitSpriteSheet(
 	img: HTMLCanvasElement,
 	elementsX: number,
 	elementsY: number,
@@ -128,8 +125,8 @@ export function SpriteSheetHandler(
 
 /**
  * Count occurrences of each color in an image, keyed by `#rrggbb`.
- * Optionally scale counts by `pixelAmount` and drop entries below/above thresholds
- * (`removeLowerThan` / `removeHigherThan`, both ignored when `0`).
+ * `pixelAmount` multiplies each count and floors to int; values < 1 will drop low-count colors entirely (count rounds to 0).
+ * `removeLowerThan` / `removeHigherThan` drop entries outside the range; `0` disables either bound.
  */
 export function getUsedColors(
 	image: HTMLCanvasElement,
@@ -137,9 +134,9 @@ export function getUsedColors(
 	removeLowerThan = 0,
 	removeHigherThan = 0,
 ): Map<string, number> {
-	const data = (
-		image.getContext("2d") as CanvasRenderingContext2D
-	).getImageData(0, 0, image.width, image.height).data;
+	const data = image
+		.getContext("2d")!
+		.getImageData(0, 0, image.width, image.height).data;
 	const counts = new Map<number, number>();
 
 	for (let i = 0; i < data.length; i += 4) {

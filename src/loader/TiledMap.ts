@@ -1,5 +1,5 @@
 import { loadCanvas, loadText } from "@/loader/UrlLoaders";
-import { SpriteSheetHandler, createNewCanvas } from "@/utilities/Canvas";
+import { createNewCanvas, splitSpriteSheet } from "@/utilities/Canvas";
 import { convert1DTo2D } from "@/utilities/Grid";
 import { isNumeric } from "@/utilities/Math";
 import Polygon from "@/core/Polygon";
@@ -374,7 +374,7 @@ export default async function loadTiledMap(
 					loadCanvas(
 						baseDir + tileset.image["@attributes"].source,
 					).then((img: HTMLCanvasElement) => {
-						const sprites = SpriteSheetHandler(
+						const sprites = splitSpriteSheet(
 							img,
 							img.width / attr.tilewidth,
 							img.height / attr.tileheight,
