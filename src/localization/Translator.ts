@@ -4,11 +4,13 @@ declare global {
 	function _(key: string): string;
 }
 
-window._ = (): any => {
+window._ = () => {
 	throw new Error("Call 'prepareLanguage' first!");
 };
 
-export function prepareLanguage(languages: any): void {
+export type Languages = Record<string, Record<string, string>>;
+
+export function prepareLanguage(languages: Languages): void {
 	const allKeys: string[] = [];
 
 	for (const lang in languages) {
@@ -34,7 +36,9 @@ export function prepareLanguage(languages: any): void {
 
 		if (language[key] === undefined) {
 			console.error("'" + key + "' has no translation");
+			return key;
 		}
+
 		return language[key];
 	};
 }
