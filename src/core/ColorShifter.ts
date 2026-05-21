@@ -9,7 +9,7 @@ import { Color } from "./Color";
  * I would suggest console.log some filters, pick nice ones and hardcode them instead:
  * console.log(colorShifter(randomRgb(1, 10)));
  */
-export function colorShifter(rgb: [number, number, number]) {
+export function colorShifter(rgb: GameLIB.RGB) {
 	const color = new Color(rgb[0], rgb[1], rgb[2]);
 	const solver = new Solver(color);
 	const result = solver.solve();

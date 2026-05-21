@@ -49,14 +49,14 @@ HTMLCanvasElement.prototype.getPixelAt = function (
 
 		case "integer":
 		default:
-			return rgb2Int(r, g, b, a);
+			return rgb2Int(r, g, b, a / 255);
 	}
 } as HTMLCanvasElement["getPixelAt"];
 
 HTMLCanvasElement.prototype.replaceColors = function (
 	replacements: Record<string, string>,
 ): HTMLCanvasElement {
-	const lookup = new Map<number, [number, number, number]>();
+	const lookup = new Map<number, GameLIB.RGB>();
 	for (const from in replacements) {
 		const [fr, fg, fb] = hex2rgb(from);
 		const [tr, tg, tb] = hex2rgb(replacements[from]);

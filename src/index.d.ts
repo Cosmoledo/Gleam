@@ -10,6 +10,8 @@ declare namespace GameLIB {
 		type: symbol;
 	}
 
+	type RGB = [number, number, number];
+
 	interface Vector2 {
 		x: number;
 		y: number;
@@ -145,11 +147,7 @@ interface HTMLCanvasElement {
 	flipX(offsetX?: number): HTMLCanvasElement;
 	flipY(offsetY?: number): HTMLCanvasElement;
 	getPixelAt(x: number, y: number, output?: "integer"): number;
-	getPixelAt(
-		x: number,
-		y: number,
-		output: "array",
-	): [number, number, number, number];
+	getPixelAt(x: number, y: number, output: "array"): [...GameLIB.RGB, number];
 	getPixelAt(
 		x: number,
 		y: number,

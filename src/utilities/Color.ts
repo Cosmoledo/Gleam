@@ -10,8 +10,7 @@ export function rgb2hex(red: number, green: number, blue: number): string {
 
 /**
  * Pack `(r, g, b[, a])` channels into a single integer key.
- * RGB are 0-255. Alpha may be 0-1 (CSS convention) or 0-255 (canvas);
- * values `<= 1` are scaled up to 0-255.
+ * RGB are 0-255. Alpha is 0-1 (CSS convention); divide canvas byte-alpha by 255 before passing.
  * Without alpha: 24-bit `RGB`. With alpha: 32-bit `RGBA` (forced unsigned).
  * Useful for fast per-pixel lookups: cheaper than building a hex string.
  */
@@ -25,15 +24,15 @@ export function rgb2Int(
 		return (red << 16) | (green << 8) | blue;
 	}
 
-	const a = alpha <= 1 ? Math.round(alpha * 255) : alpha;
+	const a = Math.round(alpha * 255);
 	return ((red << 24) | (green << 16) | (blue << 8) | a) >>> 0;
 }
 
 /**
- * Convert a `#rgb` or `#rrggbb` hex string to an `[r, g, b]` integer array.
- * Low-level; prefer `Color.fromHex()` outside hot per-pixel loops.
+ * Convert a `#rgb` or `#rrggbb` hex string to an `[r, g, b]` integer tuple.
+ * Low-level; prefer `Color.fromHex()` outside hot per-pixel loops. Caller must pass a valid hex string.
  */
-export function hex2rgb(hex: string): number[] {
+export function hex2rgb(hex: string): GameLIB.RGB {
 	return hex
 		.replace(
 			/^#?([a-f\d])([a-f\d])([a-f\d])$/i,
@@ -42,7 +41,7 @@ export function hex2rgb(hex: string): number[] {
 		)
 		.substring(1)
 		.match(/.{2}/g)!
-		.map((x: string) => parseInt(x, 16));
+		.map((x: string) => parseInt(x, 16)) as GameLIB.RGB;
 }
 
 /**
@@ -80,8 +79,12 @@ export function randomHex(): string {
 }
 
 /**
- * Random `[r, g, b]` integer array; each channel uniform in `[min, max]`.
+ * Random `[r, g, b]` integer tuple; each channel uniform in `[min, max]`.
  */
-export function randomRgb(min = 0, max = 255): number[] {
-	return new Array(3).fill(0).map(() => randomBetweenInt(min, max));
+export function randomRgb(min = 0, max = 255): GameLIB.RGB {
+	return [
+		randomBetweenInt(min, max),
+		randomBetweenInt(min, max),
+		randomBetweenInt(min, max),
+	];
 }
