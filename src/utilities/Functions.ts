@@ -21,20 +21,12 @@ export function delay(time: number): Promise<void> {
 }
 
 /**
- * Heuristic: returns `true` if the user-agent looks mobile or the page exposes `window.orientation`.
+ * Returns `true` when touch is the primary input right now (game-UI question: show touch controls?).
+ * Mode-aware: a convertible in laptop mode returns `false`, in tablet mode returns `true`.
+ * Snapshot at call time — won't auto-update if the user switches modes mid-game.
  */
-export function isMobile(): boolean {
-	const mobileTest1 =
-		/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-			navigator.userAgent,
-		);
-
-	// https://coderwall.com/p/i817wa/one-line-function-to-detect-mobile-devices-with-javascript
-	const mobileTest2 =
-		typeof window.orientation !== "undefined" ||
-		navigator.userAgent.indexOf("IEMobile") !== -1;
-
-	return mobileTest1 || mobileTest2;
+export function isTouchPrimary(): boolean {
+	return matchMedia("(pointer: coarse)").matches;
 }
 
 /**
