@@ -86,6 +86,35 @@ User explicitly says one of:
 - **PascalCase** file names (matching the default export when applicable).
 - **No section comment headers inside class files** (`// --- Factories ---` etc.) — they get removed.
 - **No multi-paragraph comments inside function bodies** unless explaining a non-obvious "why".
+- **No underscore prefix on function/method names.** Use `visibility` modifiers (`private`, `protected`) to mark internal helpers, not naming convention. The only place underscores are allowed is private backing fields paired with an accessor (`_r` for `get r()`).
+- **Prefer `arr.forEach(...)` over `for (const x of arr)` or `for (let i = 0; ...)`** for general iteration. Drop down to `for-of` or `for-i` only when you need `break`/`continue`/early `return`, an index without `forEach`'s second arg, or reverse traversal.
+
+### Class-member order
+
+1. Static fields (constants, lookup tables)
+2. Static methods (factories, helpers)
+3. Instance fields
+4. Instance accessors (getters/setters)
+5. Constructor
+6. Primary mutator (the one the constructor calls; everything else routes through it)
+7. Instance mutators (modify state)
+8. Instance queries (pure reads that derive new data)
+9. Instance converters (alternate representations — e.g. `to*` methods)
+10. Instance utility (`clone`, `equals`, etc.)
+
+Across slots 6-10, sort primarily by visibility, then by slot:
+
+```
+public    slot 6 → 7 → 8 → 9 → 10
+protected slot 6 → 7 → 8 → 9 → 10
+private   slot 6 → 7 → 8 → 9 → 10
+```
+
+This puts protected helpers in the middle and private helpers at the bottom of the class, regardless of which slot they belong to.
+
+For slots 1-4, sort visibility within each slot (there are rarely enough members for cross-slot grouping to matter).
+
+Within the same slot and visibility, order members alphabetically by name. Exceptions: `draw` comes first, `update` comes second — they're the per-frame hooks every game-loop reader looks for, so they stay pinned to the top of their group. Color channels (`r, g, b, alpha` and the matching `_r, _g, _b, _alpha` backing fields) keep RGBA order instead of alphabetical, since channel order is semantically meaningful.
 
 ### Architectural notes
 
