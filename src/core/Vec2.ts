@@ -109,11 +109,11 @@ export default class Vec2 {
 	}
 
 	public length(): number {
-		return Math.abs(this.x) + Math.abs(this.y);
+		return Math.sqrt(this.x * this.x + this.y * this.y);
 	}
 
-	public lengthReal(): number {
-		return Math.sqrt(this.x * this.x + this.y * this.y);
+	public lengthManhattan(): number {
+		return Math.abs(this.x) + Math.abs(this.y);
 	}
 
 	public normalize(): Vec2 {
@@ -124,8 +124,8 @@ export default class Vec2 {
 		return this.map(value => value / length);
 	}
 
-	public normalizeReal(): Vec2 {
-		const length = this.lengthReal();
+	public normalizeManhattan(): Vec2 {
+		const length = this.lengthManhattan();
 		if (length === 0) {
 			return new Vec2();
 		}
