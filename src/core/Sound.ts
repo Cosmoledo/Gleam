@@ -233,8 +233,11 @@ export default class Sound {
 		if (this.currentMusic) {
 			remove(allMusic, this.currentMusic);
 		}
-		const name = randomItem(allMusic);
 
-		return name && name.length > 0 ? name : null;
+		if (allMusic.length === 0) {
+			return null;
+		}
+
+		return randomItem(allMusic);
 	}
 }
