@@ -5,7 +5,7 @@ import {
 	convert1DTo2D,
 } from "@/utilities/Functions";
 import { isNumeric } from "@/utilities/Math";
-import Polygon, { PolygonCollision } from "@/core/Polygon";
+import Polygon from "@/core/Polygon";
 import Rect from "@/core/Rect";
 import Vec2 from "@/core/Vec2";
 
@@ -279,7 +279,7 @@ export default async function loadTiledMap(
 		for (const teleport of teleporter) {
 			if (
 				teleport.rect.collide(player.rect) &&
-				PolygonCollision(teleport.polygon, player.polygon)
+				teleport.polygon.collide(player.polygon)
 			) {
 				const tpTo = teleporter.find(
 					(teleporter: TeleportObject) =>
@@ -303,7 +303,7 @@ export default async function loadTiledMap(
 			if (
 				trigger.isEnabled &&
 				trigger.rect.collide(player.rect) &&
-				PolygonCollision(trigger.polygon, player.polygon).intersect
+				trigger.polygon.collide(player.polygon).intersect
 			) {
 				tell("trigger", undefined, trigger);
 				break;
@@ -604,7 +604,7 @@ export default async function loadTiledMap(
 						teleporter.push({
 							autoTp: autoTp === "auto" ? true : false,
 							name: attr.name,
-							polygon: Polygon.from(rect),
+							polygon: Polygon.fromRect(rect),
 							rect,
 							room,
 							tpPosOffset,
@@ -632,7 +632,7 @@ export default async function loadTiledMap(
 						triggers.push({
 							isEnabled: true,
 							name: attr.name,
-							polygon: Polygon.from(rect),
+							polygon: Polygon.fromRect(rect),
 							rect,
 							type: attr.type,
 						});

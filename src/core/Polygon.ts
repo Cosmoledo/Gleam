@@ -1,8 +1,45 @@
 import Rect from "@/core/Rect";
 import Vec2 from "@/core/Vec2";
 
+function pointDirection(
+	xfrom: number,
+	yfrom: number,
+	xto: number,
+	yto: number,
+): number {
+	return (Math.atan2(yto - yfrom, xto - xfrom) * 180) / Math.PI;
+}
+
+function intervalDistance(
+	minA: number,
+	maxA: number,
+	minB: number,
+	maxB: number,
+): number {
+	return minA < minB ? minB - maxA : minA - maxB;
+}
+
+function projectPolygon(axis: Vec2, polygon: Polygon, bounds: Vec2): void {
+	let dotProduct = axis.dotProduct(polygon.points[0]);
+	bounds.x = dotProduct;
+	bounds.y = dotProduct;
+
+	for (let i = 1; i < polygon.points.length; i++) {
+		dotProduct = polygon.points[i].dotProduct(axis);
+
+		if (dotProduct < bounds.x) {
+			bounds.x = dotProduct;
+		} else if (dotProduct > bounds.y) {
+			bounds.y = dotProduct;
+		}
+	}
+}
+
 export default class Polygon {
-	public static from(rect: Rect): Polygon {
+	public points: Vec2[] = [];
+	public edges: Vec2[] = [];
+
+	public static fromRect(rect: Rect): Polygon {
 		const polygon = new Polygon();
 
 		polygon.addPoint(rect.x, rect.y);
@@ -41,147 +78,16 @@ export default class Polygon {
 		return polygon;
 	}
 
-	public points: Vec2[] = [];
-	public edges: Vec2[] = [];
-
-	public addPoint(x: GameLIB.Vector2 | number, y?: number): Polygon {
-		if (typeof x === "number") {
-			this.points.push(new Vec2(x, y));
-		} else {
-			this.points.push((x as Vec2).clone());
-		}
-
-		return this;
-	}
-
-	public rotate(angle: number, pos: Vec2 = this.center) {
-		if (!angle) {
-			return this;
-		}
-
-		this.points.forEach(point => {
-			point.set(
-				(point.x - pos.x) * Math.cos(angle) -
-					(point.y - pos.y) * Math.sin(angle),
-				(point.x - pos.x) * Math.sin(angle) +
-					(point.y - pos.y) * Math.cos(angle),
-			);
-		});
-
-		this.buildEdges();
-
-		return this;
-	}
-
-	public close(): void {
-		if (this.points.length > 0) {
-			this.points.push(this.points[0].clone());
-		}
-
-		this.buildEdges();
-	}
-
-	public offset(x = 0, y = 0): Polygon {
-		for (const point of this.points) {
-			point.add(x, y);
-		}
-
-		this.buildEdges();
-
-		return this;
-	}
-
-	public buildEdges(): void {
-		this.edges.length = 0;
-		let p1: Vec2;
-		let p2: Vec2;
-
-		for (let i = 0; i < this.points.length; i++) {
-			p1 = this.points[i];
-
-			if (i + 1 >= this.points.length) {
-				p2 = this.points[0];
-			} else {
-				p2 = this.points[i + 1];
-			}
-
-			this.edges.push(p2.clone().sub(p1));
-		}
-	}
-
-	public clone(): Polygon {
-		const polygon = new Polygon();
-		this.points.forEach(point => polygon.addPoint(point.clone()));
-		polygon.buildEdges();
-		return polygon;
-	}
-
-	public get center(): Vec2 {
-		let totalX = 0;
-		let totalY = 0;
-
-		for (const point of this.points) {
-			totalX += point.x;
-			totalY += point.y;
-		}
-
-		return new Vec2(
-			totalX / this.points.length,
-			totalY / this.points.length,
-		);
-	}
-
-	public draw(
-		context: CanvasRenderingContext2D,
-		offset: Vec2 = new Vec2(),
-	): void {
-		if (this.points.length === 0) {
-			return;
-		}
-
-		context.beginPath();
-
-		context.moveTo(
-			(offset.x + this.points[0].x) | 0,
-			(offset.y + this.points[0].y) | 0,
-		);
-
-		for (let i = 1; i < this.points.length; i++) {
-			context.lineTo(
-				(offset.x + this.points[i].x) | 0,
-				(offset.y + this.points[i].y) | 0,
-			);
-		}
-
-		context.closePath();
-		context.stroke();
-	}
-}
-
-/**
- * Creates an outline of a transparent image.
- * Then uses points to create a Polygon.
- *
- * @param {HTMLCanvasElement} sprite Source image
- * @param {number} d detail (lower = better)
- * @param {number} angle angle threshold in degrees (will remove points with angle differences below this level; 15 is a good value) making this larger will make the body faster but less accurate;
- * @returns {Polygon}
- */
-export const generatePolygon = ((): ((
-	canvas: HTMLCanvasElement,
-	detail: number,
-	angle: number,
-) => Polygon) => {
-	const pointDirection = (
-		xfrom: number,
-		yfrom: number,
-		xto: number,
-		yto: number,
-	): number => {
-		return (Math.atan2(yto - yfrom, xto - xfrom) * 180) / Math.PI;
-	};
-
-	return function generate(
+	/**
+	 * Creates an outline of a transparent image.
+	 * Then uses those points to create a Polygon.
+	 *
+	 * @param {HTMLCanvasElement} sprite Source image
+	 * @param {number} d detail (lower = better)
+	 * @param {number} angle angle threshold in degrees (will remove points with angle differences below this level; 15 is a good value) making this larger will make the body faster but less accurate;
+	 * @returns {Polygon}
+	 */
+	public static fromCanvas(
 		canvas: HTMLCanvasElement,
 		detail: number,
 		angle: number,
@@ -319,57 +225,123 @@ export const generatePolygon = ((): ((
 		}
 		poly.buildEdges();
 		return poly;
-	};
-})();
+	}
 
-export const PolygonCollision = ((): ((
-	polygonA: Polygon,
-	polygonB: Polygon,
-	velocity?: Vec2,
-) => GameLIB.PolygonCollisionResult) => {
-	const intervalDistance = (
-		minA: number,
-		maxA: number,
-		minB: number,
-		maxB: number,
-	): number => {
-		if (minA < minB) {
-			return minB - maxA;
+	public get center(): Vec2 {
+		let totalX = 0;
+		let totalY = 0;
+
+		for (const point of this.points) {
+			totalX += point.x;
+			totalY += point.y;
 		}
 
-		return minA - maxB;
+		return new Vec2(
+			totalX / this.points.length,
+			totalY / this.points.length,
+		);
+	}
 
-		/*
-		const d1 = minB - maxA;
-		const d2 = minA - maxB;
-		const sign = (minA < minB) ? d1 / Math.abs(d1) : d2 / Math.abs(d2);
-		return sign * Math.min(Math.abs(d1), Math.abs(d2));
-		*/
-	};
+	public addPoint(x: GameLIB.Vector2 | number, y?: number): Polygon {
+		if (typeof x === "number") {
+			this.points.push(new Vec2(x, y));
+		} else {
+			this.points.push((x as Vec2).clone());
+		}
 
-	const projectPolygon = (
-		axis: Vec2,
-		polygon: Polygon,
-		bounds: Vec2,
-	): void => {
-		let dotProduct = axis.dotProduct(polygon.points[0]);
-		bounds.x = dotProduct;
-		bounds.y = dotProduct;
+		return this;
+	}
 
-		for (let i = 1; i < polygon.points.length; i++) {
-			dotProduct = polygon.points[i].dotProduct(axis);
+	public rotate(angle: number, pos: Vec2 = this.center) {
+		if (!angle) {
+			return this;
+		}
 
-			if (dotProduct < bounds.x) {
-				bounds.x = dotProduct;
-			} else if (dotProduct > bounds.y) {
-				bounds.y = dotProduct;
+		this.points.forEach(point => {
+			point.set(
+				(point.x - pos.x) * Math.cos(angle) -
+					(point.y - pos.y) * Math.sin(angle),
+				(point.x - pos.x) * Math.sin(angle) +
+					(point.y - pos.y) * Math.cos(angle),
+			);
+		});
+
+		this.buildEdges();
+
+		return this;
+	}
+
+	public close(): void {
+		if (this.points.length > 0) {
+			this.points.push(this.points[0].clone());
+		}
+
+		this.buildEdges();
+	}
+
+	public offset(x = 0, y = 0): Polygon {
+		for (const point of this.points) {
+			point.add(x, y);
+		}
+
+		this.buildEdges();
+
+		return this;
+	}
+
+	public buildEdges(): void {
+		this.edges.length = 0;
+		let p1: Vec2;
+		let p2: Vec2;
+
+		for (let i = 0; i < this.points.length; i++) {
+			p1 = this.points[i];
+
+			if (i + 1 >= this.points.length) {
+				p2 = this.points[0];
+			} else {
+				p2 = this.points[i + 1];
 			}
-		}
-	};
 
-	return function collision(
-		polygonA: Polygon,
-		polygonB: Polygon,
+			this.edges.push(p2.clone().sub(p1));
+		}
+	}
+
+	public clone(): Polygon {
+		const polygon = new Polygon();
+		this.points.forEach(point => polygon.addPoint(point.clone()));
+		polygon.buildEdges();
+		return polygon;
+	}
+
+	public draw(
+		context: CanvasRenderingContext2D,
+		offset: Vec2 = new Vec2(),
+	): void {
+		if (this.points.length === 0) {
+			return;
+		}
+
+		context.beginPath();
+
+		context.moveTo(
+			(offset.x + this.points[0].x) | 0,
+			(offset.y + this.points[0].y) | 0,
+		);
+
+		for (let i = 1; i < this.points.length; i++) {
+			context.lineTo(
+				(offset.x + this.points[i].x) | 0,
+				(offset.y + this.points[i].y) | 0,
+			);
+		}
+
+		context.closePath();
+		context.stroke();
+	}
+
+	public collide(
+		otherPolygon: Polygon,
 		velocity: Vec2 = new Vec2(),
 	): GameLIB.PolygonCollisionResult {
 		const result: GameLIB.PolygonCollisionResult = {
@@ -378,8 +350,8 @@ export const PolygonCollision = ((): ((
 			willIntersect: true,
 		};
 
-		const edgeCountA = polygonA.edges.length;
-		const edgeCountB = polygonB.edges.length;
+		const edgeCountA = this.edges.length;
+		const edgeCountB = otherPolygon.edges.length;
 		let minDistance = Infinity;
 		let translationAxis = new Vec2();
 		let edge: Vec2;
@@ -390,9 +362,9 @@ export const PolygonCollision = ((): ((
 			edgeIndex++
 		) {
 			if (edgeIndex < edgeCountA) {
-				edge = polygonA.edges[edgeIndex];
+				edge = this.edges[edgeIndex];
 			} else {
-				edge = polygonB.edges[edgeIndex - edgeCountA];
+				edge = otherPolygon.edges[edgeIndex - edgeCountA];
 			}
 
 			const axis = new Vec2(-edge.y, edge.x);
@@ -400,8 +372,8 @@ export const PolygonCollision = ((): ((
 
 			const boundsA = new Vec2();
 			const boundsB = new Vec2();
-			projectPolygon(axis, polygonA, boundsA);
-			projectPolygon(axis, polygonB, boundsB);
+			projectPolygon(axis, this, boundsA);
+			projectPolygon(axis, otherPolygon, boundsB);
 
 			if (
 				intervalDistance(boundsA.x, boundsA.y, boundsB.x, boundsB.y) > 0
@@ -436,7 +408,7 @@ export const PolygonCollision = ((): ((
 				minDistance = distance;
 				translationAxis = axis;
 
-				const d: Vec2 = polygonA.center.sub(polygonB.center);
+				const d: Vec2 = this.center.sub(otherPolygon.center);
 				if (d.dotProduct(translationAxis) < 0) {
 					translationAxis.inv();
 				}
@@ -448,5 +420,5 @@ export const PolygonCollision = ((): ((
 		}
 
 		return result;
-	};
-})();
+	}
+}
