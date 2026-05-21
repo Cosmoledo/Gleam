@@ -9,7 +9,7 @@ import { Color } from "./Color";
  * I would suggest console.log some filters, pick nice ones and hardcode them instead:
  * console.log(colorShifter(randomRgb(1, 10)));
  */
-export function colorShifter(rgb: number[]) {
+export function colorShifter(rgb: [number, number, number]) {
 	const color = new Color(rgb[0], rgb[1], rgb[2]);
 	const solver = new Solver(color);
 	const result = solver.solve();
@@ -32,7 +32,7 @@ class Solver {
 		this.reusedColor = new Color(0, 0, 0);
 	}
 
-	public css(filters) {
+	public css(filters): string {
 		function fmt(idx, multiplier = 1) {
 			return Math.round(filters[idx] * multiplier);
 		}
@@ -44,7 +44,7 @@ class Solver {
 		)}%) contrast(${fmt(5)}%);`;
 	}
 
-	public loss(filters) {
+	public loss(filters): number {
 		// Argument is array of percentages.
 		const color = this.reusedColor;
 		color.set(0, 0, 0);
@@ -139,7 +139,7 @@ class Solver {
 
 		return { values: best, loss: bestLoss };
 
-		function fix(value, idx) {
+		function fix(value: number, idx: number): number {
 			let max = 100;
 			if (idx === 2 /* saturate */) {
 				max = 7500;
@@ -158,6 +158,7 @@ class Solver {
 			} else if (value > max) {
 				value = max;
 			}
+
 			return value;
 		}
 	}
