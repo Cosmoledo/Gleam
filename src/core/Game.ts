@@ -168,7 +168,7 @@ export default abstract class Game {
 				entry.consumed = true;
 			}
 
-			entry.callback.apply(this, params);
+			entry.callback(...params);
 		}
 
 		for (let i = events.length - 1; i >= 0; i--) {
