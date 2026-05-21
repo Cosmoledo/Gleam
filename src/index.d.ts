@@ -145,7 +145,18 @@ interface HTMLCanvasElement {
 	clone(): HTMLCanvasElement;
 	flipX(offsetX?: number): HTMLCanvasElement;
 	flipY(offsetY?: number): HTMLCanvasElement;
-	getRGB(x: number, y: number, output?: string): any;
+	getPixelAt(x: number, y: number, output?: "integer"): number;
+	getPixelAt(
+		x: number,
+		y: number,
+		output: "array",
+	): [number, number, number, number];
+	getPixelAt(
+		x: number,
+		y: number,
+		output: "json",
+	): { r: number; g: number; b: number; a: number };
+	getPixelAt(x: number, y: number, output: "string"): string;
 	replaceColors(replacements: Record<string, string>): HTMLCanvasElement;
 	hasAnyColor(): boolean;
 	resize(size: number, isWidth?: boolean): HTMLCanvasElement;

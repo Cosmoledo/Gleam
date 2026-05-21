@@ -16,44 +16,42 @@ HTMLCanvasElement.prototype.hasAnyColor = function (): boolean {
 	return false;
 };
 
-HTMLCanvasElement.prototype.getRGB = function (
+HTMLCanvasElement.prototype.getPixelAt = function (
+	this: HTMLCanvasElement,
 	x: number,
 	y: number,
-	output = "integer",
-): any {
-	if (x < 0 || x > this.width || y < 0 || y > this.height) {
-		return 0;
+	output: "integer" | "array" | "json" | "string" = "integer",
+) {
+	let r = 0;
+	let g = 0;
+	let b = 0;
+	let a = 0;
+
+	if (x >= 0 && x <= this.width && y >= 0 && y <= this.height) {
+		const data = (
+			this.getContext("2d") as CanvasRenderingContext2D
+		).getImageData(x, y, 1, 1).data;
+		r = data[0];
+		g = data[1];
+		b = data[2];
+		a = data[3];
 	}
 
-	const data = (
-		this.getContext("2d") as CanvasRenderingContext2D
-	).getImageData(x, y, 1, 1).data;
-
-	const r = data[0];
-	const g = data[1];
-	const b = data[2];
-	const a = data[3];
-
 	switch (output) {
-		case "integer":
-			return (r << 24) + (g << 16) + (b << 8) + a;
-
 		case "array":
 			return [r, g, b, a];
 
 		case "json":
-			return {
-				a,
-				b,
-				g,
-				r,
-			};
+			return { r, g, b, a };
 
 		case "string":
-		default:
 			return `rgba(${r}, ${g}, ${b}, ${a})`;
+
+		case "integer":
+		default:
+			return (r << 24) + (g << 16) + (b << 8) + a;
 	}
-};
+} as HTMLCanvasElement["getPixelAt"];
 
 HTMLCanvasElement.prototype.replaceColors = function (
 	replacements: Record<string, string>,
