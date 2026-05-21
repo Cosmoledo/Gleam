@@ -34,7 +34,7 @@ export default class Vec2 {
 	}
 
 	public set(x: GameLIB.Vector2 | number, y?: number): Vec2 {
-		return this._calculate(Operation.Equal, x, y);
+		return this.calculate(Operation.Equal, x, y);
 	}
 
 	public abs(): Vec2 {
@@ -42,7 +42,7 @@ export default class Vec2 {
 	}
 
 	public add(x: GameLIB.Vector2 | number, y?: number): Vec2 {
-		return this._calculate(Operation.Add, x, y);
+		return this.calculate(Operation.Add, x, y);
 	}
 
 	public ceil(): Vec2 {
@@ -57,7 +57,7 @@ export default class Vec2 {
 	}
 
 	public div(x: GameLIB.Vector2 | number, y?: number): Vec2 {
-		return this._calculate(Operation.Div, x, y);
+		return this.calculate(Operation.Div, x, y);
 	}
 
 	public floor(): Vec2 {
@@ -75,11 +75,11 @@ export default class Vec2 {
 	}
 
 	public mod(x: GameLIB.Vector2 | number, y?: number): Vec2 {
-		return this._calculate(Operation.Mod, x, y);
+		return this.calculate(Operation.Mod, x, y);
 	}
 
 	public mult(x: GameLIB.Vector2 | number, y?: number): Vec2 {
-		return this._calculate(Operation.Mult, x, y);
+		return this.calculate(Operation.Mult, x, y);
 	}
 
 	public normalize(): Vec2 {
@@ -105,7 +105,7 @@ export default class Vec2 {
 	}
 
 	public sub(x: GameLIB.Vector2 | number, y?: number): Vec2 {
-		return this._calculate(Operation.Sub, x, y);
+		return this.calculate(Operation.Sub, x, y);
 	}
 
 	public angle(...other: GameLIB.Vector2[]): number {
@@ -151,11 +151,11 @@ export default class Vec2 {
 	}
 
 	public concatFirst(x: GameLIB.Vector2 | number, y?: number): Rect {
-		return this._concat(true, x, y);
+		return this.concat(true, x, y);
 	}
 
 	public concatLast(width: GameLIB.Vector2 | number, height?: number): Rect {
-		return this._concat(false, width, height);
+		return this.concat(false, width, height);
 	}
 
 	public toArray(): [number, number] {
@@ -171,17 +171,17 @@ export default class Vec2 {
 	}
 
 	public equals(x: GameLIB.Vector2 | number, y?: number): boolean {
-		const [x2, y2]: number[] = this._getValues(x, y);
+		const [x2, y2]: number[] = this.getValues(x, y);
 
 		return this.x === x2 && this.y === y2;
 	}
 
-	private _calculate(
+	private calculate(
 		operation: (typeof Operation)[keyof typeof Operation],
 		x: GameLIB.Vector2 | number,
 		y?: number,
 	): Vec2 {
-		const [x2, y2]: number[] = this._getValues(x, y);
+		const [x2, y2]: number[] = this.getValues(x, y);
 
 		switch (operation) {
 			case Operation.Add:
@@ -221,12 +221,12 @@ export default class Vec2 {
 		return this;
 	}
 
-	private _concat(
+	private concat(
 		first: boolean,
 		x: GameLIB.Vector2 | number,
 		y?: number,
 	): Rect {
-		const [x2, y2]: number[] = this._getValues(x, y);
+		const [x2, y2]: number[] = this.getValues(x, y);
 
 		if (first) {
 			return new Rect(x2, y2, this.x, this.y);
@@ -235,7 +235,7 @@ export default class Vec2 {
 		return new Rect(this.x, this.y, x2, y2);
 	}
 
-	private _getValues(x: GameLIB.Vector2 | number, y?: number): number[] {
+	private getValues(x: GameLIB.Vector2 | number, y?: number): number[] {
 		let inputX = 0;
 		let inputY = 0;
 
