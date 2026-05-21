@@ -4,6 +4,20 @@ import { getCanvasConstruct } from "@/utilities/Canvas";
 import Settings, { type SettingsOverrides } from "@/core/Settings";
 import Sound from "@/core/Sound";
 import Vec2 from "@/core/Vec2";
+import type Controller from "@/input/Controller";
+
+type GameEventMap = {
+	[EVENT_NAMES.AFTER_RESIZE]: [];
+	[EVENT_NAMES.CONTROLLER]: [controller: Controller];
+	[EVENT_NAMES.KEY]: [keys: boolean[], keyCode: number];
+	[EVENT_NAMES.MOUSE]: [mouse: GameLIB.Mouse];
+	[EVENT_NAMES.STOP]: [];
+};
+
+type GameEventListener<K extends keyof GameEventMap> = {
+	callback: (...args: GameEventMap[K]) => void;
+	options: { once: boolean };
+};
 
 import "@/prototypes/index";
 import "@/localization/Translator";
@@ -67,10 +81,9 @@ export default abstract class Game {
 	public ratio = 1;
 	public resizedSize!: Vec2;
 	private accumulator = 0;
-	private eventListener: Record<
-		string,
-		{ callback: (...args: any[]) => void; options: { once: boolean } }[]
-	> = {};
+	private eventListener: {
+		[K in keyof GameEventMap]?: GameEventListener<K>[];
+	} = {};
 	private keys: boolean[] = [];
 	private lastTime = 0;
 	private loopHasStarted = false;
@@ -114,21 +127,27 @@ export default abstract class Game {
 		throw new Error("Override init function!");
 	}
 
-	public addEventListener(
-		eventName: string,
-		callback: (...args: any[]) => void,
+	public addEventListener<K extends keyof GameEventMap>(
+		eventName: K,
+		callback: (...args: GameEventMap[K]) => void,
 		once: boolean = false,
 	): void {
-		const event = { callback, options: { once } };
+		const event: GameEventListener<K> = { callback, options: { once } };
+		const list = this.eventListener[eventName];
 
-		if (this.eventListener[eventName]) {
-			this.eventListener[eventName].push(event);
+		if (list) {
+			list.push(event);
 		} else {
-			this.eventListener[eventName] = [event];
+			(this.eventListener as Record<K, GameEventListener<K>[]>)[
+				eventName
+			] = [event];
 		}
 	}
 
-	public dispatchEvent(eventName: string, ...params: any[]): void {
+	public dispatchEvent<K extends keyof GameEventMap>(
+		eventName: K,
+		...params: GameEventMap[K]
+	): void {
 		const events = this.eventListener[eventName];
 
 		if (!events) {
