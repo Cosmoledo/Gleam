@@ -137,7 +137,6 @@ interface CanvasRenderingContext2D {
 
 interface HTMLImageElement {
 	subImage(x: number, y: number, w?: number, h?: number): HTMLCanvasElement;
-	rotateByAligned(radians: number): HTMLCanvasElement;
 }
 
 interface HTMLCanvasElement {
