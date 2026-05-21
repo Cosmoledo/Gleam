@@ -3,8 +3,13 @@ import { isMobile } from "@/utilities/Functions";
 import type Game from "./Game";
 
 export type SettingsOverrides = Partial<
-	Omit<typeof Settings, "prototype" | "init" | "change">
+	Omit<
+		typeof Settings,
+		"prototype" | "init" | "setLocalStorage" | "localStorage"
+	>
 >;
+
+const LOCAL_STORAGE_KEY = "gamelib";
 
 export default class Settings {
 	public static antialias = false;
@@ -15,20 +20,28 @@ export default class Settings {
 	public static enableResize = true;
 	public static font = "Arial";
 	public static fps = 1 / 60;
-	public static localStorage = {
+	private static readonly _localStorage = {
 		isMobile: false,
 		language: "",
 	};
-	public static triedToClose = (): void => void 0;
+	public static triedToClose?: () => void;
 	public static useClearRect = true;
 	public static warnBeforeClose = false;
 
-	public static change<K extends keyof typeof this.localStorage>(
+	public static get localStorage(): Readonly<typeof Settings._localStorage> {
+		return this._localStorage;
+	}
+
+	public static setLocalStorage<K extends keyof typeof this._localStorage>(
 		key: K,
-		value: (typeof this.localStorage)[K],
+		value: (typeof this._localStorage)[K],
 	): void {
-		localStorage.setItem(key, String(value));
-		this.localStorage[key] = value;
+		this._localStorage[key] = value;
+
+		localStorage.setItem(
+			LOCAL_STORAGE_KEY,
+			JSON.stringify(this._localStorage),
+		);
 	}
 
 	public static init(overrides: SettingsOverrides, game: Game): void {
@@ -39,7 +52,8 @@ export default class Settings {
 		}
 
 		if (this.debug) {
-			// debug hook: expose instance on window for devtools inspection
+			// debug-only devtools hook; kept as `any` so the temporary
+			// debug surface doesn't leak into any .d.ts file.
 			(window as any).game = game;
 		}
 
@@ -47,9 +61,7 @@ export default class Settings {
 			window.addEventListener(
 				"beforeunload",
 				(event: BeforeUnloadEvent) => {
-					if (this.triedToClose) {
-						this.triedToClose();
-					}
+					this.triedToClose?.();
 
 					event.preventDefault();
 					event.returnValue = true;
@@ -59,14 +71,21 @@ export default class Settings {
 			);
 		}
 
-		this.localStorage.isMobile = localStorage.getOrSetDefault(
-			"isMobile",
-			isMobile(),
-		);
+		this._localStorage.isMobile = isMobile();
+		this._localStorage.language = navigator.language.split("-")[0] || "en";
 
-		this.localStorage.language = localStorage.getOrSetDefault(
-			"language",
-			navigator.language.split("-")[0] || "en",
-		);
+		const storage = localStorage.getItem(LOCAL_STORAGE_KEY);
+		if (storage) {
+			try {
+				const parsed = JSON.parse(storage);
+				Object.assign(this._localStorage, parsed);
+			} catch (_e) {
+				console.error(
+					"Couldn't parse local storage! Will be cleaned now.",
+					storage,
+				);
+				localStorage.removeItem(LOCAL_STORAGE_KEY);
+			}
+		}
 	}
 }
