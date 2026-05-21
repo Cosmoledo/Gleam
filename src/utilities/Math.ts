@@ -19,15 +19,15 @@ export function random2Pi(): number {
 /**
  * Generate a random float between two values
  */
-export function randomBeetweenFloat(min: number, max: number): number {
+export function randomBetweenFloat(min: number, max: number): number {
 	return min + Math.random() * (max - min);
 }
 
 /**
  * Generate a random integer between two values
  */
-export function randomBeetweenInt(min: number, max: number): number {
-	return Math.floor(randomBeetweenFloat(min, max));
+export function randomBetweenInt(min: number, max: number): number {
+	return Math.floor(randomBetweenFloat(min, max));
 }
 
 /**

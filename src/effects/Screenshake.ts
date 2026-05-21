@@ -1,4 +1,4 @@
-import { randomBeetweenFloat } from "@/utilities/Math";
+import { randomBetweenFloat } from "@/utilities/Math";
 import Settings from "@/core/Settings";
 
 interface ShakeType {
@@ -10,7 +10,7 @@ export const SHAKE_TYPES = {
 	NORMAL: {
 		step: 0.04,
 		update(style: CSSStyleDeclaration, time: number): void {
-			const tr = "rotate(" + randomBeetweenFloat(-2, 2) * time + "deg)";
+			const tr = "rotate(" + randomBetweenFloat(-2, 2) * time + "deg)";
 			style.transform = style.webkitTransform = tr;
 
 			const blur = time * 5;

@@ -1,5 +1,5 @@
 import { createNewCanvas } from "@/utilities/Canvas";
-import { randomBeetweenFloat } from "@/utilities/Math";
+import { randomBetweenFloat } from "@/utilities/Math";
 import Vec2 from "@/core/Vec2";
 
 export interface Animation {
@@ -104,7 +104,7 @@ export default class Animator {
 	}
 
 	public randomTimer(): void {
-		this.timer = randomBeetweenFloat(0, this.current.timing);
+		this.timer = randomBetweenFloat(0, this.current.timing);
 	}
 
 	public reset(): void {

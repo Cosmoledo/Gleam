@@ -1,4 +1,4 @@
-import { random2Pi, randomBeetweenInt } from "@/utilities/Math";
+import { random2Pi, randomBetweenInt } from "@/utilities/Math";
 import Rect from "@/core/Rect";
 import Vec2 from "@/core/Vec2";
 
@@ -25,8 +25,8 @@ export default class Particle {
 
 		this.vel = Vec2.fromAngle(
 			random2Pi(),
-			randomBeetweenInt(50, 150),
-			randomBeetweenInt(50, 150),
+			randomBetweenInt(50, 150),
+			randomBetweenInt(50, 150),
 		).normalize();
 
 		this.maxLifeTime = 0.5 + Math.random();

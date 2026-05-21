@@ -1,4 +1,4 @@
-import { randomBeetweenInt } from "./Math";
+import { randomBetweenInt } from "./Math";
 
 /**
  * Convert an `(r, g, b)` triple (0-255) to a `#rrggbb` hex string.
@@ -65,5 +65,5 @@ export function randomHex(): string {
  * Random `[r, g, b]` integer array; each channel uniform in `[min, max]`.
  */
 export function randomRgb(min = 0, max = 255): number[] {
-	return new Array(3).fill(0).map(() => randomBeetweenInt(min, max));
+	return new Array(3).fill(0).map(() => randomBetweenInt(min, max));
 }
