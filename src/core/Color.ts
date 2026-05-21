@@ -2,15 +2,31 @@ import { clamp } from "@/utilities/Number";
 import { hue2rgb } from "@/utilities/Color";
 
 export class Color {
-	public r!: number;
-	public g!: number;
-	public b!: number;
-	public alpha: number = 1;
+	private _r!: number;
+	private _g!: number;
+	private _b!: number;
+	private _alpha: number = 1;
+
+	public get r(): number {
+		return this._r;
+	}
+
+	public get g(): number {
+		return this._g;
+	}
+
+	public get b(): number {
+		return this._b;
+	}
+
+	public get alpha(): number {
+		return this._alpha;
+	}
 
 	public static fromHex(hex: string): Color {
 		let cleanHex = hex.replace("#", "").toUpperCase();
 
-		if (cleanHex.length === 3) {
+		if (cleanHex.length === 3 || cleanHex.length === 4) {
 			cleanHex = cleanHex
 				.split("")
 				.map(c => c + c)
@@ -26,7 +42,9 @@ export class Color {
 		const b = parseInt(cleanHex.slice(4, 6), 16);
 
 		if (cleanHex.length === 8) {
-			return new Color(r, g, b, parseInt(cleanHex.slice(6, 8), 16) / 255);
+			const a = parseInt(cleanHex.slice(6, 8), 16);
+
+			return new Color(r, g, b, a);
 		}
 
 		return new Color(r, g, b);
@@ -64,12 +82,12 @@ export class Color {
 	}
 
 	public set(r: number, g: number, b: number, a?: number): void {
-		this.r = Math.round(clamp(r, 0, 255));
-		this.g = Math.round(clamp(g, 0, 255));
-		this.b = Math.round(clamp(b, 0, 255));
+		this._r = Math.round(clamp(r, 0, 255));
+		this._g = Math.round(clamp(g, 0, 255));
+		this._b = Math.round(clamp(b, 0, 255));
 
 		if (a !== undefined) {
-			this.alpha = clamp(a, 0, 1);
+			this._alpha = clamp(a, 0, 1);
 		}
 	}
 
@@ -177,7 +195,7 @@ export class Color {
 		const m2 = 0.715 - cos * 0.715 - sin * 0.715;
 		const m3 = 0.072 - cos * 0.072 + sin * 0.928;
 		const m4 = 0.213 - cos * 0.213 + sin * 0.143;
-		const m5 = 0.715 + cos * 0.285 + sin * 0.140;
+		const m5 = 0.715 + cos * 0.285 + sin * 0.14;
 		const m6 = 0.072 - cos * 0.072 - sin * 0.283;
 		const m7 = 0.213 - cos * 0.213 - sin * 0.787;
 		const m8 = 0.715 - cos * 0.715 + sin * 0.715;
@@ -197,13 +215,11 @@ export class Color {
 
 		const max = Math.max(r, g, b);
 		const min = Math.min(r, g, b);
-		let h,
-			s,
-			l = (max + min) / 2;
+		const l = (max + min) / 2;
+		let h = 0;
+		let s = 0;
 
-		if (max === min) {
-			h = s = 0;
-		} else {
+		if (max !== min) {
 			const d = max - min;
 			s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
 
