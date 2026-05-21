@@ -98,20 +98,26 @@ export function changeColor(
 
 /**
  * Split a sprite-sheet image into individual sprite canvases laid out as `elementsX × elementsY`.
+ * Throws if the image dimensions don't divide evenly — sheets are expected to be authored that way.
  */
 export function SpriteSheetHandler(
 	img: HTMLCanvasElement,
 	elementsX: number,
 	elementsY: number,
 ): HTMLCanvasElement[] {
-	const sprites: HTMLCanvasElement[] = [];
+	if (img.width % elementsX !== 0 || img.height % elementsY !== 0) {
+		throw new Error(
+			`SpriteSheet doesn't divide evenly: ${img.width}x${img.height} / ${elementsX}x${elementsY}`,
+		);
+	}
 
 	const sizeX = img.width / elementsX;
 	const sizeY = img.height / elementsY;
+	const sprites: HTMLCanvasElement[] = [];
 
-	for (let y = 0; y < img.height; y += sizeY) {
-		for (let x = 0; x < img.width; x += sizeX) {
-			sprites.push(img.subImage(x, y, sizeX, sizeY));
+	for (let row = 0; row < elementsY; row++) {
+		for (let col = 0; col < elementsX; col++) {
+			sprites.push(img.subImage(col * sizeX, row * sizeY, sizeX, sizeY));
 		}
 	}
 
