@@ -302,6 +302,9 @@ export default abstract class Game {
 			ch.canvas.style.width = width + "px";
 			ch.canvas.style.height = height + "px";
 		});
+
+		this.canvasBoundingClientRect =
+			this.getCanvas().getBoundingClientRect();
 	}
 
 	protected setupCanvas(
@@ -311,6 +314,14 @@ export default abstract class Game {
 	): GameLIB.CanvasHolder {
 		if (!document.querySelector(selector)) {
 			throw new Error("Canvas '" + selector + "' does not exist!");
+		}
+
+		const name = selector.replace("#", "");
+
+		if (this.canvasHolder.has(name)) {
+			throw new Error(
+				"Canvas '" + selector + "' was already registered!",
+			);
 		}
 
 		const newCanvas: GameLIB.CanvasHolder = Object.assign(
@@ -326,19 +337,10 @@ export default abstract class Game {
 		newCanvas.context.strokeStyle = "white";
 		newCanvas.context.font = "12px Arial";
 
-		this.canvasHolder.set(selector.replace("#", ""), newCanvas);
+		this.canvasHolder.set(name, newCanvas);
 
 		this.canvasBoundingClientRect =
 			this.getCanvas().getBoundingClientRect();
-
-		this.addEventListener(EVENT_NAMES.AFTER_RESIZE, () =>
-			setTimeout(
-				() =>
-					(this.canvasBoundingClientRect =
-						this.getCanvas().getBoundingClientRect()),
-				0,
-			),
-		);
 
 		return newCanvas;
 	}
