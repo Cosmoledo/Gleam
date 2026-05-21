@@ -4,13 +4,13 @@ export const EVENT_NAMES = {
 	MOUSE: "mouse",
 	STOP: "stop",
 	CONTROLLER: "controller",
-};
+} as const;
 
 export const CANVAS_TYPES = {
 	ANY: Symbol("any"),
 	DEFAULT: Symbol("default"),
 	BACKGROUND: Symbol("background"),
-};
+} as const;
 
 export const MOUSE_KEYS = {
 	LEFT: 0,
@@ -18,14 +18,14 @@ export const MOUSE_KEYS = {
 	RIGHT: 2,
 	PREV: 3,
 	FORWARD: 4,
-};
+} as const;
 
 export const MOUSE_TYPES = {
 	DOWN: Symbol("down"),
 	MOVE: Symbol("move"),
 	NONE: Symbol("none"),
 	UP: Symbol("up"),
-};
+} as const;
 
 export const KEYBOARD_KEYS = {
 	KEY_0: 48,
@@ -72,7 +72,7 @@ export const KEYBOARD_KEYS = {
 	KEY_X: 88,
 	KEY_Y: 89,
 	KEY_Z: 90,
-};
+} as const;
 
 export const CONTROLLER_KEYS = {
 	A: 0,
@@ -92,4 +92,4 @@ export const CONTROLLER_KEYS = {
 	LEFT: 14,
 	RIGHT: 15,
 	GUIDE: 16,
-};
+} as const;
