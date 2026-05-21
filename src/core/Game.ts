@@ -69,7 +69,7 @@ export default abstract class Game {
 	private accumulator = 0;
 	private eventListener: Record<
 		string,
-		{ callback: (args: any) => void; options: { once: boolean } }[]
+		{ callback: (...args: any[]) => void; options: { once: boolean } }[]
 	> = {};
 	private keys: boolean[] = [];
 	private lastTime = 0;
@@ -149,7 +149,7 @@ export default abstract class Game {
 		}
 
 		for (let i = events.length - 1; i >= 0; i--) {
-			events[i].callback.apply(this, [params]);
+			events[i].callback.apply(this, params);
 
 			if (events[i].options.once) {
 				events.splice(i, 1);
