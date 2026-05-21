@@ -82,12 +82,7 @@ export class Color {
 	}
 
 	public brightness(factor: number): void {
-		this.set(
-			this.r * factor,
-			this.g * factor,
-			this.b * factor,
-			this.alpha * factor,
-		);
+		this.set(this.r * factor, this.g * factor, this.b * factor);
 	}
 
 	public contrast(factor: number): void {
