@@ -1,4 +1,5 @@
 import { clamp } from "@/utilities/Number";
+import { debounce } from "@/utilities/Functions";
 import { EVENT_NAMES, KEYBOARD_KEYS, MOUSE_TYPES } from "@/core/Constants";
 import { getCanvasConstruct } from "@/utilities/Canvas";
 import Settings, { type SettingsOverrides } from "@/core/Settings";
@@ -245,16 +246,9 @@ export default abstract class Game {
 			this.resize();
 		}
 
-		let resizeTimer: ReturnType<typeof setTimeout> | undefined;
 		window.addEventListener(
 			"resize",
-			(): void => {
-				clearTimeout(resizeTimer);
-				resizeTimer = setTimeout(
-					() => this.dispatchEvent(EVENT_NAMES.AFTER_RESIZE),
-					250,
-				);
-			},
+			debounce(() => this.dispatchEvent(EVENT_NAMES.AFTER_RESIZE), 250),
 			false,
 		);
 
