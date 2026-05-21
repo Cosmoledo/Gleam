@@ -192,7 +192,7 @@ export default class Animator {
 		onEnd?: onEndType,
 		onFrame?: onFrameType,
 	): void {
-		this.lastPlayed = this.current.name;
+		this.lastPlayed = this.current?.name;
 		this.play(name, onEnd, onFrame);
 	}
 
