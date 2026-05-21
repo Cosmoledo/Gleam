@@ -1,5 +1,6 @@
 import Settings from "@/core/Settings";
 import { rgb2Int } from "./Color";
+import { getElement } from "./DOM";
 
 /**
  * Create a new `<canvas>` of the given size with its 2D context, with all
@@ -30,8 +31,8 @@ export function createNewCanvas(
  * Look up an existing canvas by CSS selector and return it with its 2D context.
  */
 export function getCanvasConstruct(selector: string): GameLIB.CanvasConstruct {
-	const canvas = document.querySelector(selector) as HTMLCanvasElement;
-	const context = canvas.getContext("2d") as CanvasRenderingContext2D;
+	const canvas = getElement<HTMLCanvasElement>(selector);
+	const context = canvas.getContext("2d")!;
 
 	return {
 		canvas,
