@@ -113,7 +113,7 @@ export default class Polygon {
 			for (let ty = 0; ty < h; ty += 1) {
 				if (data[(ty * w + tx) * 4] !== 0) {
 					vertexX[numPoints] = tx;
-					vertexY[numPoints] = h - ty;
+					vertexY[numPoints] = ty;
 					vertexK[numPoints] = 1;
 					numPoints++;
 					if (fy < 0) {
@@ -130,7 +130,7 @@ export default class Polygon {
 			for (let tx = w - 1; tx >= 0; tx -= 1) {
 				if (data[(ty * w + tx) * 4] !== 0 && ty > ly) {
 					vertexX[numPoints] = tx;
-					vertexY[numPoints] = h - ty;
+					vertexY[numPoints] = ty;
 					vertexK[numPoints] = 1;
 					numPoints++;
 					lx = tx;
@@ -144,7 +144,7 @@ export default class Polygon {
 			for (let ty = h - 1; ty >= 0; ty -= 1) {
 				if (data[(ty * w + tx) * 4] !== 0 && tx < lx) {
 					vertexX[numPoints] = tx;
-					vertexY[numPoints] = h - ty;
+					vertexY[numPoints] = ty;
 					vertexK[numPoints] = 1;
 					numPoints++;
 					lx = tx;
@@ -158,7 +158,7 @@ export default class Polygon {
 			for (let tx = 0; tx < w; tx += 1) {
 				if (data[(ty * w + tx) * 4] !== 0 && ty < ly && ty > fy) {
 					vertexX[numPoints] = tx;
-					vertexY[numPoints] = h - ty;
+					vertexY[numPoints] = ty;
 					vertexK[numPoints] = 1;
 					numPoints++;
 					lx = tx;
@@ -220,7 +220,7 @@ export default class Polygon {
 		const poly = new Polygon();
 		for (let i = 0; i < numPoints; i++) {
 			if (vertexK[i] === 1) {
-				poly.addPoint(vertexX[i], h - vertexY[i]);
+				poly.addPoint(vertexX[i], vertexY[i]);
 			}
 		}
 		poly.buildEdges();
