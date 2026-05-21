@@ -1,6 +1,5 @@
 import { clamp } from "@/utilities/Number";
-import { randomItem } from "@/utilities/Array";
-import { remove } from "@/utilities/Array";
+import { randomItem, remove } from "@/utilities/Array";
 import BezierEasing from "bezier-easing";
 
 type BezierPoints = readonly [number, number, number, number];
@@ -57,14 +56,13 @@ export default class Sound {
 			return;
 		}
 
-		// Cancel any in-flight fade so concurrent calls don't race
-		if (this.fadeRaf !== null) {
-			cancelAnimationFrame(this.fadeRaf);
-			this.fadeCur?.stop();
-
-			this.fadeRaf = null;
-			this.fadeCur = null;
+		if (fadeTime <= 0) {
+			throw new Error(
+				`Sound.fadeMusic: fadeTime must be > 0, got ${fadeTime}`,
+			);
 		}
+
+		this.cancelFade();
 
 		if (!name) {
 			name = this.getRandomMusic()!;
@@ -122,6 +120,8 @@ export default class Sound {
 		this.allSounds.forEach(audio => audio.pause());
 		this.currentMusic = "";
 		this.allSounds.length = 0;
+		// lastMusic is intentionally kept so that after resume,
+		// getRandomMusic avoids picking the just-paused track.
 	}
 
 	public playSound(name: string): void {
@@ -138,11 +138,11 @@ export default class Sound {
 		}
 	}
 
-	public registerMusic(...names: RawRegisterData[] | string[]): void {
+	public registerMusic(...names: (RawRegisterData | string)[]): void {
 		this.register("music", ...names);
 	}
 
-	public registerSound(...names: RawRegisterData[] | string[]): void {
+	public registerSound(...names: (RawRegisterData | string)[]): void {
 		this.register("sound", ...names);
 	}
 
@@ -162,7 +162,8 @@ export default class Sound {
 		return this.currentMusic.length > 0;
 	}
 
-	private playMusic(name: string): void {
+	public playMusic(name: string): void {
+		this.cancelFade();
 		this.currentMusic = name;
 		this.music
 			.get(name)!
@@ -175,12 +176,27 @@ export default class Sound {
 					this.currentMusic = "";
 					this.fadeMusic();
 				};
+			})
+			.catch(error => {
+				console.error(`Could not play music '${name}':`, error);
+				this.currentMusic = "";
 			});
+	}
+
+	private cancelFade(): void {
+		if (this.fadeRaf === null) {
+			return;
+		}
+
+		cancelAnimationFrame(this.fadeRaf);
+		this.fadeCur?.stop();
+		this.fadeRaf = null;
+		this.fadeCur = null;
 	}
 
 	private register(
 		instance: string,
-		...songs: RawRegisterData[] | string[]
+		...songs: (RawRegisterData | string)[]
 	): void {
 		songs.forEach(song => {
 			if (typeof song === "string") {
