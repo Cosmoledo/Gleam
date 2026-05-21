@@ -34,6 +34,10 @@ export default class Settings {
 	public static init(overrides: SettingsOverrides, game: Game): void {
 		Object.assign(this, overrides);
 
+		if (this.fps <= 0) {
+			throw new Error(`Settings.fps must be > 0, got ${this.fps}`);
+		}
+
 		if (this.debug) {
 			// debug hook: expose instance on window for devtools inspection
 			(window as any).game = game;
