@@ -245,7 +245,7 @@ export default abstract class Game {
 			this.resize();
 		}
 
-		let resizeTimer: any;
+		let resizeTimer: ReturnType<typeof setTimeout> | undefined;
 		window.addEventListener(
 			"resize",
 			(): void => {
@@ -355,9 +355,7 @@ export default abstract class Game {
 		const context = this.getCanvasContext();
 		const myLopper = (fullTime = 0): void => {
 			if (this.stop) {
-				// this.getCanvas().style.display = "none";
 				this.dispatchEvent(EVENT_NAMES.STOP);
-				// this.eventListener = {};
 				this.keys.length = 0;
 				console.log("Simulation stopped.");
 				this.loopHasStarted = false;
