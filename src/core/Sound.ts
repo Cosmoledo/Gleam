@@ -22,6 +22,8 @@ export default class Sound {
 	private music: Map<string, HTMLAudioElement> = new Map();
 	private sounds: Map<string, HTMLAudioElement> = new Map();
 	private useSupDir: boolean;
+	private fadeRaf: number | null = null;
+	private fadeCur: HTMLAudioElement | null = null;
 
 	constructor(useSupDir = true, enabled = true) {
 		this.useSupDir = useSupDir;
@@ -86,6 +88,15 @@ export default class Sound {
 			return;
 		}
 
+		// Cancel any in-flight fade so concurrent calls don't race
+		if (this.fadeRaf !== null) {
+			cancelAnimationFrame(this.fadeRaf);
+			this.fadeCur?.stop();
+
+			this.fadeRaf = null;
+			this.fadeCur = null;
+		}
+
 		if (!name) {
 			name = this.getRandomMusic()!;
 			if (!name) {
@@ -102,6 +113,7 @@ export default class Sound {
 		next.volume = 0;
 		this.currentMusic = "";
 		this.playMusic(name);
+		this.fadeCur = cur ?? null;
 
 		// Using BezierEasing for smooth volume transitions
 		const curBez = BezierEasing(...timingFunctions.cur);
@@ -123,13 +135,15 @@ export default class Sound {
 			next.volume = this.registerVolume * clamp(nextBez(time), 0, 1);
 
 			if (time < 1) {
-				requestAnimationFrame(myLopper);
-			} else if (cur) {
-				cur.stop();
+				this.fadeRaf = requestAnimationFrame(myLopper);
+			} else {
+				this.fadeRaf = null;
+				this.fadeCur = null;
+				cur?.stop();
 			}
 		};
 
-		requestAnimationFrame(myLopper);
+		this.fadeRaf = requestAnimationFrame(myLopper);
 	}
 
 	public isPlayingMusic(): boolean {
