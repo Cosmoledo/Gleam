@@ -21,7 +21,7 @@ export default class Settings {
 	};
 	public static triedToClose = (): void => void 0;
 	public static useClearRect = true;
-	public static warnBeforeCLose = false;
+	public static warnBeforeClose = false;
 
 	public static init(overrides: SettingsOverrides, game: Game): void {
 		Object.assign(this, overrides);
@@ -31,7 +31,7 @@ export default class Settings {
 			(window as any).game = game;
 		}
 
-		if (this.warnBeforeCLose) {
+		if (this.warnBeforeClose) {
 			window.addEventListener(
 				"beforeunload",
 				(event: BeforeUnloadEvent) => {
