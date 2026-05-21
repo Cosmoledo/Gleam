@@ -3,19 +3,10 @@ import "./CanvasRenderingContext2D";
 import "./HTMLCanvasElement";
 import "./Storage";
 
-// Bind methods and cast through unknown for cross-prototype compatibility
-const subImageFn = HTMLCanvasElement.prototype.subImage.bind(
-	HTMLCanvasElement.prototype,
-) as unknown as (
-	x: number,
-	y: number,
-	w?: number,
-	h?: number,
-) => HTMLImageElement;
+// Reuse the canvas implementations on images. Both call `drawImage(this, ...)`
+// and read `this.width / this.height` — all valid on HTMLImageElement too.
+HTMLImageElement.prototype.subImage = HTMLCanvasElement.prototype
+	.subImage as HTMLImageElement["subImage"];
 
-const rotateByAlignedFn = HTMLCanvasElement.prototype.rotateByAligned.bind(
-	HTMLCanvasElement.prototype,
-) as unknown as (radians: number) => HTMLImageElement;
-
-HTMLImageElement.prototype.subImage = subImageFn;
-HTMLImageElement.prototype.rotateByAligned = rotateByAlignedFn;
+HTMLImageElement.prototype.rotateByAligned = HTMLCanvasElement.prototype
+	.rotateByAligned as HTMLImageElement["rotateByAligned"];
