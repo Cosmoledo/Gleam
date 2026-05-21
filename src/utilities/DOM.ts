@@ -65,12 +65,9 @@ export function doWhileClicked(
 	callback: () => void,
 	delay = 200,
 ): void {
-	const element = document.querySelector(querySelector);
-	if (!element) {
-		throw new Error("Element does not exists!");
-	}
+	const element = getElement(querySelector);
 
-	let timeout: any;
+	let timeout: ReturnType<typeof setInterval>;
 
 	element.addEventListener(
 		"mousedown",
