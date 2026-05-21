@@ -1,46 +1,90 @@
 /**
  * Recursively clone a value. Returns primitives and functions as-is (no copy).
- * Handles cyclic references via the `hash` WeakMap, plus `Map` and `Set` instances.
- * Attempts to preserve the prototype chain by calling `new obj.constructor()`;
- * falls back to `Object.create(Object.getPrototypeOf(obj))` if the constructor requires args.
+ * Cyclic references resolve via the `hash` WeakMap. Explicit branches preserve
+ * `Date`, `RegExp`, `Map`, `Set`, `Array`, `ArrayBuffer`, and typed arrays.
+ * For plain objects / class instances the prototype is preserved via
+ * `Object.create(...)` — the original constructor is *not* called, so no side
+ * effects fire. Symbol keys and accessor properties are carried via descriptors.
  */
-export function deepClone<T>(obj: any, hash = new WeakMap()): T {
-	// Do not try to clone primitives or functions
+export function deepClone<T>(obj: T, hash = new WeakMap<object, unknown>()): T {
+	// Primitives and functions pass through unchanged.
 	if (Object(obj) !== obj || obj instanceof Function) {
 		return obj;
 	}
 
-	// Cyclic reference
-	if (hash.has(obj)) {
-		return hash.get(obj);
+	const o = obj as object;
+
+	// Cyclic reference: return the in-progress clone.
+	if (hash.has(o)) {
+		return hash.get(o) as T;
 	}
 
-	let result: any;
-	try {
-		// Try to run constructor (without arguments, as we don't know them)
-		result = new obj.constructor();
-	} catch (_e) {
-		// Constructor failed, create object without running the constructor
-		result = Object.create(Object.getPrototypeOf(obj));
+	if (obj instanceof Date) {
+		const cloned = new Date(obj.getTime());
+		hash.set(o, cloned);
+		return cloned as T;
 	}
 
-	// Optional: support for some standard constructors (extend as desired)
+	if (obj instanceof RegExp) {
+		const cloned = new RegExp(obj.source, obj.flags);
+		cloned.lastIndex = obj.lastIndex;
+		hash.set(o, cloned);
+		return cloned as T;
+	}
+
 	if (obj instanceof Map) {
-		Array.from(obj, ([key, val]) =>
-			result.set(deepClone(key, hash), deepClone(val, hash)),
-		);
-	} else if (obj instanceof Set) {
-		Array.from(obj, key => result.add(deepClone(key, hash)));
+		const cloned = new Map<unknown, unknown>();
+		hash.set(o, cloned);
+		for (const [k, v] of obj) {
+			cloned.set(deepClone(k, hash), deepClone(v, hash));
+		}
+		return cloned as T;
 	}
 
-	// Register in hash
-	hash.set(obj, result);
+	if (obj instanceof Set) {
+		const cloned = new Set<unknown>();
+		hash.set(o, cloned);
+		for (const v of obj) {
+			cloned.add(deepClone(v, hash));
+		}
+		return cloned as T;
+	}
 
-	// Clone and assign enumerable own properties recursively
-	return Object.assign(
-		result,
-		...Object.keys(obj).map(key => ({
-			[key]: deepClone(obj[key], hash),
-		})),
-	);
+	if (Array.isArray(obj)) {
+		const cloned: unknown[] = [];
+		hash.set(o, cloned);
+		obj.forEach((item, i) => {
+			cloned[i] = deepClone(item, hash);
+		});
+		return cloned as T;
+	}
+
+	if (obj instanceof ArrayBuffer) {
+		const cloned = obj.slice(0);
+		hash.set(o, cloned);
+		return cloned as T;
+	}
+
+	if (ArrayBuffer.isView(obj) && !(obj instanceof DataView)) {
+		// Typed array (Uint8Array, Int32Array, etc.). `.slice()` preserves the subtype.
+		const cloned = (obj as unknown as Uint8Array).slice();
+		hash.set(o, cloned);
+		return cloned as T;
+	}
+
+	// Plain object or class instance — preserve prototype without running the constructor.
+	const result = Object.create(Object.getPrototypeOf(o));
+	hash.set(o, result);
+
+	// `Reflect.ownKeys` catches symbol keys; descriptor copy keeps accessor
+	// properties and non-enumerable flags intact.
+	for (const key of Reflect.ownKeys(o)) {
+		const descriptor = Object.getOwnPropertyDescriptor(o, key)!;
+		if ("value" in descriptor) {
+			descriptor.value = deepClone(descriptor.value, hash);
+		}
+		Object.defineProperty(result, key, descriptor);
+	}
+
+	return result as T;
 }
