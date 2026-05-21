@@ -117,6 +117,12 @@ export default class Polygon {
 			}
 		}
 
+		if (numPoints < 3) {
+			throw new Error(
+				`Polygon.fromCanvas: scan produced "${numPoints}" vertices (need >=3). Canvas may be empty or detail (${detail}) too large.`,
+			);
+		}
+
 		let ang1 = 0;
 		let ang2 = 0;
 
@@ -155,6 +161,7 @@ export default class Polygon {
 		if (Math.abs(ang1 - ang2) <= angle) {
 			vertexK[numPoints - 1] = 0;
 		}
+
 		ang1 = pointDirection(
 			vertexX[numPoints - 1],
 			vertexY[numPoints - 1],
@@ -162,6 +169,7 @@ export default class Polygon {
 			vertexY[0],
 		);
 		ang2 = pointDirection(vertexX[0], vertexY[0], vertexX[1], vertexY[1]);
+
 		if (Math.abs(ang1 - ang2) <= angle) {
 			vertexK[0] = 0;
 		}
@@ -172,6 +180,7 @@ export default class Polygon {
 				poly.addPoint(vertexX[i], vertexY[i]);
 			}
 		}
+
 		poly.buildEdges();
 		return poly;
 	}
@@ -210,7 +219,7 @@ export default class Polygon {
 		polygon.addPoint(rect.x + rect.w, rect.y + rect.h);
 		polygon.addPoint(rect.x, rect.y + rect.h);
 
-		polygon.close();
+		polygon.buildEdges();
 
 		return polygon;
 	}
@@ -263,7 +272,7 @@ export default class Polygon {
 		if (typeof x === "number") {
 			this.points.push(new Vec2(x, y));
 		} else {
-			this.points.push((x as Vec2).clone());
+			this.points.push(new Vec2(x.x, x.y));
 		}
 
 		return this;
@@ -285,14 +294,6 @@ export default class Polygon {
 
 			this.edges.push(p2.clone().sub(p1));
 		}
-	}
-
-	public close(): void {
-		if (this.points.length > 0) {
-			this.points.push(this.points[0].clone());
-		}
-
-		this.buildEdges();
 	}
 
 	public offset(x = 0, y = 0): Polygon {
@@ -390,7 +391,7 @@ export default class Polygon {
 			distance = Math.abs(distance);
 			if (distance < minDistance) {
 				minDistance = distance;
-				translationAxis = axis;
+				translationAxis = axis.clone();
 
 				const d: Vec2 = this.center.sub(otherPolygon.center);
 				if (d.dotProduct(translationAxis) < 0) {
