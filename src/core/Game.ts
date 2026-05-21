@@ -17,6 +17,7 @@ type GameEventMap = {
 type GameEventListener<K extends keyof GameEventMap> = {
 	callback: (...args: GameEventMap[K]) => void;
 	options: { once: boolean };
+	consumed?: boolean;
 };
 
 import "@/prototypes/index";
@@ -154,10 +155,24 @@ export default abstract class Game {
 			return;
 		}
 
-		for (let i = events.length - 1; i >= 0; i--) {
-			events[i].callback.apply(this, params);
+		const snapshot = events.slice();
 
-			if (events[i].options.once) {
+		for (let i = snapshot.length - 1; i >= 0; i--) {
+			const entry = snapshot[i];
+
+			if (entry.consumed) {
+				continue;
+			}
+
+			if (entry.options.once) {
+				entry.consumed = true;
+			}
+
+			entry.callback.apply(this, params);
+		}
+
+		for (let i = events.length - 1; i >= 0; i--) {
+			if (events[i].consumed) {
 				events.splice(i, 1);
 			}
 		}
