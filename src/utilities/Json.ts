@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-
 /**
  * Recursively clone a value. Returns primitives and functions as-is (no copy).
  * Handles cyclic references via the `hash` WeakMap, plus `Map` and `Set` instances.

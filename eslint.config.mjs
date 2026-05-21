@@ -21,6 +21,8 @@ export default [
 				"error",
 				{
 					argsIgnorePattern: "^_",
+					caughtErrorsIgnorePattern: "^_",
+					destructuredArrayIgnorePattern: "^_",
 					varsIgnorePattern: "^_",
 				},
 			],
