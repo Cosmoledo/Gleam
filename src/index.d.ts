@@ -171,7 +171,7 @@ interface HTMLCanvasElement {
 }
 
 interface HTMLAudioElement {
-	defaultVolume: number;
+	defaultVolume?: number;
 	clone(): HTMLAudioElement;
 	stop: () => void;
 }
