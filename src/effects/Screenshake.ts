@@ -10,24 +10,22 @@ export const SHAKE_TYPES = {
 	NORMAL: {
 		step: 3,
 		update(style: CSSStyleDeclaration, time: number): void {
-			const tr = "rotate(" + randomBetweenFloat(-2, 2) * time + "deg)";
+			const tr = `rotate(${randomBetweenFloat(-2, 2) * time}deg)`;
 			style.transform = style.webkitTransform = tr;
 
-			const blur = time * 5;
-			style.filter = "blur(" + blur + "px)";
+			style.filter = `blur(${time * 5}px)`;
 		},
 	},
 	FAST: {
 		step: 15,
 		update(style: CSSStyleDeclaration, time: number): void {
-			const blur = time * 3;
-			style.filter = "blur(" + blur + "px)";
+			style.filter = `blur(${time * 3}px)`;
 		},
 	},
 } satisfies Record<string, ShakeType>;
 
 export default class Screenshake {
-	private shakeType!: ShakeType;
+	private shakeType: ShakeType = SHAKE_TYPES.NORMAL;
 	private style: CSSStyleDeclaration;
 	private blocked: boolean = false;
 
