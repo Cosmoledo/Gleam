@@ -4,6 +4,7 @@ export const EVENT_NAMES = {
 	MOUSE: "mouse",
 	STOP: "stop",
 	CONTROLLER: "controller",
+	CONTROLLER_DISCONNECTED: "controllerDisconnected",
 } as const;
 
 export const CANVAS_TYPES = {

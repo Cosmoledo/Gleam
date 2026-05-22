@@ -5,11 +5,12 @@ import { getCanvasConstruct } from "@/utilities/Canvas";
 import Settings, { type SettingsOverrides } from "@/core/Settings";
 import Sound from "@/core/Sound";
 import Vec2 from "@/core/Vec2";
-import type Controller from "@/input/Controller";
+import type ControllerCursor from "@/input/ControllerCursor";
 
 type GameEventMap = {
 	[EVENT_NAMES.AFTER_RESIZE]: [];
-	[EVENT_NAMES.CONTROLLER]: [controller: Controller];
+	[EVENT_NAMES.CONTROLLER]: [buttons: boolean[], cursors: ControllerCursor[]];
+	[EVENT_NAMES.CONTROLLER_DISCONNECTED]: [];
 	[EVENT_NAMES.KEY]: [keys: boolean[], keyCode: number];
 	[EVENT_NAMES.MOUSE]: [mouse: GameLIB.Mouse];
 	[EVENT_NAMES.STOP]: [];
