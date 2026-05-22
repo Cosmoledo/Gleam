@@ -10,7 +10,7 @@ export interface Animation {
 }
 
 type onEndType = () => void;
-type onFrameType = any;
+type onFrameType = Record<number, () => void>;
 
 interface BaseEntity {
 	pos: Vec2;
@@ -28,7 +28,8 @@ export default class Animator {
 	private currentAnimation = 0;
 	private entity: BaseEntity;
 	private lastPlayed: string | undefined;
-	private onFrame: onFrameType;
+	private onFrame?: onFrameType;
+	private playVersion = 0;
 	private timer = 0;
 
 	public get current(): Animation {
@@ -57,34 +58,45 @@ export default class Animator {
 
 		this.timer += dt;
 
-		if (this.timer > this.current.timing) {
-			this.timer = 0;
-			this.imageId++;
+		if (this.timer <= this.current.timing) {
+			return;
+		}
 
-			if (this.imageId >= this.current.sprites.length) {
-				if (this.onEnd) {
-					this.onEnd();
-					this.onEnd = undefined;
-				}
+		this.timer = 0;
+		this.imageId++;
 
-				this.onFrame = undefined;
-				this.imageId = 0;
+		if (this.imageId >= this.current.sprites.length) {
+			const onEnd = this.onEnd;
+			this.onEnd = undefined;
+			this.onFrame = undefined;
+			this.imageId = 0;
 
-				if (this.lastPlayed) {
-					this.play(this.lastPlayed);
-					this.lastPlayed = undefined;
-					return;
-				}
+			const versionBefore = this.playVersion;
+			onEnd?.();
+			if (this.playVersion !== versionBefore) {
+				return;
 			}
 
-			if (this.onFrame && this.onFrame[this.imageId]) {
-				this.onFrame[this.imageId]();
-				delete this.onFrame[this.imageId];
+			if (this.lastPlayed) {
+				this.play(this.lastPlayed);
+				this.lastPlayed = undefined;
+				return;
 			}
+		}
 
-			if (this.active) {
-				this.setImage();
+		if (this.onFrame?.[this.imageId]) {
+			const cb = this.onFrame[this.imageId];
+			delete this.onFrame[this.imageId];
+
+			const versionBefore = this.playVersion;
+			cb();
+			if (this.playVersion !== versionBefore) {
+				return;
 			}
+		}
+
+		if (this.active) {
+			this.setImage();
 		}
 	}
 
@@ -142,22 +154,29 @@ export default class Animator {
 	}
 
 	public play(name: string, onEnd?: onEndType, onFrame?: onFrameType): void {
-		this.imageId = 0;
-		this.timer = 0;
-		this.currentAnimation = this.animations.findIndex(
+		const index = this.animations.findIndex(
 			(anim: Animation) => anim.name === name,
 		);
+
+		if (index < 0) {
+			throw new Error(`Animator.play: animation "${name}" not found`);
+		}
+
+		this.playVersion++;
+		const myVersion = this.playVersion;
+
+		this.imageId = 0;
+		this.timer = 0;
+		this.currentAnimation = index;
 		this.setImage();
 
-		if (this.onEnd) {
-			this.onEnd();
-		}
+		const prevOnEnd = this.onEnd;
+		this.onEnd = onEnd;
 		this.onFrame = onFrame;
+		prevOnEnd?.();
 
-		if (typeof onEnd === "function") {
-			this.onEnd = onEnd;
-		} else {
-			this.onEnd = undefined;
+		if (this.playVersion !== myVersion) {
+			return;
 		}
 
 		this.active = this.current.sprites.length > 1;
@@ -179,6 +198,9 @@ export default class Animator {
 		this.lastPlayed = name;
 	}
 
+	/**
+	 * Play `name` once, then return to the previously-playing animation. Calling with the currently-playing name re-loops it indefinitely (lastPlayed restores to itself).
+	 */
 	public playOnce(
 		name: string,
 		onEnd?: onEndType,
@@ -216,6 +238,9 @@ export default class Animator {
 		return this.current && this.current.name === name;
 	}
 
+	/**
+	 * Update `image` and `size` from the current sprite. Assumes uniform sprite size within an animation.
+	 */
 	protected setImage(): void {
 		const image = this.current.sprites[this.imageId];
 		this.size.set(image.width, image.height);
