@@ -58,14 +58,14 @@ interface CanvasRenderingContext2D {
 	drawCircleV2(
 		vecPos: GameLIB.Vector2,
 		rad: number,
-		lineWidth: number,
+		lineWidth?: number,
 		strokeStyle?: string,
 		amount?: number,
 	): void;
 	drawCircleV4(
 		vecPos: GameLIB.Vector4,
 		rad: number,
-		lineWidth: number,
+		lineWidth?: number,
 		strokeStyle?: string,
 		amount?: number,
 	): void;
@@ -80,23 +80,18 @@ interface CanvasRenderingContext2D {
 		colors?: string[],
 	): void;
 	drawLine(x1: number, y1: number, x2: number, y2: number): void;
-	drawPartialRoundRect(
-		rect: Rect,
-		amount: number,
-		offsetX?: number,
-		offsetY?: number,
-	): void;
 	drawPolygon(
 		polygonCount: number,
 		pos: GameLIB.Vector2,
 		strokeStyle?: string,
 	): void;
+	drawRect(rect: Rect, strokeStyle?: string): void;
 	drawRect(
-		x: Rect | number,
+		x: number,
+		y: number,
+		w: number,
+		h: number,
 		strokeStyle?: string,
-		y?: number,
-		w?: number,
-		h?: number,
 	): void;
 	drawRotated(
 		image: HTMLCanvasElement,
@@ -107,7 +102,19 @@ interface CanvasRenderingContext2D {
 	drawTriangle(rect: Rect): void;
 	fillCircle(vecPos: GameLIB.Vector2, rad: number, fillStyle?: string): void;
 	fillRectObject(rect: Rect): void;
-	generateColor(size: number, color: string): void;
+	generateColor(
+		size: number,
+		color: string,
+	): {
+		colors: [number, number][];
+		image: HTMLCanvasElement;
+		drawPartialRoundRect: (
+			rect: Rect,
+			amount: number,
+			offsetX?: number,
+			offsetY?: number,
+		) => void;
+	};
 	roundRect(
 		x: number,
 		y: number,

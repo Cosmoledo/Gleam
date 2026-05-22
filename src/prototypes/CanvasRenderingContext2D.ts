@@ -48,41 +48,57 @@ CanvasRenderingContext2D.prototype.drawHpBar = function (
 	}
 };
 
+/**
+ * Stroke a circle. Writes `strokeStyle`/`lineWidth` only when supplied; values persist on the context — wrap in `save()`/`restore()` if you need to preserve prior state.
+ */
 CanvasRenderingContext2D.prototype.drawCircleV2 = function (
-	vecPos: GameLIB.Vector2,
+	vec2: GameLIB.Vector2,
 	rad: number,
-	lineWidth: number,
+	lineWidth?: number,
 	strokeStyle?: string,
 	amount = 1,
 ): void {
 	this.beginPath();
-	this.arc(vecPos.x, vecPos.y, rad, 0, amount * 2 * Math.PI);
+	this.arc(vec2.x, vec2.y, rad, 0, amount * 2 * Math.PI);
+
 	if (strokeStyle) {
 		this.strokeStyle = strokeStyle;
 	}
-	this.lineWidth = lineWidth;
+
+	if (lineWidth) {
+		this.lineWidth = lineWidth;
+	}
+
 	this.stroke();
 };
 
+/**
+ * Stroke a circle inscribed in `rect`. Writes `strokeStyle`/`lineWidth` only when supplied; values persist on the context — wrap in `save()`/`restore()` if you need to preserve prior state.
+ */
 CanvasRenderingContext2D.prototype.drawCircleV4 = function (
-	vecPos: GameLIB.Vector4,
+	rect: GameLIB.Vector4,
 	rad: number,
-	lineWidth: number,
+	lineWidth?: number,
 	strokeStyle?: string,
 	amount = 1,
 ): void {
 	this.beginPath();
 	this.arc(
-		vecPos.x + vecPos.w * 0.5,
-		vecPos.y + vecPos.h * 0.5,
+		rect.x + rect.w * 0.5,
+		rect.y + rect.h * 0.5,
 		rad,
 		0,
 		amount * 2 * Math.PI,
 	);
+
 	if (strokeStyle) {
 		this.strokeStyle = strokeStyle;
 	}
-	this.lineWidth = lineWidth;
+
+	if (lineWidth) {
+		this.lineWidth = lineWidth;
+	}
+
 	this.stroke();
 };
 
@@ -127,37 +143,50 @@ CanvasRenderingContext2D.prototype.generateColor = function (
 		rect: Rect,
 		radius: number,
 	): void {
-		rect.x += context.lineWidth;
-		rect.y += context.lineWidth;
-		rect.w -= context.lineWidth * 2;
-		rect.h -= context.lineWidth * 2;
-		rect.update();
+		const rectClone = rect.clone();
+		rectClone.x += context.lineWidth;
+		rectClone.y += context.lineWidth;
+		rectClone.w -= context.lineWidth * 2;
+		rectClone.h -= context.lineWidth * 2;
+		rectClone.update();
 
-		if (rect.w < 2 * radius) {
-			radius = rect.w * 0.5;
+		if (rectClone.w < 2 * radius) {
+			radius = rectClone.w * 0.5;
 		}
-		if (rect.h < 2 * radius) {
-			radius = rect.h * 0.5;
+		if (rectClone.h < 2 * radius) {
+			radius = rectClone.h * 0.5;
 		}
 
 		context.beginPath();
-		context.moveTo(rect.x + radius, rect.y);
+		context.moveTo(rectClone.x + radius, rectClone.y);
 		context.arcTo(
-			rect.sides.right,
-			rect.y,
-			rect.sides.right,
-			rect.sides.bottom,
+			rectClone.sides.right,
+			rectClone.y,
+			rectClone.sides.right,
+			rectClone.sides.bottom,
 			radius,
 		);
 		context.arcTo(
-			rect.sides.right,
-			rect.sides.bottom,
-			rect.x,
-			rect.sides.bottom,
+			rectClone.sides.right,
+			rectClone.sides.bottom,
+			rectClone.x,
+			rectClone.sides.bottom,
 			radius,
 		);
-		context.arcTo(rect.x, rect.sides.bottom, rect.x, rect.y, radius);
-		context.arcTo(rect.x, rect.y, rect.sides.right, rect.y, radius);
+		context.arcTo(
+			rectClone.x,
+			rectClone.sides.bottom,
+			rectClone.x,
+			rectClone.y,
+			radius,
+		);
+		context.arcTo(
+			rectClone.x,
+			rectClone.y,
+			rectClone.sides.right,
+			rectClone.y,
+			radius,
+		);
 		context.closePath();
 		context.stroke();
 	}
@@ -277,22 +306,34 @@ CanvasRenderingContext2D.prototype.roundRectObject = function (
 };
 
 CanvasRenderingContext2D.prototype.drawRect = function (
-	x: Rect | number,
-	strokeStyle?: string,
-	y?: number,
-	w?: number,
-	h?: number,
+	...args: [Rect, string?] | [number, number, number, number, string?]
 ): void {
+	let x: number;
+	let y: number;
+	let w: number;
+	let h: number;
+	let strokeStyle: string | undefined;
+
+	if (args[0] instanceof Rect) {
+		const [rect, style] = args as [Rect, string?];
+		({ x, y, w, h } = rect);
+		strokeStyle = style;
+	} else {
+		[x, y, w, h, strokeStyle] = args as [
+			number,
+			number,
+			number,
+			number,
+			string?,
+		];
+	}
+
 	if (strokeStyle) {
 		this.strokeStyle = strokeStyle;
 	}
 
 	this.beginPath();
-	if (typeof x === "number") {
-		this.rect(x, y as number, w as number, h as number);
-	} else {
-		this.rect(x.x, x.y, x.w, x.h);
-	}
+	this.rect(x, y, w, h);
 	this.stroke();
 };
 
@@ -334,17 +375,11 @@ CanvasRenderingContext2D.prototype.drawRotated = function (
 	y: number,
 	radians: number,
 ): void {
-	this.setTransform(
-		1,
-		0,
-		0,
-		1,
-		x + image.width * 0.5,
-		y + image.height * 0.5,
-	);
+	this.save();
+	this.translate(x + image.width * 0.5, y + image.height * 0.5);
 	this.rotate(radians);
 	this.drawImage(image, -image.width * 0.5, -image.height * 0.5);
-	this.setTransform(1, 0, 0, 1, 0, 0);
+	this.restore();
 };
 
 CanvasRenderingContext2D.prototype.drawPolygon = function (
@@ -414,8 +449,9 @@ CanvasRenderingContext2D.prototype.writeMultilineText = function (
 			let textWidth = this.measureText(words.slice(0, i).join(" ")).width;
 
 			if (textWidth > width) {
-				this.writeText(words.slice(0, i - 1).join(" "), x, y, color, 0);
-				words.splice(0, i - 1);
+				const count = Math.max(1, i - 1);
+				this.writeText(words.slice(0, count).join(" "), x, y, color, 0);
+				words.splice(0, count);
 				y += lineOffset;
 				break;
 			}
@@ -424,8 +460,15 @@ CanvasRenderingContext2D.prototype.writeMultilineText = function (
 				textWidth = this.measureText(words.join(" ")).width;
 
 				if (textWidth > width) {
-					this.writeText(words.slice(0, i).join(" "), x, y, color, 0);
-					words.splice(0, i);
+					const count = Math.max(1, i);
+					this.writeText(
+						words.slice(0, count).join(" "),
+						x,
+						y,
+						color,
+						0,
+					);
+					words.splice(0, count);
 					y += lineOffset;
 					break;
 				} else {
@@ -435,6 +478,7 @@ CanvasRenderingContext2D.prototype.writeMultilineText = function (
 				}
 			}
 		}
+
 		attempts++;
 	}
 
