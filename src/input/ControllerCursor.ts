@@ -1,3 +1,4 @@
+import { clamp } from "@/utilities/Number";
 import { loadImage } from "@/loader/UrlLoaders";
 import Controller from "./Controller";
 import Game from "@/core/Game";
@@ -16,7 +17,6 @@ export default class ControllerCursor {
 	private controller: Controller;
 	private game: Game;
 	private pos: Vec2;
-	private vel: Vec2 = new Vec2();
 
 	constructor(controller: Controller, game: Game, axisId: number) {
 		this.controller = controller;
@@ -37,28 +37,22 @@ export default class ControllerCursor {
 	}
 
 	public update(dt: number): void {
-		this.vel.set(this.controller.stick(this.axisId).mult(SPEED * dt));
+		const step = this.controller.stick(this.axisId).mult(SPEED * dt);
 
-		if (this.vel.length() > 0) {
-			const lastPos = this.pos.clone();
-
-			this.pos.add(this.vel);
-
-			if (
-				this.pos.x < 0 ||
-				this.pos.x > this.game.width - CROSSHAIR.width
-			) {
-				this.pos.x = lastPos.x;
-				this.vel.set(0, 0);
-			}
-
-			if (
-				this.pos.y < 0 ||
-				this.pos.y > this.game.height - CROSSHAIR.height
-			) {
-				this.pos.y = lastPos.y;
-				this.vel.set(0, 0);
-			}
+		if (step.length() === 0) {
+			return;
 		}
+
+		this.pos.x = clamp(
+			this.pos.x + step.x,
+			0,
+			this.game.width - CROSSHAIR.width,
+		);
+
+		this.pos.y = clamp(
+			this.pos.y + step.y,
+			0,
+			this.game.height - CROSSHAIR.height,
+		);
 	}
 }
