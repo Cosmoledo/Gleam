@@ -45,9 +45,7 @@ export default class Polygon {
 
 		const w = canvas.width;
 		const h = canvas.height;
-		const data = (
-			canvas.getContext("2d") as CanvasRenderingContext2D
-		).getImageData(0, 0, w, h).data;
+		const data = canvas.getContext("2d")!.getImageData(0, 0, w, h).data;
 
 		const vertexX = [0];
 		const vertexY = [0];

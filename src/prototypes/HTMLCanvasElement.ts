@@ -3,9 +3,12 @@ import { hex2rgb, rgb2Int } from "@/utilities/Color";
 import { convert2DTo1D } from "@/utilities/Grid";
 
 HTMLCanvasElement.prototype.hasAnyColor = function (): boolean {
-	const rgba = (
-		this.getContext("2d") as CanvasRenderingContext2D
-	).getImageData(0, 0, this.width, this.height).data;
+	const rgba = this.getContext("2d")!.getImageData(
+		0,
+		0,
+		this.width,
+		this.height,
+	).data;
 
 	for (const value of rgba) {
 		if (value !== 0) {
@@ -27,10 +30,8 @@ HTMLCanvasElement.prototype.getPixelAt = function (
 	let b = 0;
 	let a = 0;
 
-	if (x >= 0 && x <= this.width && y >= 0 && y <= this.height) {
-		const data = (
-			this.getContext("2d") as CanvasRenderingContext2D
-		).getImageData(x, y, 1, 1).data;
+	if (x >= 0 && x < this.width && y >= 0 && y < this.height) {
+		const data = this.getContext("2d")!.getImageData(x, y, 1, 1).data;
 		r = data[0];
 		g = data[1];
 		b = data[2];
@@ -53,6 +54,9 @@ HTMLCanvasElement.prototype.getPixelAt = function (
 	}
 } as HTMLCanvasElement["getPixelAt"];
 
+/**
+ * Replace pixel colors by RGB hex key. Alpha is ignored — fully-transparent pixels are skipped, semi-transparent pixels keep their alpha.
+ */
 HTMLCanvasElement.prototype.replaceColors = function (
 	replacements: Record<string, string>,
 ): HTMLCanvasElement {
@@ -68,6 +72,10 @@ HTMLCanvasElement.prototype.replaceColors = function (
 	const { data } = image;
 
 	for (let i = 0; i < data.length; i += 4) {
+		if (data[i + 3] === 0) {
+			continue;
+		}
+
 		const replacement = lookup.get(
 			rgb2Int(data[i], data[i + 1], data[i + 2]),
 		);
@@ -148,8 +156,8 @@ HTMLCanvasElement.prototype.autoCrop = function (): HTMLCanvasElement {
 		}
 	}
 
-	const width = bottomRight.x - topLeft.x;
-	const height = bottomRight.y - topLeft.y;
+	const width = bottomRight.x - topLeft.x + 1;
+	const height = bottomRight.y - topLeft.y + 1;
 
 	return this.subImage(topLeft.x, topLeft.y, width, height);
 };
@@ -158,16 +166,21 @@ HTMLCanvasElement.prototype.scaleBy = function (
 	scaleX: number = 1,
 	scaleY?: number,
 ): HTMLCanvasElement {
-	if (scaleX === 1 && (scaleY === undefined || scaleY === 1)) {
+	const sy = scaleY === undefined ? scaleX : scaleY;
+
+	if (scaleX <= 0 || sy <= 0) {
+		throw new Error(
+			`scaleBy requires positive scale factors, got (${scaleX}, ${sy})`,
+		);
+	}
+
+	if (scaleX === 1 && sy === 1) {
 		return this;
 	}
 
-	const cc = createNewCanvas(
-		this.width * scaleX,
-		this.height * (scaleY || scaleX),
-	);
+	const cc = createNewCanvas(this.width * scaleX, this.height * sy);
 
-	cc.context.scale(scaleX, scaleY || scaleX);
+	cc.context.scale(scaleX, sy);
 	cc.context.drawImage(this, 0, 0);
 
 	return cc.canvas;
@@ -212,10 +225,17 @@ HTMLCanvasElement.prototype.subImage = function (
 	w: number,
 	h: number,
 ): HTMLCanvasElement {
-	w = w || this.width;
-	h = h || this.height;
+	if (w === undefined) {
+		w = this.width;
+	}
+
+	if (h === undefined) {
+		h = this.height;
+	}
+
 	const cc = createNewCanvas(w, h);
 	cc.context.drawImage(this, x, y, w, h, 0, 0, w, h);
+
 	return cc.canvas;
 };
 
