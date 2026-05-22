@@ -1,4 +1,3 @@
-import "@/prototypes/Storage";
 import type Game from "./Game";
 
 export type SettingsOverrides = Partial<
