@@ -84,7 +84,7 @@ export function toDegrees(radians: number): number {
  * Wrap an angle in radians into `[-PI, PI)`.
  */
 export function wrapRadians(angle: number): number {
-	return wrapValue(angle, -Math.PI, Math.PI, Math.PI * 2);
+	return wrapValue(angle, -Math.PI, Math.PI);
 }
 
 /**

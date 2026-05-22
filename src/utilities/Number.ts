@@ -6,7 +6,7 @@ export function clamp(value: number, min: number, max: number): number {
 }
 
 /**
- * Map value from one range to another
+ * Map value from one range to another. Returns `low2` when the source range is degenerate (`low1 === high1`).
  */
 export function mapUnclamped(
 	value: number,
@@ -15,11 +15,15 @@ export function mapUnclamped(
 	low2: number,
 	high2: number,
 ): number {
+	if (low1 === high1) {
+		return low2;
+	}
+
 	return low2 + ((high2 - low2) * (value - low1)) / (high1 - low1);
 }
 
 /**
- * Map value from one range to another (with clamping)
+ * Map value from one range to another (with clamping). Output range allows to be inverted (`high2 < low2`).
  */
 export function map(
 	value: number,
@@ -28,14 +32,18 @@ export function map(
 	low2: number,
 	high2: number,
 ): number {
-	return clamp(mapUnclamped(value, low1, high1, low2, high2), low2, high2);
+	return clamp(
+		mapUnclamped(value, low1, high1, low2, high2),
+		Math.min(low2, high2),
+		Math.max(low2, high2),
+	);
 }
 
 /**
- * Apply threshold function - returns 0 if below threshold, otherwise input value
+ * Zero out values with `|value| < cutoff`; pass the rest through unchanged. Inverse of `clamp`.
  */
-export function threshold(value: number, threshold: number): number {
-	if (Math.abs(value) < threshold) {
+export function threshold(value: number, cutoff: number): number {
+	if (Math.abs(value) < cutoff) {
 		return 0;
 	}
 
@@ -50,54 +58,10 @@ export function toDotted(value: number): string {
 }
 
 /**
- * Wrap `value` so it stays in `[min, max)`, repeatedly adding/subtracting `adjustBy`
- * (defaults to `max`). Useful for cyclic ranges like angles.
+ * Wrap `value` into `[min, max)` modulo the range size. Useful for cyclic ranges like angles.
+ * Caller steps via `value + n`; this function handles the wrap-around.
  */
-export function wrapValue(
-	value: number,
-	min: number,
-	max: number,
-	adjustBy: number = max,
-): number {
-	while (value < min) {
-		value += adjustBy;
-	}
-
-	while (value >= max) {
-		value -= adjustBy;
-	}
-
-	return value;
-}
-
-/**
- * Convert number to Roman numeral
- */
-export function toRoman(value: number): string {
-	const v = [1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1];
-	const r = [
-		"M",
-		"CM",
-		"D",
-		"CD",
-		"C",
-		"XC",
-		"L",
-		"XL",
-		"X",
-		"IX",
-		"V",
-		"IV",
-		"I",
-	];
-
-	let out = "";
-	for (let i = 0; i < v.length; i++) {
-		for (let k = 0; k < ((value / v[i]) | 0); k++) {
-			out += r[i];
-		}
-		value = value % v[i];
-	}
-
-	return out;
+export function wrapValue(value: number, min: number, max: number): number {
+	const range = max - min;
+	return ((((value - min) % range) + range) % range) + min;
 }
