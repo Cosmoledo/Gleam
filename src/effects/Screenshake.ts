@@ -1,4 +1,5 @@
 import { randomBetweenFloat } from "@/utilities/Math";
+import { rafLoop } from "@/utilities/Functions";
 
 interface ShakeType {
 	step: number;
@@ -7,7 +8,7 @@ interface ShakeType {
 
 export const SHAKE_TYPES = {
 	NORMAL: {
-		step: 0.04,
+		step: 3,
 		update(style: CSSStyleDeclaration, time: number): void {
 			const tr = "rotate(" + randomBetweenFloat(-2, 2) * time + "deg)";
 			style.transform = style.webkitTransform = tr;
@@ -17,7 +18,7 @@ export const SHAKE_TYPES = {
 		},
 	},
 	FAST: {
-		step: 0.25,
+		step: 15,
 		update(style: CSSStyleDeclaration, time: number): void {
 			const blur = time * 3;
 			style.filter = "blur(" + blur + "px)";
@@ -27,37 +28,34 @@ export const SHAKE_TYPES = {
 
 export default class Screenshake {
 	private shakeType!: ShakeType;
-	private step: number;
 	private style: CSSStyleDeclaration;
-	private time: number;
+	private blocked: boolean = false;
 
 	constructor(element: HTMLElement) {
 		this.style = element.style;
-		this.time = 0;
-		this.step = 0.04;
 	}
 
-	public shake(shakeType: ShakeType = SHAKE_TYPES.NORMAL): void {
+	public shake(shakeType: ShakeType = SHAKE_TYPES.NORMAL): boolean {
+		if (this.blocked) {
+			return false;
+		}
+
+		this.blocked = true;
 		this.shakeType = shakeType;
-		this.step = shakeType.step;
-		this.time = 1;
-		this.update();
-	}
+		let timer = 1;
 
-	private update(): void {
-		const update = (): void => {
-			this.shakeType.update(this.style, this.time);
+		const stopLoop = rafLoop(dt => {
+			this.shakeType.update(this.style, timer);
+			timer -= this.shakeType.step * dt;
 
-			this.time -= this.step;
-			if (this.time >= 0) {
-				requestAnimationFrame(update);
-			} else {
-				this.time = 0;
+			if (timer <= 0) {
+				this.blocked = false;
 				this.style.transform = "none";
 				this.style.filter = "";
+				stopLoop();
 			}
-		};
+		});
 
-		update();
+		return true;
 	}
 }

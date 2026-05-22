@@ -1,5 +1,5 @@
 import { clamp } from "@/utilities/Number";
-import { debounce } from "@/utilities/Functions";
+import { debounce, rafLoop } from "@/utilities/Functions";
 import { EVENT_NAMES, KEYBOARD_KEYS, MOUSE_TYPES } from "@/core/Constants";
 import { getCanvasConstruct } from "@/utilities/Canvas";
 import Settings, { type SettingsOverrides } from "@/core/Settings";
@@ -88,7 +88,6 @@ export default abstract class Game {
 		[K in keyof GameEventMap]?: GameEventListener<K>[];
 	} = {};
 	private keys: boolean[] = [];
-	private lastTime = 0;
 	private loopHasStarted = false;
 	private stop = false;
 
@@ -345,33 +344,30 @@ export default abstract class Game {
 			return;
 		}
 
-		this.lastTime = 0;
-		const start = performance.now();
+		this.loopHasStarted = true;
 		const context = this.getCanvasContext();
-		const myLopper = (fullTime = 0): void => {
+
+		const stopLoop = rafLoop(dt => {
 			if (this.stop) {
 				this.dispatchEvent(EVENT_NAMES.STOP);
 				this.keys.length = 0;
-				console.log("Simulation stopped.");
 				this.loopHasStarted = false;
+				console.log("Simulation stopped.");
+				stopLoop();
 				return;
 			}
 
-			fullTime = Math.max(0, fullTime - start);
-			this.accumulator += (fullTime - this.lastTime) / 1000;
-			this.levelTime += fullTime - this.lastTime;
-			this.lastTime = fullTime;
+			this.accumulator += dt;
+			this.levelTime += dt * 1000;
 
 			while (this.accumulator > Settings.fps) {
 				this.preUpdate(Settings.fps);
 				this.accumulator -= Settings.fps;
 			}
-			this.preDraw(context);
 
-			requestAnimationFrame(myLopper);
-		};
-		this.loopHasStarted = true;
-		requestAnimationFrame(myLopper);
+			this.preDraw(context);
+		});
+
 		console.log("Simulation started.");
 	}
 

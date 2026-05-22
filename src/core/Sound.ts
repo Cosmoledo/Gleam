@@ -1,4 +1,5 @@
 import { clamp } from "@/utilities/Number";
+import { rafLoop } from "@/utilities/Functions";
 import { randomItem, remove } from "@/utilities/Array";
 import BezierEasing from "bezier-easing";
 
@@ -18,7 +19,7 @@ export default class Sound {
 	private currentMusic = "";
 	private enabled: boolean;
 	private fadeCur: HTMLAudioElement | null = null;
-	private fadeRaf: number | null = null;
+	private stopFade: (() => void) | null = null;
 	private lastMusic = "";
 	private music: Map<string, HTMLAudioElement> = new Map();
 	private sounds: Map<string, HTMLAudioElement> = new Map();
@@ -85,14 +86,11 @@ export default class Sound {
 		// Using BezierEasing for smooth volume transitions
 		const curBez = BezierEasing(...timingFunctions.cur);
 		const nextBez = BezierEasing(...timingFunctions.next);
+		const fadeTimeSeconds = fadeTime / 1000;
 
 		let time = 0;
-		let lastTime = 0;
-		const start = performance.now();
-		const myLopper = (fullTime = 0): void => {
-			fullTime = Math.max(0, fullTime - start);
-			time += (fullTime - lastTime) / fadeTime;
-			lastTime = fullTime;
+		this.stopFade = rafLoop(dt => {
+			time += dt / fadeTimeSeconds;
 
 			if (cur) {
 				cur.volume =
@@ -101,16 +99,10 @@ export default class Sound {
 			}
 			next.volume = this.registerVolume * clamp(nextBez(time), 0, 1);
 
-			if (time < 1) {
-				this.fadeRaf = requestAnimationFrame(myLopper);
-			} else {
-				this.fadeRaf = null;
-				this.fadeCur = null;
-				cur?.stop();
+			if (time >= 1) {
+				this.cancelFade();
 			}
-		};
-
-		this.fadeRaf = requestAnimationFrame(myLopper);
+		});
 	}
 
 	public pause(): void {
@@ -184,13 +176,13 @@ export default class Sound {
 	}
 
 	private cancelFade(): void {
-		if (this.fadeRaf === null) {
+		if (this.stopFade === null) {
 			return;
 		}
 
-		cancelAnimationFrame(this.fadeRaf);
+		this.stopFade();
 		this.fadeCur?.stop();
-		this.fadeRaf = null;
+		this.stopFade = null;
 		this.fadeCur = null;
 	}
 

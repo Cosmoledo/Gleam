@@ -30,6 +30,33 @@ export function isTouchPrimary(): boolean {
 }
 
 /**
+ * Run `tick(dt)` on every animation frame; `dt` is seconds since the previous
+ * frame (0 on the first call). Returns a cancel function that ends the loop
+ * after the current tick.
+ */
+export function rafLoop(tick: (dt: number) => void): () => void {
+	let lastTime = 0;
+	let running = true;
+
+	const wrapped = (now: number): void => {
+		const dt = lastTime === 0 ? 0 : (now - lastTime) / 1000;
+		lastTime = now;
+
+		tick(dt);
+
+		if (running) {
+			requestAnimationFrame(wrapped);
+		}
+	};
+
+	requestAnimationFrame(wrapped);
+
+	return () => {
+		running = false;
+	};
+}
+
+/**
  * Returns a throttled wrapper that runs `callback` at most once per `delay` ms (leading edge).
  * The callback receives the number of wrapper calls since the previous firing (inclusive of this one).
  */
