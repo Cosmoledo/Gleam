@@ -18,6 +18,28 @@ interface BaseEntity {
 }
 
 export default class Animator {
+	private static spriteCache = new Map<
+		string,
+		{ unflipped: HTMLCanvasElement[]; flipped: HTMLCanvasElement[] }
+	>();
+
+	/**
+	 * Drop cached rendered sprites. Pass a namespace to evict only that prefix; omit to clear all.
+	 */
+	public static clearSpriteCache(namespace?: string): void {
+		if (namespace === undefined) {
+			Animator.spriteCache.clear();
+			return;
+		}
+
+		const prefix = `${namespace}.`;
+		for (const key of Animator.spriteCache.keys()) {
+			if (key.startsWith(prefix)) {
+				Animator.spriteCache.delete(key);
+			}
+		}
+	}
+
 	public active = true;
 	public image!: HTMLCanvasElement;
 	public imageId = 0;
@@ -28,6 +50,7 @@ export default class Animator {
 	private currentAnimation = 0;
 	private entity: BaseEntity;
 	private lastPlayed: string | undefined;
+	private namespace: string;
 	private onFrame?: onFrameType;
 	private playVersion = 0;
 	private timer = 0;
@@ -36,8 +59,9 @@ export default class Animator {
 		return this.animations[this.currentAnimation];
 	}
 
-	constructor(entity: BaseEntity) {
+	constructor(entity: BaseEntity, namespace: string) {
 		this.entity = entity;
+		this.namespace = namespace;
 	}
 
 	public draw(
@@ -219,6 +243,7 @@ export default class Animator {
 		this.active = true;
 		this.onEnd = undefined;
 		this.onFrame = undefined;
+		Animator.clearSpriteCache(this.namespace);
 	}
 
 	public reset(): void {
@@ -239,24 +264,39 @@ export default class Animator {
 	}
 
 	/**
-	 * Update `image` and `size` from the current sprite. Assumes uniform sprite size within an animation.
+	 * Update `image` and `size` from the current sprite. Assumes uniform sprite size within an animation. Caches rendered canvases per (animation, frame, lookLeft) — if you mutate `entity.flipX` after first render, call `removeAllAnimations()` or recreate the Animator to invalidate.
 	 */
 	protected setImage(): void {
-		const image = this.current.sprites[this.imageId];
-		this.size.set(image.width, image.height);
+		const animation = this.current;
+		const sprite = animation.sprites[this.imageId];
+		this.size.set(sprite.width, sprite.height);
 
 		if (!this.entity.flipX) {
 			this.entity.flipX = this.size.x;
 		}
 
-		const cc = createNewCanvas(this.size.x * 2, this.size.y);
-		cc.context.translate(
-			this.size.x + (this.lookLeft ? this.entity.flipX : 0),
-			0,
-		);
-		this.lookLeft && cc.context.scale(-1, 1);
+		const key = `${this.namespace}.${animation.name}`;
+		let cache = Animator.spriteCache.get(key);
+		if (!cache) {
+			cache = { unflipped: [], flipped: [] };
+			Animator.spriteCache.set(key, cache);
+		}
 
-		cc.context.drawImage(image, 0, 0);
-		this.image = cc.canvas;
+		const bucket = this.lookLeft ? cache.flipped : cache.unflipped;
+
+		if (!bucket[this.imageId]) {
+			const cc = createNewCanvas(this.size.x * 2, this.size.y);
+			cc.context.translate(
+				this.size.x + (this.lookLeft ? this.entity.flipX : 0),
+				0,
+			);
+			if (this.lookLeft) {
+				cc.context.scale(-1, 1);
+			}
+			cc.context.drawImage(sprite, 0, 0);
+			bucket[this.imageId] = cc.canvas;
+		}
+
+		this.image = bucket[this.imageId];
 	}
 }
