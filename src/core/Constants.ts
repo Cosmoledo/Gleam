@@ -13,21 +13,6 @@ export const CANVAS_TYPES = {
 	BACKGROUND: Symbol("background"),
 } as const;
 
-export const MOUSE_KEYS = {
-	LEFT: 0,
-	MIDDLE: 1,
-	RIGHT: 2,
-	PREV: 3,
-	FORWARD: 4,
-} as const;
-
-export const MOUSE_TYPES = {
-	DOWN: Symbol("down"),
-	MOVE: Symbol("move"),
-	NONE: Symbol("none"),
-	UP: Symbol("up"),
-} as const;
-
 export const CONTROLLER_KEYS = {
 	A: 0,
 	B: 1,

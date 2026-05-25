@@ -28,24 +28,6 @@ declare namespace GameLIB {
 		h: number;
 	}
 
-	interface Mouse {
-		altKey: boolean;
-		calcTarget(): void;
-		ctrlKey: boolean;
-		hasMoved: boolean;
-		posReal: Vec2;
-		posRealLast: Vec2;
-		posScaled: Vec2;
-		posScaledLast: Vec2;
-		pressed: boolean[];
-		released: boolean[];
-		shiftKey: boolean;
-		size: Vector2;
-		type: symbol;
-		target: HTMLElement | null;
-		update(event: MouseEvent): void;
-	}
-
 	interface PolygonCollisionResult {
 		intersect: boolean;
 		minimumTranslationVector: Vec2;

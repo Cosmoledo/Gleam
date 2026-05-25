@@ -1,19 +1,19 @@
-import { clamp } from "@/utilities/Number";
 import { debounce, rafLoop } from "@/utilities/Functions";
-import { EVENT_NAMES, MOUSE_TYPES } from "@/core/Constants";
+import { EVENT_NAMES } from "@/core/Constants";
 import { getCanvasConstruct } from "@/utilities/Canvas";
 import Settings, { type SettingsOverrides } from "@/core/Settings";
 import Sound from "@/core/Sound";
 import Vec2 from "@/core/Vec2";
 import type ControllerCursor from "@/input/ControllerCursor";
 import Keyboard from "@/input/Keyboard";
+import Mouse from "@/input/Mouse";
 
 type GameEventMap = {
 	[EVENT_NAMES.AFTER_RESIZE]: [];
 	[EVENT_NAMES.CONTROLLER]: [buttons: boolean[], cursors: ControllerCursor[]];
 	[EVENT_NAMES.CONTROLLER_DISCONNECTED]: [];
 	[EVENT_NAMES.KEY]: [keys: Record<string, boolean>, code: string];
-	[EVENT_NAMES.MOUSE]: [mouse: GameLIB.Mouse];
+	[EVENT_NAMES.MOUSE]: [mouse: Mouse];
 	[EVENT_NAMES.STOP]: [];
 };
 
@@ -30,58 +30,6 @@ export default abstract class Game {
 	public canvasBoundingClientRect!: DOMRect;
 	public canvasHolder: Map<string, GameLIB.CanvasHolder> = new Map();
 	public levelTime = 0;
-	public mouse: GameLIB.Mouse = {
-		altKey: false,
-		ctrlKey: false,
-		hasMoved: false,
-		posReal: new Vec2(),
-		posRealLast: new Vec2(),
-		posScaled: new Vec2(),
-		posScaledLast: new Vec2(),
-		pressed: [],
-		released: [],
-		shiftKey: false,
-		size: new Vec2(10, 10),
-		type: MOUSE_TYPES.NONE,
-		target: null,
-		calcTarget() {
-			this.target = document.elementFromPoint(
-				this.posReal.x,
-				this.posReal.y,
-			) as HTMLElement;
-		},
-		update: (event: MouseEvent) => {
-			this.mouse.posRealLast = this.mouse.posReal.clone();
-			this.mouse.posReal.set(
-				event.clientX + this.mouse.size.x * 0.5,
-				event.clientY + this.mouse.size.y * 0.5,
-			);
-
-			this.mouse.posScaledLast = this.mouse.posScaled.clone();
-			this.mouse.posScaled.set(
-				clamp(
-					(((event.clientX +
-						this.mouse.size.x * 0.5 -
-						this.canvasBoundingClientRect.left) /
-						this.canvasBoundingClientRect.width) *
-						this.width) |
-						0,
-					0,
-					this.width,
-				),
-				clamp(
-					(((event.clientY +
-						this.mouse.size.y * 0.5 -
-						this.canvasBoundingClientRect.top) /
-						this.canvasBoundingClientRect.height) *
-						this.height) |
-						0,
-					0,
-					this.height,
-				),
-			);
-		},
-	};
 	public ratio = 1;
 	public resizedSize!: Vec2;
 	private accumulator = 0;
@@ -116,6 +64,7 @@ export default abstract class Game {
 		Settings.init(settingOverrides, this);
 
 		history.scrollRestoration = "manual";
+		new Mouse(this);
 	}
 
 	public draw(_context: CanvasRenderingContext2D): void {
@@ -232,8 +181,6 @@ export default abstract class Game {
 			false,
 		);
 
-
-
 		if (Settings.enableResize) {
 			this.addEventListener(EVENT_NAMES.AFTER_RESIZE, (): void =>
 				this.resize(),
@@ -250,7 +197,6 @@ export default abstract class Game {
 		this.levelTime = 0;
 
 		this.keyboard = new Keyboard(this);
-		this.setupMouseListener();
 
 		if (doInit) {
 			await this.init();
@@ -391,55 +337,5 @@ export default abstract class Game {
 
 	private preUpdate(dt: number): void {
 		this.update(dt);
-	}
-
-	private setupMouseListener(): void {
-		const TYPES: {
-			[key: string]: symbol;
-		} = {
-			pointermove: MOUSE_TYPES.MOVE,
-			mousedown: MOUSE_TYPES.DOWN,
-			mouseup: MOUSE_TYPES.UP,
-		};
-
-		const mouseMoveEvent = (event: MouseEvent): void => {
-			if (event.target === this.getCanvas()) {
-				event.preventDefault();
-			}
-
-			this.mouse.type = TYPES[event.type];
-			this.mouse.altKey = event.altKey;
-			this.mouse.ctrlKey = event.ctrlKey;
-			this.mouse.shiftKey = event.shiftKey;
-			this.mouse.target = event.target as HTMLElement;
-
-			this.mouse.hasMoved = true;
-
-			this.mouse.update(event);
-
-			this.dispatchEvent(EVENT_NAMES.MOUSE, this.mouse);
-		};
-
-		const mouseStateChangeEvent = (event: MouseEvent): void => {
-			if (event.target === this.getCanvas()) {
-				event.preventDefault();
-			}
-
-			this.mouse.type = TYPES[event.type];
-
-			if (event.type === "mousedown") {
-				this.mouse.pressed[event.button] = true;
-				this.mouse.released[event.button] = false;
-			} else if (event.type === "mouseup") {
-				this.mouse.pressed[event.button] = false;
-				this.mouse.released[event.button] = true;
-			}
-
-			this.dispatchEvent(EVENT_NAMES.MOUSE, this.mouse);
-		};
-
-		window.addEventListener("pointermove", mouseMoveEvent, false);
-		window.addEventListener("mousedown", mouseStateChangeEvent, false);
-		window.addEventListener("mouseup", mouseStateChangeEvent, false);
 	}
 }
