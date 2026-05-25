@@ -67,7 +67,7 @@ export default class Keyboard {
 				code === KEYBOARD_KEYS.KEY_ESCAPE &&
 				event.type === "keydown"
 			) {
-				game.stopLoop();
+				game.gameloop.stopLoop();
 			}
 
 			game.events.dispatchEvent(EVENT_NAMES.KEY, this.keys, code);

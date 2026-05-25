@@ -1,10 +1,10 @@
-import { debounce, rafLoop } from "@/utilities/Functions";
+import { debounce } from "@/utilities/Functions";
 import { EventSystem, EVENT_NAMES } from "@/core/EventSystem";
 import CanvasManager from "@/core/CanvasManager";
+import Gameloop from "./Gameloop";
 import Keyboard from "@/input/Keyboard";
 import Mouse from "@/input/Mouse";
 import Settings, { type SettingsOverrides } from "@/core/Settings";
-import Sound from "@/core/Sound";
 
 import "@/prototypes/index";
 import "@/localization/Translator";
@@ -12,18 +12,15 @@ import "@/localization/Translator";
 export default abstract class Game {
 	public canman = new CanvasManager();
 	public events = new EventSystem();
+	public gameloop: Gameloop;
 	public keyboard: Keyboard;
-	public levelTime = 0;
-	private accumulator = 0;
-	private loopHasStarted = false;
-	private stop = false;
 
 	constructor(settingOverrides: SettingsOverrides = {}) {
 		Settings.init(settingOverrides, this);
 
 		history.scrollRestoration = "manual";
 
-		this.canman = new CanvasManager();
+		this.gameloop = new Gameloop(this, this.update, this.preDraw);
 		this.keyboard = new Keyboard(this);
 		new Mouse(this);
 	}
@@ -37,24 +34,7 @@ export default abstract class Game {
 	}
 
 	public async init(): Promise<void> {
-		throw new Error("Override init function!");
-	}
-
-	public startLoop(): void {
-		this.stop = false;
-		this.looper();
-	}
-
-	public stopLoop(): void {
-		this.stop = true;
-
-		if ("sound" in this) {
-			(this.sound as Sound).pause();
-		}
-	}
-
-	public isStopped(): boolean {
-		return this.stop;
+		throw new Error("Override init function! And call preInit()");
 	}
 
 	protected async preInit(doInit = true): Promise<void> {
@@ -77,7 +57,7 @@ export default abstract class Game {
 			false,
 		);
 
-		this.levelTime = 0;
+		this.gameloop.levelTime = 0;
 
 		if (doInit) {
 			await this.init();
@@ -86,40 +66,8 @@ export default abstract class Game {
 		this.events.dispatchEvent(EVENT_NAMES.AFTER_RESIZE);
 
 		if (Settings.autoloop) {
-			this.looper();
+			this.gameloop.startLoop();
 		}
-	}
-
-	private looper(): void {
-		if (this.loopHasStarted) {
-			return;
-		}
-
-		this.loopHasStarted = true;
-		const context = this.canman.canvasContext;
-
-		const stopLoop = rafLoop(dt => {
-			if (this.stop) {
-				this.events.dispatchEvent(EVENT_NAMES.STOP);
-				this.keyboard.reset();
-				this.loopHasStarted = false;
-				console.log("Simulation stopped.");
-				stopLoop();
-				return;
-			}
-
-			this.accumulator += dt;
-			this.levelTime += dt * 1000;
-
-			while (this.accumulator > Settings.fps) {
-				this.preUpdate(Settings.fps);
-				this.accumulator -= Settings.fps;
-			}
-
-			this.preDraw(context);
-		});
-
-		console.log("Simulation started.");
 	}
 
 	private preDraw(context: CanvasRenderingContext2D): void {
@@ -143,9 +91,5 @@ export default abstract class Game {
 		}
 
 		this.draw(context);
-	}
-
-	private preUpdate(dt: number): void {
-		this.update(dt);
 	}
 }
