@@ -81,14 +81,6 @@ describe("loadImageFromJson — inline JSON", () => {
 		).rejects.toThrow("Failed to parse inline JSON");
 	});
 
-	it("throws when nameOrJson is not a string", async () => {
-		await expect(
-			loadImageFromJson(baseUrl, 123 as unknown as string, true),
-		).rejects.toThrow(
-			"'nameOrJson' must be a string when jsonInput=true, got: number",
-		);
-	});
-
 	it("throws when options.file is missing", async () => {
 		const bad = inlineJson(j => delete j.options);
 
@@ -156,8 +148,6 @@ describe("loadImageFromJson — file JSON", () => {
 		// inline-JSON path uses the literal "inline JSON" source instead.
 		await expect(
 			loadImageFromJson(baseUrl, "sprites-no-options"),
-		).rejects.toThrow(
-			`Source: ${baseUrl}sprites-no-options.json`,
-		);
+		).rejects.toThrow(`Source: ${baseUrl}sprites-no-options.json`);
 	});
 });

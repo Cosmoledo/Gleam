@@ -35,7 +35,7 @@ describe("loadImage", () => {
 		const image = await loadImage(PNG_1x1_DATA_URL);
 
 		expect(image.src).toBe(PNG_1x1_DATA_URL);
-		expect(image.id).toBe(PNG_1x1_DATA_URL);
+		expect(image.dataset.src).toBe(PNG_1x1_DATA_URL);
 	});
 
 	it("resolves only after the image has finished decoding", async () => {

@@ -36,6 +36,7 @@ export function safeLoad<T>(
 	operationName: string,
 ): Promise<T> {
 	let timeoutId: ReturnType<typeof setTimeout>;
+
 	const timeoutPromise = new Promise<T>((_, reject) => {
 		timeoutId = setTimeout(() => {
 			reject(
@@ -77,12 +78,8 @@ export async function loadImage(url: string): Promise<HTMLImageElement> {
 			image.onerror = () =>
 				reject(new Error(`Image failed to load: ${url}`));
 
-			try {
-				image.src = url;
-				image.id = url;
-			} catch (e) {
-				reject(e);
-			}
+			image.src = url;
+			image.dataset.src = url;
 		}),
 		url,
 		"image",
@@ -189,7 +186,7 @@ interface SpriteJsonFile {
  */
 export async function loadImageFromJson(
 	baseUrl: string,
-	nameOrJson: string,
+	filenameOrJson: string,
 	jsonInput = false,
 ): Promise<Record<string, HTMLCanvasElement>> {
 	if (!baseUrl.endsWith("/")) {
@@ -200,21 +197,15 @@ export async function loadImageFromJson(
 
 	// Handle both inline JSON and file loading cases
 	if (jsonInput) {
-		if (typeof nameOrJson !== "string") {
-			throw new Error(
-				`'nameOrJson' must be a string when jsonInput=true, got: ${typeof nameOrJson}`,
-			);
-		}
-
 		try {
-			json = JSON.parse(nameOrJson) as SpriteJsonFile;
+			json = JSON.parse(filenameOrJson) as SpriteJsonFile;
 		} catch (parseError) {
 			throw new Error(
 				`Failed to parse inline JSON: ${(parseError as SyntaxError).message}`,
 			);
 		}
 	} else {
-		const url = baseUrl + nameOrJson + ".json";
+		const url = baseUrl + filenameOrJson + ".json";
 
 		json = await loadJson<SpriteJsonFile>(url);
 	}
@@ -223,7 +214,7 @@ export async function loadImageFromJson(
 	if (!json || !json.options?.file) {
 		const source = jsonInput
 			? "inline JSON"
-			: `${baseUrl}${nameOrJson}.json`;
+			: `${baseUrl}${filenameOrJson}.json`;
 
 		throw new Error(
 			`JSON missing 'options.file' property\n  Source: ${source}`,
@@ -235,7 +226,7 @@ export async function loadImageFromJson(
 
 	if (!json.sprites || !Array.isArray(json.sprites)) {
 		throw new Error(
-			`JSON missing 'sprites' array\n  Source: ${baseUrl}${nameOrJson}.json`,
+			`JSON missing 'sprites' array\n  Source: ${baseUrl}${filenameOrJson}.json`,
 		);
 	}
 
@@ -280,10 +271,11 @@ export async function loadBunch<T extends Record<string, Promise<unknown>>>(
 	const output = {} as { [K in keyof T]: Awaited<T[K]> };
 	const keys = Object.keys(bunch) as (keyof T)[];
 
-	return Promise.all(Object.values(bunch)).then(datas => {
-		datas.forEach((data, index) => {
-			output[keys[index]] = data as Awaited<T[keyof T]>;
-		});
+	return Promise.all(keys.map(k => bunch[k])).then(datas => {
+		for (let i = 0; i < keys.length; i++) {
+			output[keys[i]] = datas[i];
+		}
+
 		return output;
 	});
 }
