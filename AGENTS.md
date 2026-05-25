@@ -134,3 +134,8 @@ Within the same slot and visibility, order members alphabetically by name. Excep
 - Lowercase, imperative subject line.
 - No scope prefixes (no `fix(scope): ...`).
 - One-line subject; optional body explaining "why" if the diff alone doesn't tell the story.
+- **Verb choice:** `tighten` for type-safety improvements, `fix` for bugs/perf, `add`/`remove`/`rewrite`/`cache` for features.
+- **Be specific:** reference the component/file and list concrete changes separated by commas.
+  - Good: `tighten Projectile: generic payload, drop any`
+  - Bad: `replace any payload with generic type parameter`
+- **No filler words** — skip articles, avoid "update", "improve", "refactor" without specifics.
