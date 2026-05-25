@@ -1,5 +1,7 @@
 # GameLIB — AI Agent Instructions
 
+Read the gitignored file `.ai/memory.md` for additional rules.
+
 ## Verification commands
 
 ```sh
@@ -38,8 +40,6 @@ Browser tests that exercise canvas prototypes need `import "@/prototypes/index";
 | `src/input/` | `Controller`, `ControllerCursor` |
 | `src/index.d.ts` | Global ambient types under `GameLIB` namespace + prototype method declarations |
 | `dist/` | Build output |
-
-`src_framework/` is legacy code (gitignored). Ignore it.
 
 ## Coding conventions
 
@@ -93,4 +93,3 @@ Triggers that allow implementation: `"go ahead"`, `"proceed"`, `"do it"`, `"appl
 
 - **Hot-path performance**: prefer integer bit-ops over string concatenation in per-pixel loops. See `getUsedColors` (packs RGB into int, converts to hex once) and `Polygon.fromCanvas` (one `getImageData` upfront, then index into the buffer).
 - **Reuse global ambient types** from `src/index.d.ts` (under `GameLIB` namespace).
-- `PROJECT_ISSUES.md`, `CONVENTION.md`, `ORDERING.md` in `src_framework/` track open issues and convention audits. These files are gitignored — they contain live tracking data, not stale docs.
