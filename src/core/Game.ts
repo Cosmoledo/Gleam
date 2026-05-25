@@ -1,28 +1,15 @@
 import { debounce, rafLoop } from "@/utilities/Functions";
-import { EVENT_NAMES } from "@/core/Constants";
 import { getCanvasConstruct } from "@/utilities/Canvas";
 import Settings, { type SettingsOverrides } from "@/core/Settings";
 import Sound from "@/core/Sound";
 import Vec2 from "@/core/Vec2";
-import type ControllerCursor from "@/input/ControllerCursor";
 import Keyboard from "@/input/Keyboard";
 import Mouse from "@/input/Mouse";
-
-type GameEventMap = {
-	[EVENT_NAMES.AFTER_RESIZE]: [];
-	[EVENT_NAMES.CONTROLLER]: [buttons: boolean[], cursors: ControllerCursor[]];
-	[EVENT_NAMES.CONTROLLER_DISCONNECTED]: [];
-	[EVENT_NAMES.KEY]: [keys: Record<string, boolean>, code: string];
-	[EVENT_NAMES.MOUSE]: [mouse: Mouse];
-	[EVENT_NAMES.STOP]: [];
-};
-
-type GameEventListener<K extends keyof GameEventMap> = {
-	callback: (...args: GameEventMap[K]) => void;
-	options: { once: boolean };
-	consumed?: boolean;
-};
-
+import {
+	EventSystem,
+	EVENT_NAMES,
+	type GameEventMap,
+} from "@/core/EventSystem";
 import "@/prototypes/index";
 import "@/localization/Translator";
 
@@ -33,9 +20,7 @@ export default abstract class Game {
 	public ratio = 1;
 	public resizedSize!: Vec2;
 	private accumulator = 0;
-	private eventListener: {
-		[K in keyof GameEventMap]?: GameEventListener<K>[];
-	} = {};
+	private readonly eventTarget = new EventSystem();
 	private keyboard!: Keyboard;
 	private loopHasStarted = false;
 	private stop = false;
@@ -84,49 +69,14 @@ export default abstract class Game {
 		callback: (...args: GameEventMap[K]) => void,
 		once: boolean = false,
 	): void {
-		const event: GameEventListener<K> = { callback, options: { once } };
-		const list = this.eventListener[eventName];
-
-		if (list) {
-			list.push(event);
-		} else {
-			(this.eventListener as Record<K, GameEventListener<K>[]>)[
-				eventName
-			] = [event];
-		}
+		this.eventTarget.addEventListener(eventName, callback, once);
 	}
 
 	public dispatchEvent<K extends keyof GameEventMap>(
 		eventName: K,
 		...params: GameEventMap[K]
 	): void {
-		const events = this.eventListener[eventName];
-
-		if (!events) {
-			return;
-		}
-
-		const snapshot = events.slice();
-
-		for (let i = snapshot.length - 1; i >= 0; i--) {
-			const entry = snapshot[i];
-
-			if (entry.consumed) {
-				continue;
-			}
-
-			if (entry.options.once) {
-				entry.consumed = true;
-			}
-
-			entry.callback(...params);
-		}
-
-		for (let i = events.length - 1; i >= 0; i--) {
-			if (events[i].consumed) {
-				events.splice(i, 1);
-			}
-		}
+		this.eventTarget.dispatchEvent(eventName, ...params);
 	}
 
 	public setFontSize(size: number, font: string = Settings.font): void {

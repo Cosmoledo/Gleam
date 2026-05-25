@@ -1,4 +1,4 @@
-import { EVENT_NAMES } from "@/core/Constants";
+import { EVENT_NAMES } from "@/core/EventSystem";
 import { map, threshold } from "@/utilities/Number";
 import ControllerCursor from "./ControllerCursor";
 import Game from "@/core/Game";

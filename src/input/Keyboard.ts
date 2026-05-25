@@ -1,6 +1,6 @@
-import { EVENT_NAMES } from "@/core/Constants";
-import Settings from "@/core/Settings";
+import { EVENT_NAMES } from "@/core/EventSystem";
 import Game from "@/core/Game";
+import Settings from "@/core/Settings";
 
 export const KEYBOARD_KEYS = {
 	KEY_0: "Digit0",
