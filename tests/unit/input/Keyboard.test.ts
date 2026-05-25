@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
+import { createMockGame } from "../createMockGame";
 import { KEYBOARD_KEYS } from "@/input/Keyboard";
 import Game from "@/core/Game";
 import Settings from "@/core/Settings";
@@ -29,19 +30,6 @@ describe("Keyboard", () => {
 	let mockGame: Game;
 	let keydownCb: ((e: KeyboardEvent) => void) | null = null;
 	let keyupCb: ((e: KeyboardEvent) => void) | null = null;
-
-	function createMockGame(): Game {
-		const gameloop = {
-			stopLoop: vi.fn(),
-		};
-		const events = {
-			dispatchEvent: vi.fn(),
-		};
-		return {
-			gameloop,
-			events,
-		} as unknown as Game;
-	}
 
 	beforeEach(() => {
 		mockGame = createMockGame();

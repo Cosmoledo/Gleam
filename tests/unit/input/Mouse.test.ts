@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
+import { createMockGame } from "../createMockGame";
 import { MOUSE_KEYS } from "@/input/Mouse";
 import Game from "@/core/Game";
 import Vec2 from "@/core/Vec2";
@@ -23,31 +24,6 @@ describe("Mouse", () => {
 	let pointermoveCb: ((e: MouseEvent) => void) | null = null;
 	let mousedownCb: ((e: MouseEvent) => void) | null = null;
 	let mouseupCb: ((e: MouseEvent) => void) | null = null;
-
-	function createMockGame(): Game {
-		const canman = {
-			canvas: { width: 800, height: 600 },
-			canvasBoundingClientRect: {
-				left: 0,
-				top: 0,
-				width: 800,
-				height: 600,
-			},
-			width: 800,
-			height: 600,
-		};
-		const gameloop = {
-			stopLoop: vi.fn(),
-		};
-		const events = {
-			dispatchEvent: vi.fn(),
-		};
-		return {
-			canman,
-			gameloop,
-			events,
-		} as unknown as Game;
-	}
 
 	beforeEach(() => {
 		mockGame = createMockGame();
