@@ -15,15 +15,15 @@ describe("loadCanvas", () => {
 		);
 	});
 
-	it("rejects invalid URLs before any network call", async () => {
-		await expect(loadCanvas("not-a-url")).rejects.toThrow(
-			"Invalid URL format",
+	it("rejects random invalid protocol", async () => {
+		await expect(loadCanvas("test:not-a-url")).rejects.toThrow(
+			"Invalid URL protocol",
 		);
 	});
 
-	it("rejects file: URLs", async () => {
+	it("rejects file protocol", async () => {
 		await expect(loadCanvas("file:///etc/passwd")).rejects.toThrow(
-			"Invalid URL format",
+			"Invalid URL protocol",
 		);
 	});
 

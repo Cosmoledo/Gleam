@@ -19,15 +19,9 @@ describe("loadImage", () => {
 		);
 	});
 
-	it("rejects invalid URLs before any network call", async () => {
-		await expect(loadImage("not-a-url")).rejects.toThrow(
-			"Invalid URL format",
-		);
-	});
-
 	it("rejects file: URLs", async () => {
 		await expect(loadImage("file:///etc/passwd")).rejects.toThrow(
-			"Invalid URL format",
+			"Invalid URL protocol",
 		);
 	});
 

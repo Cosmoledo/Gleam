@@ -36,30 +36,30 @@ describe("validateUrl", () => {
 
 	it("rejects file: URLs", () => {
 		expect(() => validateUrl("file:///etc/passwd")).toThrow(
-			"Invalid URL format",
+			"Invalid URL protocol",
 		);
 	});
 
 	it("rejects ftp: URLs", () => {
 		expect(() => validateUrl("ftp://example.com/file")).toThrow(
-			"Invalid URL format",
+			"Invalid URL protocol",
 		);
 	});
 
 	it("rejects javascript: URLs", () => {
 		expect(() => validateUrl("javascript:alert(1)")).toThrow(
-			"Invalid URL format",
+			"Invalid URL protocol",
 		);
 	});
 
-	it("rejects bare strings", () => {
-		expect(() => validateUrl("not-a-url")).toThrow("Invalid URL format");
+	it("accepts bare strings as relative paths", () => {
+		expect(() => validateUrl("not-a-url")).not.toThrow();
 	});
 
-	it("rejects relative paths", () => {
-		expect(() => validateUrl("./relative")).toThrow("Invalid URL format");
-		expect(() => validateUrl("../parent")).toThrow("Invalid URL format");
-		expect(() => validateUrl("/absolute")).toThrow("Invalid URL format");
+	it("accepts relative paths", () => {
+		expect(() => validateUrl("./relative")).not.toThrow();
+		expect(() => validateUrl("../parent")).not.toThrow();
+		expect(() => validateUrl("/absolute")).not.toThrow();
 	});
 
 	it("trims whitespace before validating", () => {
@@ -194,11 +194,6 @@ describe("loadText", () => {
 		);
 	});
 
-	it("rejects invalid URLs", async () => {
-		await expect(loadText("not-a-url")).rejects.toThrow(
-			"Invalid URL format",
-		);
-	});
 });
 
 // ==================== loadJson ====================
@@ -256,9 +251,9 @@ describe("loadJson", () => {
 		);
 	});
 
-	it("rejects invalid URLs", async () => {
+	it("rejects file: URLs", async () => {
 		await expect(loadJson("file:///etc/passwd")).rejects.toThrow(
-			"Invalid URL format",
+			"Invalid URL protocol",
 		);
 	});
 });
@@ -326,26 +321,14 @@ describe("loadJsonCommented", () => {
 		const result = await loadJsonCommented("http://example.com/data.json");
 		expect(result.url).toBe("http://example.com/path");
 	});
-
-	it("rejects invalid URLs", async () => {
-		await expect(loadJsonCommented("not-a-url")).rejects.toThrow(
-			"Invalid URL format",
-		);
-	});
 });
 
 // ==================== loadImage ====================
 
 describe("loadImage", () => {
-	it("validates URL before loading", async () => {
-		await expect(loadImage("not-a-url")).rejects.toThrow(
-			"Invalid URL format",
-		);
-	});
-
-	it("validates file: URLs", async () => {
+	it("rejects file: URLs", async () => {
 		await expect(loadImage("file:///etc/passwd")).rejects.toThrow(
-			"Invalid URL format",
+			"Invalid URL protocol",
 		);
 	});
 });
@@ -353,15 +336,9 @@ describe("loadImage", () => {
 // ==================== loadCanvas ====================
 
 describe("loadCanvas", () => {
-	it("validates URL before loading", async () => {
-		await expect(loadCanvas("not-a-url")).rejects.toThrow(
-			"Invalid URL format",
-		);
-	});
-
-	it("validates file: URLs", async () => {
+	it("rejects file: URLs", async () => {
 		await expect(loadCanvas("file:///etc/passwd")).rejects.toThrow(
-			"Invalid URL format",
+			"Invalid URL protocol",
 		);
 	});
 });

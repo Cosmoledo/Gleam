@@ -9,12 +9,17 @@ const DEFAULT_TIMEOUT_MS = 10_000;
 export function validateUrl(url: string): void {
 	const trimmed = url.trim();
 
-	if (trimmed.startsWith("data:") || trimmed.startsWith("blob:")) {
-		return; // data: and blob: URLs are allowed
+	if (
+		["blob:", "data:", "http://", "https://"].some(start =>
+			trimmed.startsWith(start),
+		)
+	) {
+		return;
 	}
 
-	if (!trimmed.startsWith("http://") && !trimmed.startsWith("https://")) {
-		throw new Error(`Invalid URL format: ${url}`);
+	if (/^[a-z][a-z0-9+.-]*:/i.test(trimmed)) {
+		// no scheme and no relative path
+		throw new Error(`Invalid URL protocol: ${url}`);
 	}
 }
 
@@ -211,7 +216,6 @@ export async function loadImageFromJson(
 	} else {
 		const url = baseUrl + nameOrJson + ".json";
 
-		validateUrl(url);
 		json = await loadJson<SpriteJsonFile>(url);
 	}
 
@@ -226,7 +230,6 @@ export async function loadImageFromJson(
 		);
 	}
 
-	validateUrl(baseUrl + json.options.file);
 	const canvas = await loadCanvas(baseUrl + json.options.file);
 	const sprites: Record<string, HTMLCanvasElement> = {};
 
