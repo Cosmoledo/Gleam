@@ -4,6 +4,26 @@ import ControllerCursor from "./ControllerCursor";
 import Game from "@/core/Game";
 import Vec2 from "@/core/Vec2";
 
+export const CONTROLLER_KEYS = {
+	A: 0,
+	B: 1,
+	X: 2,
+	Y: 3,
+	LB: 4,
+	RB: 5,
+	LT: 6,
+	RT: 7,
+	SELECT: 8,
+	START: 9,
+	LEFT_STICK: 10,
+	RIGHT_STICK: 11,
+	UP: 12,
+	DOWN: 13,
+	LEFT: 14,
+	RIGHT: 15,
+	GUIDE: 16,
+} as const;
+
 const AXIS_THRESHOLD = 0.3;
 
 export default class Controller {
