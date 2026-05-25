@@ -1,9 +1,9 @@
 import Rect from "@/core/Rect";
 import Vec2 from "@/core/Vec2";
 
-export default class Projectile {
+export default class Projectile<T = unknown> {
 	public maxLifetime = Infinity;
-	public payload: any;
+	public payload?: T;
 	public speed = 1200;
 	protected image!: HTMLCanvasElement;
 	protected lifetime = 0;
