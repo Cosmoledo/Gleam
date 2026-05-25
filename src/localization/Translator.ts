@@ -4,38 +4,43 @@ declare global {
 	function _(key: string): string;
 }
 
-window._ = () => {
+window._ = function fallbackTranslate() {
 	throw new Error("Call 'prepareLanguage' first!");
 };
 
 export type Languages = Record<string, Record<string, string>>;
 
 export function prepareLanguage(languages: Languages): void {
-	const allKeys: string[] = [];
+	const allKeys: Set<string> = new Set();
 
 	for (const lang in languages) {
-		for (const obj in languages[lang]) {
-			if (allKeys.indexOf(obj) < 0) {
-				allKeys.push(obj);
-			}
+		for (const key in languages[lang]) {
+			allKeys.add(key);
 		}
 	}
 
-	allKeys.sort();
+	const sortedKeys = [...allKeys].sort();
 
 	for (const lang in languages) {
-		allKeys.forEach(key => {
+		sortedKeys.forEach(key => {
 			if (languages[lang][key] === undefined) {
-				console.error(lang + " misses '" + key + "'");
+				console.error(`'${lang}' misses '${key}'`);
 			}
 		});
 	}
 
-	window._ = (key: string): string => {
-		const language = languages[Settings.localStorage.language];
+	window._ = function translate(key: string): string {
+		let language = languages[Settings.localStorage.language];
+
+		if (!language) {
+			console.error(
+				`Language '${Settings.localStorage.language}' not found, falling back to '${Object.keys(languages)[0]}'`,
+			);
+			language = languages[Object.keys(languages)[0]];
+		}
 
 		if (language[key] === undefined) {
-			console.error("'" + key + "' has no translation");
+			console.error(`'${key}' has no translation`);
 			return key;
 		}
 
