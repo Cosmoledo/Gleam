@@ -274,11 +274,7 @@ export default class Polygon {
 	}
 
 	public addPoint(x: GameLIB.Vector2 | number, y?: number): Polygon {
-		if (typeof x === "number") {
-			this.points.push(new Vec2(x, y));
-		} else {
-			this.points.push(new Vec2(x.x, x.y));
-		}
+		this.points.push(new Vec2(x, y));
 
 		return this;
 	}
