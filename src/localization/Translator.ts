@@ -1,9 +1,5 @@
 import Settings from "@/core/Settings";
 
-declare global {
-	function _(key: string): string;
-}
-
 window._ = function fallbackTranslate() {
 	throw new Error("Call 'prepareLanguage' first!");
 };

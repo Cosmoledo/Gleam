@@ -23,14 +23,14 @@ declare namespace GameLIB {
 		y: number;
 	}
 
-	interface Vector4 extends GameLIB.Vector2 {
+	interface Vector4 extends Vector2 {
 		w: number;
 		h: number;
 	}
 
 	interface Mouse {
 		altKey: boolean;
-		calcTarget: () => void;
+		calcTarget(): void;
 		ctrlKey: boolean;
 		hasMoved: boolean;
 		posReal: Vec2;
@@ -43,7 +43,7 @@ declare namespace GameLIB {
 		size: Vector2;
 		type: symbol;
 		target: HTMLElement | null;
-		update: (event: MouseEvent) => void;
+		update(event: MouseEvent): void;
 	}
 
 	interface PolygonCollisionResult {
@@ -181,4 +181,8 @@ interface HTMLAudioElement {
 	defaultVolume?: number;
 	clone(): HTMLAudioElement;
 	stop: () => void;
+}
+
+interface Window {
+	_(key: string): string;
 }
