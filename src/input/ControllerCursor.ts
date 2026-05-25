@@ -23,7 +23,7 @@ export default class ControllerCursor {
 		this.game = game;
 		this.axisId = axisId;
 
-		this.pos = game.size.mult(0.5);
+		this.pos = game.canman.size.mult(0.5);
 	}
 
 	public get centerPos(): Vec2 {
@@ -46,13 +46,13 @@ export default class ControllerCursor {
 		this.pos.x = clamp(
 			this.pos.x + step.x,
 			0,
-			this.game.width - CROSSHAIR.width,
+			this.game.canman.width - CROSSHAIR.width,
 		);
 
 		this.pos.y = clamp(
 			this.pos.y + step.y,
 			0,
-			this.game.height - CROSSHAIR.height,
+			this.game.canman.height - CROSSHAIR.height,
 		);
 	}
 }

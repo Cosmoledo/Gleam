@@ -26,7 +26,7 @@ export default class Mouse {
 		this.game = game;
 
 		const mouseMoveEvent = (event: MouseEvent): void => {
-			if (event.target === this.game.getCanvas()) {
+			if (event.target === this.game.canman.canvas) {
 				event.preventDefault();
 			}
 
@@ -39,7 +39,7 @@ export default class Mouse {
 		};
 
 		const mouseStateChangeEvent = (event: MouseEvent): void => {
-			if (event.target === this.game.getCanvas()) {
+			if (event.target === this.game.canman.canvas) {
 				event.preventDefault();
 			}
 
@@ -71,22 +71,22 @@ export default class Mouse {
 			clamp(
 				(((event.clientX +
 					this.size.x * 0.5 -
-					this.game.canvasBoundingClientRect.left) /
-					this.game.canvasBoundingClientRect.width) *
-					this.game.width) |
+					this.game.canman.canvasBoundingClientRect.left) /
+					this.game.canman.canvasBoundingClientRect.width) *
+					this.game.canman.width) |
 					0,
 				0,
-				this.game.width,
+				this.game.canman.width,
 			),
 			clamp(
 				(((event.clientY +
 					this.size.y * 0.5 -
-					this.game.canvasBoundingClientRect.top) /
-					this.game.canvasBoundingClientRect.height) *
-					this.game.height) |
+					this.game.canman.canvasBoundingClientRect.top) /
+					this.game.canman.canvasBoundingClientRect.height) *
+					this.game.canman.height) |
 					0,
 				0,
-				this.game.height,
+				this.game.canman.height,
 			),
 		);
 	}

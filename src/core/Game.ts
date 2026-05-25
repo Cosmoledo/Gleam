@@ -1,52 +1,29 @@
 import { debounce, rafLoop } from "@/utilities/Functions";
 import { EventSystem, EVENT_NAMES } from "@/core/EventSystem";
-import { getCanvasConstruct } from "@/utilities/Canvas";
+import CanvasManager from "@/core/CanvasManager";
 import Keyboard from "@/input/Keyboard";
 import Mouse from "@/input/Mouse";
 import Settings, { type SettingsOverrides } from "@/core/Settings";
 import Sound from "@/core/Sound";
-import Vec2 from "@/core/Vec2";
 
 import "@/prototypes/index";
 import "@/localization/Translator";
 
 export default abstract class Game {
-	public canvasBoundingClientRect!: DOMRect;
-	public canvasHolder: Map<string, GameLIB.CanvasHolder> = new Map();
+	public canman = new CanvasManager();
 	public events = new EventSystem();
 	public keyboard: Keyboard;
 	public levelTime = 0;
-	public ratio = 1;
-	public resizedSize!: Vec2;
 	private accumulator = 0;
 	private loopHasStarted = false;
 	private stop = false;
-
-	public get height(): number {
-		return this.getCanvas().height;
-	}
-
-	public set height(height: number) {
-		this.getCanvas().height = height;
-	}
-
-	public get size(): Vec2 {
-		return new Vec2(this.width, this.height);
-	}
-
-	public get width(): number {
-		return this.getCanvas().width;
-	}
-
-	public set width(width: number) {
-		this.getCanvas().width = width;
-	}
 
 	constructor(settingOverrides: SettingsOverrides = {}) {
 		Settings.init(settingOverrides, this);
 
 		history.scrollRestoration = "manual";
 
+		this.canman = new CanvasManager();
 		this.keyboard = new Keyboard(this);
 		new Mouse(this);
 	}
@@ -63,10 +40,6 @@ export default abstract class Game {
 		throw new Error("Override init function!");
 	}
 
-	public setFontSize(size: number, font: string = Settings.font): void {
-		this.getCanvasContext().font = `${size}px "${font}"`;
-	}
-
 	public startLoop(): void {
 		this.stop = false;
 		this.looper();
@@ -80,24 +53,12 @@ export default abstract class Game {
 		}
 	}
 
-	public getCanvas(): HTMLCanvasElement {
-		return this.canvasHolder.get("main")!.canvas;
-	}
-
-	public getCanvasContext(): CanvasRenderingContext2D {
-		return this.canvasHolder.get("main")!.context;
-	}
-
 	public isStopped(): boolean {
 		return this.stop;
 	}
 
 	protected async preInit(doInit = true): Promise<void> {
-		if (this.canvasHolder.size === 0) {
-			throw new Error(
-				"No canvas registered, use for registering 'setupCanvas'!",
-			);
-		}
+		this.canman.finishSetup(this);
 
 		document.addEventListener(
 			"contextmenu",
@@ -106,13 +67,6 @@ export default abstract class Game {
 			},
 			false,
 		);
-
-		if (Settings.enableResize) {
-			this.events.addEventListener(EVENT_NAMES.AFTER_RESIZE, (): void =>
-				this.resize(),
-			);
-			this.resize();
-		}
 
 		window.addEventListener(
 			"resize",
@@ -136,84 +90,13 @@ export default abstract class Game {
 		}
 	}
 
-	protected resize(): void {
-		const windowRatio = window.innerHeight / window.innerWidth;
-
-		this.canvasHolder.forEach(ch => {
-			if (!ch.resize) {
-				return;
-			}
-
-			const canvasRatio = ch.canvas.height / ch.canvas.width;
-			let width: number;
-			let height: number;
-
-			if (windowRatio < canvasRatio) {
-				height = window.innerHeight;
-				width = height / canvasRatio;
-			} else {
-				width = window.innerWidth;
-				height = width * canvasRatio;
-			}
-
-			if (ch.canvas === this.getCanvas()) {
-				this.resizedSize = new Vec2(width, height);
-				this.ratio = width / this.width;
-			}
-
-			ch.canvas.style.width = width + "px";
-			ch.canvas.style.height = height + "px";
-		});
-
-		this.canvasBoundingClientRect =
-			this.getCanvas().getBoundingClientRect();
-	}
-
-	protected setupCanvas(
-		canvasType: symbol,
-		selector: string,
-		resize: boolean = true,
-	): GameLIB.CanvasHolder {
-		if (!document.querySelector(selector)) {
-			throw new Error("Canvas '" + selector + "' does not exist!");
-		}
-
-		const name = selector.replace("#", "");
-
-		if (this.canvasHolder.has(name)) {
-			throw new Error(
-				"Canvas '" + selector + "' was already registered!",
-			);
-		}
-
-		const newCanvas: GameLIB.CanvasHolder = Object.assign(
-			{},
-			getCanvasConstruct(selector),
-			{
-				id: selector,
-				resize,
-				type: canvasType,
-			},
-		);
-		newCanvas.context.fillStyle = "white";
-		newCanvas.context.strokeStyle = "white";
-		newCanvas.context.font = "12px Arial";
-
-		this.canvasHolder.set(name, newCanvas);
-
-		this.canvasBoundingClientRect =
-			this.getCanvas().getBoundingClientRect();
-
-		return newCanvas;
-	}
-
 	private looper(): void {
 		if (this.loopHasStarted) {
 			return;
 		}
 
 		this.loopHasStarted = true;
-		const context = this.getCanvasContext();
+		const context = this.canman.canvasContext;
 
 		const stopLoop = rafLoop(dt => {
 			if (this.stop) {
@@ -245,16 +128,16 @@ export default abstract class Game {
 				context.clearRect(
 					0,
 					0,
-					this.getCanvas().width,
-					this.getCanvas().height,
+					this.canman.canvas.width,
+					this.canman.canvas.height,
 				);
 			} else {
 				context.fillStyle = Settings.backgroundColor;
 				context.fillRect(
 					0,
 					0,
-					this.getCanvas().width,
-					this.getCanvas().height,
+					this.canman.canvas.width,
+					this.canman.canvas.height,
 				);
 			}
 		}

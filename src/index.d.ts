@@ -4,12 +4,6 @@ declare namespace GameLIB {
 		context: CanvasRenderingContext2D;
 	}
 
-	interface CanvasHolder extends CanvasConstruct {
-		id: string;
-		resize: boolean;
-		type: symbol;
-	}
-
 	interface CSSVariables {
 		root: HTMLElement;
 		get(name: string): string;
