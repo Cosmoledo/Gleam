@@ -1,5 +1,12 @@
 import Rect from "@/core/Rect";
 import Vec2 from "@/core/Vec2";
+import { throttle } from "@/utilities/Functions";
+
+const throttledTrace = throttle((count: number) => {
+	console.trace(
+		`Polygon.collide: found a zero-edge polygon — no collision possible. (called ${count}x since last trace)`,
+	);
+}, 1000);
 
 function pointDirection(
 	xfrom: number,
@@ -335,6 +342,17 @@ export default class Polygon {
 
 		const edgeCountA = this.edges.length;
 		const edgeCountB = otherPolygon.edges.length;
+
+		if (edgeCountA === 0 || edgeCountB === 0) {
+			throttledTrace();
+
+			return {
+				intersect: false,
+				minimumTranslationVector: new Vec2(),
+				willIntersect: false,
+			};
+		}
+
 		let minDistance = Infinity;
 		let translationAxis = new Vec2();
 		let edge: Vec2;
