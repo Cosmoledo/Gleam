@@ -9,19 +9,22 @@ export default class Particle {
 	protected pos: Vec2;
 	protected size: number;
 	protected vel: Vec2;
+	protected _rect: Rect;
 
 	public get alive(): boolean {
 		return this.lifetime < this.maxLifeTime;
 	}
 
 	public get rect(): Rect {
-		return this.pos.toRectAddSize(this.size, this.size);
+		return this._rect;
 	}
 
 	constructor(pos: Vec2, color: string, size: number = 2) {
 		this.pos = pos;
 		this.color = color;
 		this.size = size;
+
+		this._rect = pos.toRectAddSize(size);
 
 		this.vel = Vec2.fromAngle(
 			random2Pi(),
@@ -36,12 +39,21 @@ export default class Particle {
 		context: CanvasRenderingContext2D,
 		offset: Vec2 = new Vec2(),
 	): void {
-		context.fillCircle(this.pos.clone().add(offset), this.size, this.color);
+		context.fillCircle(
+			{
+				x: this.pos.x + offset.x,
+				y: this.pos.y + offset.y,
+			},
+			this.size,
+			this.color,
+		);
 	}
 
 	public update(dt: number): void {
 		this.lifetime += dt;
-		this.pos.add(this.vel);
+		this.pos.x += this.vel.x * dt;
+		this.pos.y += this.vel.y * dt;
+		this._rect.set(this.pos.x, this.pos.y);
 	}
 
 	public resetLifetime(): void {
