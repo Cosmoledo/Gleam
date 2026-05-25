@@ -179,15 +179,14 @@ export default class Polygon {
 			vertexK[0] = 0;
 		}
 
-		const poly = new Polygon();
+		const points: Vec2[] = [];
 		for (let i = 0; i < numPoints; i++) {
 			if (vertexK[i] === 1) {
-				poly.addPoint(vertexX[i], vertexY[i]);
+				points.push(new Vec2(vertexX[i], vertexY[i]));
 			}
 		}
 
-		poly.buildEdges();
-		return poly;
+		return new Polygon(...points);
 	}
 
 	public static fromEdges(edges: number, size: Vec2 | number): Polygon {
@@ -197,10 +196,9 @@ export default class Polygon {
 		const Xcenter = s.x * 0.5;
 		const Ycenter = s.y * 0.5;
 
-		const polygon = new Polygon();
-
+		const points: Vec2[] = [];
 		for (let i = 1; i <= edges; i++) {
-			polygon.addPoint(
+			points.push(
 				new Vec2(
 					Math.round(
 						Xcenter + rad * Math.cos((i * 2 * Math.PI) / edges),
@@ -212,21 +210,16 @@ export default class Polygon {
 			);
 		}
 
-		polygon.buildEdges();
-		return polygon;
+		return new Polygon(...points);
 	}
 
 	public static fromRect(rect: Rect): Polygon {
-		const polygon = new Polygon();
-
-		polygon.addPoint(rect.x, rect.y);
-		polygon.addPoint(rect.x + rect.w, rect.y);
-		polygon.addPoint(rect.x + rect.w, rect.y + rect.h);
-		polygon.addPoint(rect.x, rect.y + rect.h);
-
-		polygon.buildEdges();
-
-		return polygon;
+		return new Polygon(
+			new Vec2(rect.x, rect.y),
+			new Vec2(rect.x + rect.w, rect.y),
+			new Vec2(rect.x + rect.w, rect.y + rect.h),
+			new Vec2(rect.x, rect.y + rect.h),
+		);
 	}
 
 	public edges: Vec2[] = [];
@@ -245,6 +238,11 @@ export default class Polygon {
 			totalX / this.points.length,
 			totalY / this.points.length,
 		);
+	}
+
+	constructor(...points: Vec2[]) {
+		points.forEach(point => this.points.push(point.clone()));
+		this.buildEdges();
 	}
 
 	public draw(
@@ -420,9 +418,6 @@ export default class Polygon {
 	}
 
 	public clone(): Polygon {
-		const polygon = new Polygon();
-		this.points.forEach(point => polygon.addPoint(point.clone()));
-		polygon.buildEdges();
-		return polygon;
+		return new Polygon(...this.points);
 	}
 }
