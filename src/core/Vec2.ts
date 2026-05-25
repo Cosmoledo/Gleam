@@ -23,6 +23,14 @@ const warnZeroNormalize = throttle(
 	1000,
 );
 
+const warnNonFinite = throttle(
+	count =>
+		console.trace(
+			`Vec2 operation produced non-finite value ${count}× since last warning; check for zero divisor.`,
+		),
+	1000,
+);
+
 export default class Vec2 {
 	public static fromAngle(
 		rad: number,
@@ -253,6 +261,11 @@ export default class Vec2 {
 				operation satisfies never;
 				break;
 		}
+
+		if (!this.isValid()) {
+			warnNonFinite();
+		}
+
 		return this;
 	}
 
