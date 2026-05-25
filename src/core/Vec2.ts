@@ -43,7 +43,7 @@ export default class Vec2 {
 	public x = 0;
 	public y = 0;
 
-	constructor(x: GameLIB.Vector2 | number = 0, y: number = 0) {
+	constructor(x: GameLIB.Vector2 | number = 0, y?: number) {
 		this.calculate(Operation.Equal, x, y);
 	}
 
