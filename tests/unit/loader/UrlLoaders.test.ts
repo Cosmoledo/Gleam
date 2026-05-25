@@ -193,7 +193,6 @@ describe("loadText", () => {
 			"HTTP 404: Failed to load text from http://example.com/missing.txt",
 		);
 	});
-
 });
 
 // ==================== loadJson ====================
@@ -318,7 +317,9 @@ describe("loadJsonCommented", () => {
 			}),
 		);
 
-		const result = await loadJsonCommented("http://example.com/data.json");
+		const result = await loadJsonCommented<{ url: string }>(
+			"http://example.com/data.json",
+		);
 		expect(result.url).toBe("http://example.com/path");
 	});
 });
