@@ -64,7 +64,7 @@ export default class Controller {
 						"Our Gamepad was disconnected:",
 						event.gamepad.index,
 					);
-					this.game.dispatchEvent(
+					this.game.events.dispatchEvent(
 						EVENT_NAMES.CONTROLLER_DISCONNECTED,
 					);
 				} else {
@@ -105,7 +105,7 @@ export default class Controller {
 			this.axes.push(new Vec2(axes[i], axes[i + 1]));
 		}
 
-		this.game.dispatchEvent(
+		this.game.events.dispatchEvent(
 			EVENT_NAMES.CONTROLLER,
 			this.buttons,
 			this.cursors,

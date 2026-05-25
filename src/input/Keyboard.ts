@@ -70,7 +70,7 @@ export default class Keyboard {
 				game.stopLoop();
 			}
 
-			game.dispatchEvent(EVENT_NAMES.KEY, this.keys, code);
+			game.events.dispatchEvent(EVENT_NAMES.KEY, this.keys, code);
 		};
 
 		window.addEventListener("keydown", keyEvent, false);
