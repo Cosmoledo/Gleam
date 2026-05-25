@@ -1,17 +1,18 @@
 import { clamp } from "@/utilities/Number";
 import { debounce, rafLoop } from "@/utilities/Functions";
-import { EVENT_NAMES, KEYBOARD_KEYS, MOUSE_TYPES } from "@/core/Constants";
+import { EVENT_NAMES, MOUSE_TYPES } from "@/core/Constants";
 import { getCanvasConstruct } from "@/utilities/Canvas";
 import Settings, { type SettingsOverrides } from "@/core/Settings";
 import Sound from "@/core/Sound";
 import Vec2 from "@/core/Vec2";
 import type ControllerCursor from "@/input/ControllerCursor";
+import Keyboard from "@/input/Keyboard";
 
 type GameEventMap = {
 	[EVENT_NAMES.AFTER_RESIZE]: [];
 	[EVENT_NAMES.CONTROLLER]: [buttons: boolean[], cursors: ControllerCursor[]];
 	[EVENT_NAMES.CONTROLLER_DISCONNECTED]: [];
-	[EVENT_NAMES.KEY]: [keys: boolean[], keyCode: number];
+	[EVENT_NAMES.KEY]: [keys: Record<string, boolean>, code: string];
 	[EVENT_NAMES.MOUSE]: [mouse: GameLIB.Mouse];
 	[EVENT_NAMES.STOP]: [];
 };
@@ -87,7 +88,7 @@ export default abstract class Game {
 	private eventListener: {
 		[K in keyof GameEventMap]?: GameEventListener<K>[];
 	} = {};
-	private keys: boolean[] = [];
+	private keyboard!: Keyboard;
 	private loopHasStarted = false;
 	private stop = false;
 
@@ -188,8 +189,8 @@ export default abstract class Game {
 		this.looper();
 	}
 
-	public stopKeyPress(keyCode: number): void {
-		this.keys[keyCode] = false;
+	public stopKeyPress(code: string): void {
+		this.keyboard.stopPress(code);
 	}
 
 	public stopLoop(): void {
@@ -208,8 +209,8 @@ export default abstract class Game {
 		return this.canvasHolder.get("main")!.context;
 	}
 
-	public isKeyPressed(keyCode: number): boolean {
-		return this.keys[keyCode];
+	public isKeyPressed(code: string): boolean {
+		return this.keyboard.isPressed(code);
 	}
 
 	public isStopped(): boolean {
@@ -231,13 +232,7 @@ export default abstract class Game {
 			false,
 		);
 
-		if (Settings.debug) {
-			this.addEventListener(EVENT_NAMES.KEY, (keys: boolean[]): void => {
-				if (keys[KEYBOARD_KEYS.KEY_ESCAPE]) {
-					this.stopLoop();
-				}
-			});
-		}
+
 
 		if (Settings.enableResize) {
 			this.addEventListener(EVENT_NAMES.AFTER_RESIZE, (): void =>
@@ -254,8 +249,8 @@ export default abstract class Game {
 
 		this.levelTime = 0;
 
+		this.keyboard = new Keyboard(this);
 		this.setupMouseListener();
-		this.setupKeyListener();
 
 		if (doInit) {
 			await this.init();
@@ -350,7 +345,7 @@ export default abstract class Game {
 		const stopLoop = rafLoop(dt => {
 			if (this.stop) {
 				this.dispatchEvent(EVENT_NAMES.STOP);
-				this.keys.length = 0;
+				this.keyboard.reset();
 				this.loopHasStarted = false;
 				console.log("Simulation stopped.");
 				stopLoop();
@@ -396,27 +391,6 @@ export default abstract class Game {
 
 	private preUpdate(dt: number): void {
 		this.update(dt);
-	}
-
-	private setupKeyListener(): void {
-		const keyValues = Object.values(KEYBOARD_KEYS) as number[];
-
-		const keyEvent = (event: KeyboardEvent): void => {
-			const keyCode = event.which || event.keyCode;
-
-			if (keyValues.includes(keyCode)) {
-				if (event.type === "keydown") {
-					this.keys[keyCode] = true;
-				} else if (event.type === "keyup") {
-					this.keys[keyCode] = false;
-				}
-
-				this.dispatchEvent(EVENT_NAMES.KEY, this.keys, keyCode);
-			}
-		};
-
-		window.addEventListener("keydown", keyEvent, false);
-		window.addEventListener("keyup", keyEvent, false);
 	}
 
 	private setupMouseListener(): void {
