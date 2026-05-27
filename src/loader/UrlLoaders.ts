@@ -227,9 +227,7 @@ export async function loadImageFromJson(
 		);
 	}
 
-	for (let i = 0; i < json.sprites.length; i++) {
-		const sprite = json.sprites[i];
-
+	json.sprites.forEach((sprite, i) => {
 		if (
 			sprite.x === undefined ||
 			sprite.y === undefined ||
@@ -254,7 +252,7 @@ export async function loadImageFromJson(
 		}
 
 		sprites[sprite.name] = newSprite;
-	}
+	});
 
 	return sprites;
 }
@@ -269,9 +267,9 @@ export async function loadBunch<T extends Record<string, Promise<unknown>>>(
 	const keys = Object.keys(bunch) as (keyof T)[];
 
 	return Promise.all(keys.map(k => bunch[k])).then(datas => {
-		for (let i = 0; i < keys.length; i++) {
-			output[keys[i]] = datas[i];
-		}
+		keys.forEach((key, i) => {
+			output[key] = datas[i];
+		});
 
 		return output;
 	});

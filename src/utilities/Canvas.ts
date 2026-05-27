@@ -114,11 +114,11 @@ export function splitSpriteSheet(
 	const sizeY = img.height / elementsY;
 	const sprites: HTMLCanvasElement[] = [];
 
-	for (let row = 0; row < elementsY; row++) {
-		for (let col = 0; col < elementsX; col++) {
+	Array.from({ length: elementsY }).forEach((_, row) => {
+		Array.from({ length: elementsX }).forEach((_, col) => {
 			sprites.push(img.subImage(col * sizeX, row * sizeY, sizeX, sizeY));
-		}
-	}
+		});
+	});
 
 	return sprites;
 }

@@ -35,18 +35,18 @@ export function deepClone<T>(obj: T, hash = new WeakMap<object, unknown>()): T {
 	if (obj instanceof Map) {
 		const cloned = new Map<unknown, unknown>();
 		hash.set(o, cloned);
-		for (const [k, v] of obj) {
+		obj.forEach((v, k) => {
 			cloned.set(deepClone(k, hash), deepClone(v, hash));
-		}
+		});
 		return cloned as T;
 	}
 
 	if (obj instanceof Set) {
 		const cloned = new Set<unknown>();
 		hash.set(o, cloned);
-		for (const v of obj) {
+		obj.forEach(v => {
 			cloned.add(deepClone(v, hash));
-		}
+		});
 		return cloned as T;
 	}
 
@@ -78,13 +78,13 @@ export function deepClone<T>(obj: T, hash = new WeakMap<object, unknown>()): T {
 
 	// `Reflect.ownKeys` catches symbol keys; descriptor copy keeps accessor
 	// properties and non-enumerable flags intact.
-	for (const key of Reflect.ownKeys(o)) {
+	Reflect.ownKeys(o).forEach(key => {
 		const descriptor = Object.getOwnPropertyDescriptor(o, key)!;
 		if ("value" in descriptor) {
 			descriptor.value = deepClone(descriptor.value, hash);
 		}
 		Object.defineProperty(result, key, descriptor);
-	}
+	});
 
 	return result as T;
 }

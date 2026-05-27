@@ -201,12 +201,11 @@ function xmlToJson(xml: any): any {
 			"",
 		);
 	} else if (xml.hasChildNodes()) {
-		for (let i = 0; i < xml.childNodes.length; i++) {
-			const item = xml.childNodes.item(i);
+		(xml.childNodes as NodeListOf<Node>).forEach(item => {
 			const nodeName = item.nodeName;
 
 			if (nodeName === "#text") {
-				continue;
+				return;
 			}
 
 			if (typeof obj[nodeName] === "undefined") {
@@ -219,7 +218,7 @@ function xmlToJson(xml: any): any {
 				}
 				obj[nodeName].push(xmlToJson(item));
 			}
-		}
+		});
 	}
 
 	return obj;
@@ -270,7 +269,7 @@ export default async function loadTiledMap(
 	 * TODO create base player and tell function
 	 */
 	function update(_dt: number, player: any, tell: Function): void {
-		for (const teleport of teleporter) {
+		teleporter.forEach(teleport => {
 			if (
 				teleport.rect.collide(player.rect) &&
 				teleport.polygon.collide(player.polygon)
@@ -291,7 +290,7 @@ export default async function loadTiledMap(
 				setRoom(teleport.room);
 				player.setPos(pos.x, pos.y);
 			}
-		}
+		});
 
 		for (const trigger of triggers) {
 			if (
@@ -377,9 +376,9 @@ export default async function loadTiledMap(
 							img.height / attr.tileheight,
 						);
 
-						for (let i = 0; i < sprites.length; i++) {
-							imageMap.set(attr.firstgid + i, sprites[i]);
-						}
+						sprites.forEach((sprite, i) => {
+							imageMap.set(attr.firstgid + i, sprite);
+						});
 					}),
 				);
 			}

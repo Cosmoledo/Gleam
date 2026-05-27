@@ -144,8 +144,8 @@ HTMLCanvasElement.prototype.autoCrop = function (): HTMLCanvasElement {
 
 	const imageData = context.getImageData(0, 0, this.width, this.height);
 
-	for (let y = 0; y < this.height; y++) {
-		for (let x = 0; x < this.width; x++) {
+	Array.from({ length: this.height }).forEach((_, y) => {
+		Array.from({ length: this.width }).forEach((_, x) => {
 			const alpha =
 				imageData.data[convert2DTo1D(x * 4, y * 4, this.width) + 3];
 
@@ -153,8 +153,8 @@ HTMLCanvasElement.prototype.autoCrop = function (): HTMLCanvasElement {
 				topLeft.update(x, y);
 				bottomRight.update(x, y);
 			}
-		}
-	}
+		});
+	});
 
 	const width = bottomRight.x - topLeft.x + 1;
 	const height = bottomRight.y - topLeft.y + 1;

@@ -5,14 +5,14 @@ export function chunk<T>(array: ReadonlyArray<T>, maxLength: number): T[][] {
 	const result: T[][] = [];
 	let part: T[] = [];
 
-	for (let i = 0; i < array.length; i++) {
-		part.push(array[i]);
+	array.forEach((item, i) => {
+		part.push(item);
 
 		if (part.length === maxLength || i === array.length - 1) {
 			result.push(part);
 			part = [];
 		}
-	}
+	});
 
 	return result;
 }

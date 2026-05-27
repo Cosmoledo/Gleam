@@ -3,13 +3,7 @@
  * Row cells are kept as-is (suitable for primitive cells; for nested structures use `deepClone`).
  */
 export function cloneGrid<T>(grid: ReadonlyArray<ReadonlyArray<T>>): T[][] {
-	const result: T[][] = [];
-
-	for (let y = 0; y < grid.length; y++) {
-		result[y] = grid[y].slice();
-	}
-
-	return result;
+	return grid.map(row => row.slice());
 }
 
 /**
@@ -55,17 +49,12 @@ export function generateGrid<T>(
 	valueOrFactory: T | ((x: number, y: number) => T),
 ): T[][] {
 	const isFactory = typeof valueOrFactory === "function";
-	const grid: T[][] = [];
 
-	for (let y = 0; y < height; y++) {
-		grid[y] = [];
-
-		for (let x = 0; x < width; x++) {
-			grid[y][x] = isFactory
+	return Array.from({ length: height }, (_, y) =>
+		Array.from({ length: width }, (_, x) =>
+			isFactory
 				? (valueOrFactory as (x: number, y: number) => T)(x, y)
-				: valueOrFactory;
-		}
-	}
-
-	return grid;
+				: valueOrFactory,
+		),
+	);
 }
