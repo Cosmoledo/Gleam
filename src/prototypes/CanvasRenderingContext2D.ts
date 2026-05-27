@@ -1,6 +1,9 @@
 import { createNewCanvas } from "@/utilities/Canvas";
 import Rect from "@/core/Rect";
 
+/**
+ * Fill a two-color bar (`c1` background, `c2` foreground, sized by `amount`). Writes `fillStyle`; the value persists on the context — wrap in `save()`/`restore()` if you need to preserve prior state.
+ */
 CanvasRenderingContext2D.prototype.drawBar = function (
 	rect: Rect,
 	amount: number,
@@ -14,6 +17,9 @@ CanvasRenderingContext2D.prototype.drawBar = function (
 	this.fillRect(rect.x, rect.y, rect.w * amount, rect.h);
 };
 
+/**
+ * Draw a three-layer HP bar (outer, frame, fill). Writes `fillStyle`; the value persists on the context — wrap in `save()`/`restore()` if you need to preserve prior state.
+ */
 CanvasRenderingContext2D.prototype.drawHpBar = function (
 	pos: GameLIB.Vector2,
 	filled = 0.8,
@@ -110,6 +116,9 @@ CanvasRenderingContext2D.prototype.drawTriangle = function (rect: Rect): void {
 	this.fill();
 };
 
+/**
+ * Stroke a dotted rectangle. Writes `lineWidth` and resets `setLineDash` to `[]` (does not restore the prior dash pattern) — wrap in `save()`/`restore()` if you need to preserve prior state.
+ */
 CanvasRenderingContext2D.prototype.drawDottedRect = function (
 	rect: Rect,
 ): void {
@@ -125,6 +134,9 @@ CanvasRenderingContext2D.prototype.drawDottedRect = function (
 	this.setLineDash([]);
 };
 
+/**
+ * Build a colored rounded-rect stencil with a `drawPartialRoundRect` helper. The returned helper writes `fillStyle = "white"` on the caller's context — wrap in `save()`/`restore()` if you need to preserve prior state.
+ */
 CanvasRenderingContext2D.prototype.generateColor = function (
 	size: number,
 	color: string,
@@ -246,7 +258,7 @@ CanvasRenderingContext2D.prototype.generateColor = function (
 };
 
 /**
- * If padding is less than zero, it will auto padding.
+ * Draw a rounded rectangle. Pass `padding < 0` to auto-pad by `lineWidth`. Writes `lineWidth`, and `fillStyle` when `color` is supplied; values persist on the context — wrap in `save()`/`restore()` if you need to preserve prior state.
  */
 CanvasRenderingContext2D.prototype.roundRect = function (
 	x: number,
@@ -296,6 +308,9 @@ CanvasRenderingContext2D.prototype.roundRect = function (
 	this.closePath();
 };
 
+/**
+ * `roundRect` variant accepting a `Vector4`; inherits the same state writes.
+ */
 CanvasRenderingContext2D.prototype.roundRectObject = function (
 	rect: GameLIB.Vector4,
 	color: string,
@@ -305,6 +320,9 @@ CanvasRenderingContext2D.prototype.roundRectObject = function (
 	this.roundRect(rect.x, rect.y, rect.w, rect.h, color, padding, radius);
 };
 
+/**
+ * Stroke a rectangle (from `Rect` or `x, y, w, h`). Writes `strokeStyle` only when supplied; the value persists on the context — wrap in `save()`/`restore()` if you need to preserve prior state.
+ */
 CanvasRenderingContext2D.prototype.drawRect = function (
 	...args: [Rect, string?] | [number, number, number, number, string?]
 ): void {
@@ -337,6 +355,9 @@ CanvasRenderingContext2D.prototype.drawRect = function (
 	this.stroke();
 };
 
+/**
+ * Fill a circle. Writes `fillStyle` only when supplied; the value persists on the context — wrap in `save()`/`restore()` if you need to preserve prior state.
+ */
 CanvasRenderingContext2D.prototype.fillCircle = function (
 	vecPos: GameLIB.Vector2,
 	rad: number,
@@ -382,6 +403,9 @@ CanvasRenderingContext2D.prototype.drawRotated = function (
 	this.restore();
 };
 
+/**
+ * Stroke a regular polygon centered in `pos`. Writes `strokeStyle`; the value persists on the context — wrap in `save()`/`restore()` if you need to preserve prior state.
+ */
 CanvasRenderingContext2D.prototype.drawPolygon = function (
 	polygonCount: number,
 	pos: GameLIB.Vector2,
@@ -409,6 +433,9 @@ CanvasRenderingContext2D.prototype.drawPolygon = function (
 	this.stroke();
 };
 
+/**
+ * Write text horizontally offset around `x` by `measureTextOffset` of its measured width. Writes `font` and `fillStyle` only when supplied; values persist on the context — wrap in `save()`/`restore()` if you need to preserve prior state.
+ */
 CanvasRenderingContext2D.prototype.writeText = function (
 	text: string,
 	x: number,
