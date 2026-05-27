@@ -267,10 +267,7 @@ export default async function loadTiledMap(
 	}
 
 	/**
-	 * // TODO create base player and tell function
-	 * @param dt
-	 * @param player
-	 * @param tell
+	 * TODO create base player and tell function
 	 */
 	function update(_dt: number, player: any, tell: Function): void {
 		for (const teleport of teleporter) {

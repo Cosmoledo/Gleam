@@ -24,11 +24,8 @@ export function validateUrl(url: string): void {
 }
 
 /**
- * Safe loading wrapper with global timeout and error handling
- * Use this for any async loading operation that needs timeout protection
- * @param promise The promise to wrap
- * @param url The URL being loaded (for error messages)
- * @param operationName Name of the operation for logging
+ * Safe loading wrapper with global timeout and error handling.
+ * Use this for any async loading operation that needs timeout protection.
  */
 export function safeLoad<T>(
 	promise: Promise<T>,
