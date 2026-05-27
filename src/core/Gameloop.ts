@@ -1,6 +1,6 @@
 import Settings from "./Settings";
 import type Game from "./Game";
-import type Sound from "./Sound";
+import type Sound from "@/audio/Sound";
 import { EVENT_NAMES } from "./EventSystem";
 import { rafLoop } from "@/utilities/Functions";
 

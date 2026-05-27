@@ -1,5 +1,5 @@
-import Vec2 from "@/core/Vec2";
-import type Rect from "@/core/Rect";
+import Vec2 from "@/math/Vec2";
+import type Rect from "@/math/Rect";
 import { throttle } from "@/utilities/Functions";
 
 const throttledTrace = throttle((count: number) => {

@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import ControllerCursor from "@/input/ControllerCursor";
-import Vec2 from "@/core/Vec2";
+import Vec2 from "@/math/Vec2";
 import type Game from "@/core/Game";
 import { CONTROLLER_KEYS } from "@/input/Controller";
 import { createMockGame } from "../createMockGame";

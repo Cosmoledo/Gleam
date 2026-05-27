@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
-import Polygon from "@/core/Polygon";
-import Vec2 from "@/core/Vec2";
+import Polygon from "@/math/Polygon";
+import Vec2 from "@/math/Vec2";
 
 import "@/prototypes/index";
 

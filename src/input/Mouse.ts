@@ -1,4 +1,4 @@
-import Vec2 from "@/core/Vec2";
+import Vec2 from "@/math/Vec2";
 import type Game from "@/core/Game";
 import { clamp } from "@/utilities/Number";
 import { EVENT_NAMES } from "@/core/EventSystem";

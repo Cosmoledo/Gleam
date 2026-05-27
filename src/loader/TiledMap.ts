@@ -1,6 +1,6 @@
-import Polygon from "@/core/Polygon";
-import Rect from "@/core/Rect";
-import Vec2 from "@/core/Vec2";
+import Polygon from "@/math/Polygon";
+import Rect from "@/math/Rect";
+import Vec2 from "@/math/Vec2";
 import { convert1DTo2D } from "@/utilities/Grid";
 import { createNewCanvas, splitSpriteSheet } from "@/utilities/Canvas";
 import { isNumeric } from "@/utilities/Math";

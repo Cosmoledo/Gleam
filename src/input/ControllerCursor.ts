@@ -1,6 +1,6 @@
 import type Controller from "./Controller";
 import type Game from "@/core/Game";
-import type Vec2 from "@/core/Vec2";
+import type Vec2 from "@/math/Vec2";
 import { clamp } from "@/utilities/Number";
 import { loadImage } from "@/loader/UrlLoaders";
 

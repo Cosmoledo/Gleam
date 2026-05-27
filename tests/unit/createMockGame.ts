@@ -1,6 +1,6 @@
 import { vi } from "vitest";
 
-import Vec2 from "@/core/Vec2";
+import Vec2 from "@/math/Vec2";
 import type Game from "@/core/Game";
 
 export function createMockGame(): Game {

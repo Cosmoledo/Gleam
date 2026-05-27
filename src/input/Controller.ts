@@ -1,5 +1,5 @@
 import ControllerCursor from "./ControllerCursor";
-import Vec2 from "@/core/Vec2";
+import Vec2 from "@/math/Vec2";
 import type Game from "@/core/Game";
 import { EVENT_NAMES } from "@/core/EventSystem";
 import { map, threshold } from "@/utilities/Number";

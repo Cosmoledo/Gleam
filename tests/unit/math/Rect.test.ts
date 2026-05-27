@@ -2,9 +2,9 @@ import { describe, it, expect } from "vitest";
 
 // ==================== Imports ====================
 
-import Rect from "@/core/Rect";
-import Polygon from "@/core/Polygon";
-import Vec2 from "@/core/Vec2";
+import Rect from "@/math/Rect";
+import Polygon from "@/math/Polygon";
+import Vec2 from "@/math/Vec2";
 
 // ==================== Rect.fromBoundingClientRect (HTMLElement) ====================
 

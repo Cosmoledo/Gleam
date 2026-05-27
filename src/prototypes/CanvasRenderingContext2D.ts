@@ -1,4 +1,4 @@
-import Rect from "@/core/Rect";
+import Rect from "@/math/Rect";
 import { createNewCanvas } from "@/utilities/Canvas";
 
 /**

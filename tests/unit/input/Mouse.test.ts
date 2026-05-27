@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import Vec2 from "@/core/Vec2";
+import Vec2 from "@/math/Vec2";
 import type Game from "@/core/Game";
 import { createMockGame } from "../createMockGame";
 import { MOUSE_KEYS } from "@/input/Mouse";

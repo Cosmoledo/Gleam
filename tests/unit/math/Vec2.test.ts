@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 
 // ==================== Imports ====================
 
-import Vec2 from "@/core/Vec2";
+import Vec2 from "@/math/Vec2";
 
 // ==================== Vec2.fromAngle ====================
 
