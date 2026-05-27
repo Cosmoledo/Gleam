@@ -83,15 +83,6 @@ export default class Rect {
 		return this;
 	}
 
-	public inflate(delta: number): Rect {
-		return new Rect(
-			this.x - delta,
-			this.y - delta,
-			this.w + 2 * delta,
-			this.h + 2 * delta,
-		);
-	}
-
 	public round(): void {
 		this.x = Math.round(this.x);
 		this.y = Math.round(this.y);
@@ -154,6 +145,15 @@ export default class Rect {
 		}
 
 		return collision;
+	}
+
+	public inflate(delta: number): Rect {
+		return new Rect(
+			this.x - delta,
+			this.y - delta,
+			this.w + 2 * delta,
+			this.h + 2 * delta,
+		);
 	}
 
 	public pos(): Vec2 {

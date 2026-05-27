@@ -77,17 +77,17 @@ export default class Keyboard {
 		window.addEventListener("keyup", keyEvent, false);
 	}
 
-	public isPressed(code: string): boolean {
-		return !!this.keys[code];
+	public reset(): void {
+		for (const key in this.keys) {
+			this.keys[key] = false;
+		}
 	}
 
 	public stopPress(code: string): void {
 		this.keys[code] = false;
 	}
 
-	public reset(): void {
-		for (const key in this.keys) {
-			this.keys[key] = false;
-		}
+	public isPressed(code: string): boolean {
+		return !!this.keys[code];
 	}
 }

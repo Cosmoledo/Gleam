@@ -76,6 +76,38 @@ export default class CanvasManager {
 		}
 	}
 
+	public resize(): void {
+		const windowRatio = window.innerHeight / window.innerWidth;
+
+		Object.values(this.canvasHolder).forEach(ch => {
+			if (!ch.resize) {
+				return;
+			}
+
+			const canvasRatio = ch.canvas.height / ch.canvas.width;
+			let width: number;
+			let height: number;
+
+			if (windowRatio < canvasRatio) {
+				height = window.innerHeight;
+				width = height / canvasRatio;
+			} else {
+				width = window.innerWidth;
+				height = width * canvasRatio;
+			}
+
+			if (ch.canvas === this.canvas) {
+				this.resizedSize = new Vec2(width, height);
+				this.ratio = width / this.width;
+			}
+
+			ch.canvas.style.width = width + "px";
+			ch.canvas.style.height = height + "px";
+		});
+
+		this.canvasBoundingClientRect = this.canvas.getBoundingClientRect();
+	}
+
 	public setFontSize(size: number, font: string = Settings.font): void {
 		this.canvasContext.font = `${size}px "${font}"`;
 	}
@@ -113,37 +145,5 @@ export default class CanvasManager {
 		this.canvasHolder[name] = newCanvas;
 
 		return newCanvas;
-	}
-
-	public resize(): void {
-		const windowRatio = window.innerHeight / window.innerWidth;
-
-		Object.values(this.canvasHolder).forEach(ch => {
-			if (!ch.resize) {
-				return;
-			}
-
-			const canvasRatio = ch.canvas.height / ch.canvas.width;
-			let width: number;
-			let height: number;
-
-			if (windowRatio < canvasRatio) {
-				height = window.innerHeight;
-				width = height / canvasRatio;
-			} else {
-				width = window.innerWidth;
-				height = width * canvasRatio;
-			}
-
-			if (ch.canvas === this.canvas) {
-				this.resizedSize = new Vec2(width, height);
-				this.ratio = width / this.width;
-			}
-
-			ch.canvas.style.width = width + "px";
-			ch.canvas.style.height = height + "px";
-		});
-
-		this.canvasBoundingClientRect = this.canvas.getBoundingClientRect();
 	}
 }

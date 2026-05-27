@@ -31,11 +31,6 @@ export default class Projectile<T = unknown> {
 		this._rect = pos.toRectAddSize(this.image.width, this.image.height);
 	}
 
-	public rebuildRotation(): void {
-		this.rotation = Math.atan2(this.vel.y, this.vel.x);
-		this.image = this.originalImage.rotateBy(this.rotation);
-	}
-
 	public draw(
 		context: CanvasRenderingContext2D,
 		offset: Vec2 = new Vec2(),
@@ -54,6 +49,11 @@ export default class Projectile<T = unknown> {
 		this.pos.y += this.vel.y * this.speed * dt;
 
 		this._rect.set(this.pos.x, this.pos.y);
+	}
+
+	public rebuildRotation(): void {
+		this.rotation = Math.atan2(this.vel.y, this.vel.x);
+		this.image = this.originalImage.rotateBy(this.rotation);
 	}
 
 	public remove(): void {

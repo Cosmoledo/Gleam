@@ -116,6 +116,27 @@ export default class Sound {
 		// getRandomMusic avoids picking the just-paused track.
 	}
 
+	public playMusic(name: string): void {
+		this.cancelFade();
+		this.currentMusic = name;
+		this.music
+			.get(name)!
+			.play()
+			.then(() => {
+				console.log("Playing music: '" + name + "'");
+
+				this.music.get(name)!.onended = (): void => {
+					this.lastMusic = this.currentMusic;
+					this.currentMusic = "";
+					this.fadeMusic();
+				};
+			})
+			.catch(error => {
+				console.error(`Could not play music '${name}':`, error);
+				this.currentMusic = "";
+			});
+	}
+
 	public playSound(name: string): void {
 		if (!this.enabled) {
 			return;
@@ -152,27 +173,6 @@ export default class Sound {
 
 	public isPlayingMusic(): boolean {
 		return this.currentMusic.length > 0;
-	}
-
-	public playMusic(name: string): void {
-		this.cancelFade();
-		this.currentMusic = name;
-		this.music
-			.get(name)!
-			.play()
-			.then(() => {
-				console.log("Playing music: '" + name + "'");
-
-				this.music.get(name)!.onended = (): void => {
-					this.lastMusic = this.currentMusic;
-					this.currentMusic = "";
-					this.fadeMusic();
-				};
-			})
-			.catch(error => {
-				console.error(`Could not play music '${name}':`, error);
-				this.currentMusic = "";
-			});
 	}
 
 	private cancelFade(): void {

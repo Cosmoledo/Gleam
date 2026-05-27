@@ -29,18 +29,6 @@ export default class Settings {
 		return this._localStorage;
 	}
 
-	public static setLocalStorage<K extends keyof typeof this._localStorage>(
-		key: K,
-		value: (typeof this._localStorage)[K],
-	): void {
-		this._localStorage[key] = value;
-
-		localStorage.setItem(
-			LOCAL_STORAGE_KEY,
-			JSON.stringify(this._localStorage),
-		);
-	}
-
 	public static init(overrides: SettingsOverrides, game: Game): void {
 		Object.assign(this, overrides);
 
@@ -83,5 +71,17 @@ export default class Settings {
 				localStorage.removeItem(LOCAL_STORAGE_KEY);
 			}
 		}
+	}
+
+	public static setLocalStorage<K extends keyof typeof this._localStorage>(
+		key: K,
+		value: (typeof this._localStorage)[K],
+	): void {
+		this._localStorage[key] = value;
+
+		localStorage.setItem(
+			LOCAL_STORAGE_KEY,
+			JSON.stringify(this._localStorage),
+		);
 	}
 }
