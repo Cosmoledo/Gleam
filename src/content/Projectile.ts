@@ -1,5 +1,5 @@
-import Rect from "@/core/Rect";
 import Vec2 from "@/core/Vec2";
+import type Rect from "@/core/Rect";
 
 export default class Projectile<T = unknown> {
 	public maxLifetime = Infinity;

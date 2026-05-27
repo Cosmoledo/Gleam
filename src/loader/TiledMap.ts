@@ -1,10 +1,10 @@
-import { loadCanvas, loadText } from "@/loader/UrlLoaders";
-import { createNewCanvas, splitSpriteSheet } from "@/utilities/Canvas";
-import { convert1DTo2D } from "@/utilities/Grid";
-import { isNumeric } from "@/utilities/Math";
 import Polygon from "@/core/Polygon";
 import Rect from "@/core/Rect";
 import Vec2 from "@/core/Vec2";
+import { convert1DTo2D } from "@/utilities/Grid";
+import { createNewCanvas, splitSpriteSheet } from "@/utilities/Canvas";
+import { isNumeric } from "@/utilities/Math";
+import { loadCanvas, loadText } from "@/loader/UrlLoaders";
 
 interface TiledTile {
 	"@attributes": {

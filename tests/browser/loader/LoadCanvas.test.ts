@@ -1,7 +1,6 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import { loadCanvas } from "@/loader/UrlLoaders";
-
 import { PNG_1x1_DATA_URL, PNG_2x2_RED_DATA_URL } from "../constants";
 
 // ==================== loadCanvas ====================

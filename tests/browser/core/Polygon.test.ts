@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import Polygon from "@/core/Polygon";
 import Vec2 from "@/core/Vec2";

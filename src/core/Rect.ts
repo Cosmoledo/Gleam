@@ -1,5 +1,5 @@
-import Polygon from "@/core/Polygon";
 import Vec2 from "@/core/Vec2";
+import type Polygon from "@/core/Polygon";
 
 export default class Rect {
 	public static fromBoundingClientRect(rect: DOMRect | HTMLElement): Rect {

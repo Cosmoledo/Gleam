@@ -1,5 +1,5 @@
-import { createNewCanvas } from "@/utilities/Canvas";
 import Rect from "@/core/Rect";
+import { createNewCanvas } from "@/utilities/Canvas";
 
 /**
  * Fill a two-color bar (`c1` background, `c2` foreground, sized by `amount`). Writes `fillStyle`; the value persists on the context — wrap in `save()`/`restore()` if you need to preserve prior state.

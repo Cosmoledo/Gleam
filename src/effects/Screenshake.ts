@@ -1,5 +1,5 @@
-import { randomBetweenFloat } from "@/utilities/Math";
 import { rafLoop } from "@/utilities/Functions";
+import { randomBetweenFloat } from "@/utilities/Math";
 
 interface ShakeType {
 	step: number;

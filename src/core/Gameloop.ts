@@ -1,8 +1,8 @@
-import { rafLoop } from "@/utilities/Functions";
+import Settings from "./Settings";
 import type Game from "./Game";
 import type Sound from "./Sound";
 import { EVENT_NAMES } from "./EventSystem";
-import Settings from "./Settings";
+import { rafLoop } from "@/utilities/Functions";
 
 export default class Gameloop {
 	public levelTime = 0;

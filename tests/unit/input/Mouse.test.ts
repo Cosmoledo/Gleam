@@ -1,9 +1,9 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import Vec2 from "@/core/Vec2";
+import type Game from "@/core/Game";
 import { createMockGame } from "../createMockGame";
 import { MOUSE_KEYS } from "@/input/Mouse";
-import Game from "@/core/Game";
-import Vec2 from "@/core/Vec2";
 
 // ==================== MOUSE_KEYS ====================
 

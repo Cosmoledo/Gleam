@@ -1,8 +1,8 @@
+import type Controller from "./Controller";
+import type Game from "@/core/Game";
+import type Vec2 from "@/core/Vec2";
 import { clamp } from "@/utilities/Number";
 import { loadImage } from "@/loader/UrlLoaders";
-import Controller from "./Controller";
-import Game from "@/core/Game";
-import Vec2 from "@/core/Vec2";
 
 const SPEED = 600;
 

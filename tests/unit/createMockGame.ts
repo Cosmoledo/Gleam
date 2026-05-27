@@ -1,7 +1,7 @@
 import { vi } from "vitest";
 
-import Game from "@/core/Game";
 import Vec2 from "@/core/Vec2";
+import type Game from "@/core/Game";
 
 export function createMockGame(): Game {
 	const canman = {

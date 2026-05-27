@@ -1,7 +1,8 @@
+import BezierEasing from "bezier-easing";
+
 import { clamp } from "@/utilities/Number";
 import { rafLoop } from "@/utilities/Functions";
 import { randomItem, remove } from "@/utilities/Array";
-import BezierEasing from "bezier-easing";
 
 type BezierPoints = readonly [number, number, number, number];
 

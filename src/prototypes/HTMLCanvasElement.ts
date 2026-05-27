@@ -1,6 +1,6 @@
+import { convert2DTo1D } from "@/utilities/Grid";
 import { createNewCanvas } from "@/utilities/Canvas";
 import { hex2rgb, rgb2Int } from "@/utilities/Color";
-import { convert2DTo1D } from "@/utilities/Grid";
 
 HTMLCanvasElement.prototype.hasAnyColor = function (): boolean {
 	const rgba = this.getContext("2d")!.getImageData(

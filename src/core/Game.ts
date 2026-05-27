@@ -1,13 +1,13 @@
-import { debounce } from "@/utilities/Functions";
-import { EventSystem, EVENT_NAMES } from "@/core/EventSystem";
 import CanvasManager from "@/core/CanvasManager";
 import Gameloop from "./Gameloop";
 import Keyboard from "@/input/Keyboard";
 import Mouse from "@/input/Mouse";
 import Settings, { type SettingsOverrides } from "@/core/Settings";
+import { debounce } from "@/utilities/Functions";
+import { EVENT_NAMES, EventSystem } from "@/core/EventSystem";
 
-import "@/prototypes/index";
 import "@/localization/Translator";
+import "@/prototypes/index";
 
 export default abstract class Game {
 	public canman = new CanvasManager();

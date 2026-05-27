@@ -1,6 +1,6 @@
+import Rect from "./Rect";
 import { clamp } from "@/utilities/Number";
 import { throttle } from "@/utilities/Functions";
-import Rect from "./Rect";
 
 /**
  * Operation types for vector calculations

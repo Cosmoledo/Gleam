@@ -1,11 +1,10 @@
-import { describe, it, expect, beforeAll } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 
-import "@/prototypes/index";
-
+import spritesFixture from "../fixtures/sprites.json";
+import { FIXTURE_BASE } from "../constants";
 import { loadImageFromJson } from "@/loader/UrlLoaders";
 
-import { FIXTURE_BASE } from "../constants";
-import spritesFixture from "../fixtures/sprites.json";
+import "@/prototypes/index";
 
 let origin: string;
 let baseUrl: string;

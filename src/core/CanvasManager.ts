@@ -1,8 +1,8 @@
-import { EVENT_NAMES } from "./EventSystem";
-import { getCanvasConstruct } from "@/utilities/Canvas";
-import Game from "./Game";
 import Settings from "@/core/Settings";
 import Vec2 from "@/core/Vec2";
+import type Game from "./Game";
+import { EVENT_NAMES } from "./EventSystem";
+import { getCanvasConstruct } from "@/utilities/Canvas";
 
 export const CANVAS_TYPES = {
 	ANY: Symbol("any"),

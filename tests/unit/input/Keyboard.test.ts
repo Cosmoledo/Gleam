@@ -1,9 +1,9 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import Settings from "@/core/Settings";
+import type Game from "@/core/Game";
 import { createMockGame } from "../createMockGame";
 import { KEYBOARD_KEYS } from "@/input/Keyboard";
-import Game from "@/core/Game";
-import Settings from "@/core/Settings";
 
 // ==================== KEYBOARD_KEYS ====================
 

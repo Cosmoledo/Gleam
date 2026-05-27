@@ -1,7 +1,6 @@
-import { describe, it, expect, vi, afterEach } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { loadImage } from "@/loader/UrlLoaders";
-
 import { PNG_1x1_DATA_URL, PNG_2x2_RED_DATA_URL } from "../constants";
 
 // ==================== loadImage ====================

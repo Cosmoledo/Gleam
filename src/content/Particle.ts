@@ -1,6 +1,6 @@
-import { random2Pi, randomBetweenInt } from "@/utilities/Math";
-import Rect from "@/core/Rect";
 import Vec2 from "@/core/Vec2";
+import type Rect from "@/core/Rect";
+import { random2Pi, randomBetweenInt } from "@/utilities/Math";
 
 export default class Particle {
 	protected color: string;

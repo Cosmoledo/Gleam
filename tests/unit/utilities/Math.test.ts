@@ -1,20 +1,20 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 // ==================== Imports ====================
 
 import {
+	getFactorial,
 	isNumeric,
 	random2Pi,
 	randomBetweenFloat,
 	randomBetweenInt,
 	randomBoolean,
 	randomSign,
-	toHHMMSS,
-	toDegrees,
-	wrapRadians,
-	toRadians,
 	roundTo,
-	getFactorial,
+	toDegrees,
+	toHHMMSS,
+	toRadians,
+	wrapRadians,
 } from "@/utilities/Math";
 
 // ==================== isNumeric ====================

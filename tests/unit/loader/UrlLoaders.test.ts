@@ -1,16 +1,16 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // ==================== Imports ====================
 
 import {
-	validateUrl,
-	safeLoad,
-	loadText,
+	loadBunch,
+	loadCanvas,
+	loadImage,
 	loadJson,
 	loadJsonCommented,
-	loadImage,
-	loadCanvas,
-	loadBunch,
+	loadText,
+	safeLoad,
+	validateUrl,
 } from "@/loader/UrlLoaders";
 
 // ==================== validateUrl ====================

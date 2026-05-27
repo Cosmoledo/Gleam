@@ -1,14 +1,14 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 
 // ==================== Imports ====================
 
 import {
-	rgb2hex,
-	rgb2Int,
 	hex2rgb,
 	hue2rgb,
 	randomHex,
 	randomRgb,
+	rgb2hex,
+	rgb2Int,
 } from "@/utilities/Color";
 
 // ==================== rgb2hex ====================

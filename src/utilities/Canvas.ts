@@ -1,6 +1,7 @@
 import Settings from "@/core/Settings";
-import { rgb2Int } from "./Color";
 import { getElement } from "./DOM";
+import { rgb2Int } from "./Color";
+
 import "@/prototypes/HTMLCanvasElement"; // splitSpriteSheet relies on the subImage patch
 
 /**

@@ -1,9 +1,9 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // ==================== Imports ====================
 
-import { prepareLanguage } from "@/localization/Translator";
 import Settings from "@/core/Settings";
+import { prepareLanguage } from "@/localization/Translator";
 
 // ==================== Helpers ====================
 

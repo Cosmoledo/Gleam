@@ -1,6 +1,6 @@
+import Vec2 from "@/core/Vec2";
 import { createNewCanvas } from "@/utilities/Canvas";
 import { randomBetweenFloat } from "@/utilities/Math";
-import Vec2 from "@/core/Vec2";
 
 export interface Animation {
 	default?: boolean;

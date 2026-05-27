@@ -1,7 +1,7 @@
+import Vec2 from "@/core/Vec2";
+import type Game from "@/core/Game";
 import { clamp } from "@/utilities/Number";
 import { EVENT_NAMES } from "@/core/EventSystem";
-import Game from "@/core/Game";
-import Vec2 from "@/core/Vec2";
 
 export const MOUSE_KEYS = {
 	LEFT: 0,
