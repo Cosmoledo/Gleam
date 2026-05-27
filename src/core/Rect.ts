@@ -109,10 +109,10 @@ export default class Rect {
 
 	public collideFull(rect: Rect): boolean {
 		return (
-			rect.x + rect.w < this.x + this.w &&
-			rect.x > this.x &&
-			rect.y > this.y &&
-			rect.y + rect.h < this.y + this.h
+			rect.x + rect.w <= this.x + this.w &&
+			rect.x >= this.x &&
+			rect.y >= this.y &&
+			rect.y + rect.h <= this.y + this.h
 		);
 	}
 
