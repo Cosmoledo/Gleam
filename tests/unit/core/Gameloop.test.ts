@@ -138,18 +138,6 @@ describe("Gameloop.stopLoop", () => {
 		expect(gl.isStopped()).toBe(true);
 	});
 
-	it("calls .stop() on a `sound` property when present", () => {
-		const { gl } = makeGameloop();
-		const sound = { stop: vi.fn() };
-		(gl as unknown as { sound: typeof sound }).sound = sound;
-		gl.stopLoop();
-		expect(sound.stop).toHaveBeenCalledTimes(1);
-	});
-
-	it("does not throw when no sound is attached", () => {
-		const { gl } = makeGameloop();
-		expect(() => gl.stopLoop()).not.toThrow();
-	});
 });
 
 // ==================== loop body ====================

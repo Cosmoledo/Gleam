@@ -1,6 +1,5 @@
 import Settings from "./Settings";
 import type Game from "./Game";
-import type Sound from "@/audio/Sound";
 import { EventSystem } from "./EventSystem";
 import { rafLoop } from "@/utilities/Functions";
 
@@ -22,10 +21,6 @@ export default class Gameloop {
 
 	public stopLoop(): void {
 		this.stop = true;
-
-		if ("sound" in this) {
-			(this.sound as Sound).stop();
-		}
 	}
 
 	public isStopped(): boolean {

@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import Audio from "@/audio/Audio";
+import { EventSystem } from "@/core/EventSystem";
 
 import "@/prototypes/Audio";
 
@@ -11,6 +12,10 @@ class TestAudio extends Audio {}
 function songs(audio: Audio): Map<string, HTMLAudioElement> {
 	return (audio as unknown as { songs: Map<string, HTMLAudioElement> }).songs;
 }
+
+beforeEach(() => {
+	(EventSystem as unknown as { eventListener: object }).eventListener = {};
+});
 
 // ==================== constructor ====================
 
@@ -28,6 +33,13 @@ describe("Audio constructor", () => {
 	it("starts with an empty songs map", () => {
 		const a = new TestAudio();
 		expect(songs(a).size).toBe(0);
+	});
+
+	it("subscribes stop() to the gameloopStopped event", () => {
+		const a = new TestAudio();
+		const spy = vi.spyOn(a, "stop");
+		EventSystem.dispatchEvent("gameloopStopped");
+		expect(spy).toHaveBeenCalledTimes(1);
 	});
 });
 

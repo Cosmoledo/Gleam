@@ -1,3 +1,4 @@
+import { EventSystem } from "@/core/EventSystem";
 import { urlBasename } from "@/utilities/Functions";
 
 export interface RegisterData {
@@ -24,6 +25,8 @@ export default abstract class Audio {
 
 	constructor(enabled: boolean = true) {
 		this._enabled = enabled;
+
+		EventSystem.addEventListener("gameloopStopped", () => this.stop());
 	}
 
 	public register(

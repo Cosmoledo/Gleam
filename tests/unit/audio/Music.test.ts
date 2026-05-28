@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import Music from "@/audio/Music";
+import { EventSystem } from "@/core/EventSystem";
 
 import "@/prototypes/Audio";
 
@@ -47,6 +48,7 @@ beforeEach(() => {
 	vi.spyOn(console, "log").mockImplementation(() => {});
 	vi.spyOn(console, "warn").mockImplementation(() => {});
 	vi.spyOn(console, "error").mockImplementation(() => {});
+	(EventSystem as unknown as { eventListener: object }).eventListener = {};
 });
 
 afterEach(() => {

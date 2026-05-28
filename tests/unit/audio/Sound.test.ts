@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import Sound from "@/audio/Sound";
+import { EventSystem } from "@/core/EventSystem";
 
 import "@/prototypes/Audio";
 
@@ -10,6 +11,10 @@ function currentSounds(s: Sound): HTMLAudioElement[] {
 	return (s as unknown as { currentSounds: HTMLAudioElement[] })
 		.currentSounds;
 }
+
+beforeEach(() => {
+	(EventSystem as unknown as { eventListener: object }).eventListener = {};
+});
 
 // ==================== Sound.play ====================
 
