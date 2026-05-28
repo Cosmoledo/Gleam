@@ -50,10 +50,7 @@ export default abstract class Game {
 
 		window.addEventListener(
 			"resize",
-			debounce(
-				() => this.events.dispatchEvent(EVENT_NAMES.AFTER_RESIZE),
-				250,
-			),
+			debounce(() => this.events.dispatchEvent(EVENT_NAMES.RESIZED), 250),
 			false,
 		);
 
@@ -63,7 +60,7 @@ export default abstract class Game {
 			await this.init();
 		}
 
-		this.events.dispatchEvent(EVENT_NAMES.AFTER_RESIZE);
+		this.events.dispatchEvent(EVENT_NAMES.RESIZED);
 
 		if (Settings.autoloop) {
 			this.gameloop.startLoop();

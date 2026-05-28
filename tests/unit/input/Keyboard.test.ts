@@ -74,7 +74,7 @@ describe("Keyboard", () => {
 		const kb = new Keyboard(mockGame);
 		keydownCb!({ code: "KeyB", type: "keydown" } as KeyboardEvent);
 		expect(mockGame.events.dispatchEvent).toHaveBeenCalledWith(
-			"key",
+			"inputKeyboard",
 			kb.keys,
 			"KeyB",
 		);
@@ -85,7 +85,7 @@ describe("Keyboard", () => {
 		const kb = new Keyboard(mockGame);
 		keyupCb!({ code: "KeyC", type: "keyup" } as KeyboardEvent);
 		expect(mockGame.events.dispatchEvent).toHaveBeenCalledWith(
-			"key",
+			"inputKeyboard",
 			kb.keys,
 			"KeyC",
 		);

@@ -35,7 +35,7 @@ export default class Mouse {
 
 			this.update(event);
 
-			this.game.events.dispatchEvent(EVENT_NAMES.MOUSE, this);
+			this.game.events.dispatchEvent(EVENT_NAMES.INPUT_MOUSE, this);
 		};
 
 		const mouseStateChangeEvent = (event: MouseEvent): void => {
@@ -51,7 +51,7 @@ export default class Mouse {
 				this.pressed[event.button] = false;
 			}
 
-			this.game.events.dispatchEvent(EVENT_NAMES.MOUSE, this);
+			this.game.events.dispatchEvent(EVENT_NAMES.INPUT_MOUSE, this);
 		};
 
 		window.addEventListener("pointermove", mouseMoveEvent, false);

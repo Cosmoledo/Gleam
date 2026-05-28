@@ -150,7 +150,7 @@ describe("Mouse", () => {
 				preventDefault: vi.fn(),
 			} as unknown as MouseEvent);
 			expect(mockGame.events.dispatchEvent).toHaveBeenCalledWith(
-				"mouse",
+				"inputMouse",
 				mouse,
 			);
 		});
@@ -298,7 +298,7 @@ describe("Mouse", () => {
 				preventDefault: vi.fn(),
 			} as unknown as MouseEvent);
 			expect(mockGame.events.dispatchEvent).toHaveBeenCalledWith(
-				"mouse",
+				"inputMouse",
 				mouse,
 			);
 		});
@@ -313,7 +313,7 @@ describe("Mouse", () => {
 				preventDefault: vi.fn(),
 			} as unknown as MouseEvent);
 			expect(mockGame.events.dispatchEvent).toHaveBeenCalledWith(
-				"mouse",
+				"inputMouse",
 				mouse,
 			);
 		});

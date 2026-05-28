@@ -2,21 +2,24 @@ import type ControllerCursor from "@/input/ControllerCursor";
 import type Mouse from "@/input/Mouse";
 
 export const EVENT_NAMES = {
-	AFTER_RESIZE: "afterResize",
-	KEY: "key",
-	MOUSE: "mouse",
-	STOP: "stop",
-	CONTROLLER: "controller",
-	CONTROLLER_DISCONNECTED: "controllerDisconnected",
+	GAMELOOP_STOPPED: "gameloopStopped",
+	INPUT_CONTROLLER_CONNECTED: "inputControllerConnected",
+	INPUT_CONTROLLER_DISCONNECTED: "inputControllerDisconnected",
+	INPUT_KEYBOARD: "inputKeyboard",
+	INPUT_MOUSE: "inputMouse",
+	RESIZED: "resized",
 } as const;
 
 export type GameEventMap = {
-	[EVENT_NAMES.AFTER_RESIZE]: [];
-	[EVENT_NAMES.CONTROLLER]: [buttons: boolean[], cursors: ControllerCursor[]];
-	[EVENT_NAMES.CONTROLLER_DISCONNECTED]: [];
-	[EVENT_NAMES.KEY]: [keys: Record<string, boolean>, code: string];
-	[EVENT_NAMES.MOUSE]: [mouse: Mouse];
-	[EVENT_NAMES.STOP]: [];
+	[EVENT_NAMES.GAMELOOP_STOPPED]: [];
+	[EVENT_NAMES.INPUT_CONTROLLER_CONNECTED]: [
+		buttons: boolean[],
+		cursors: ControllerCursor[],
+	];
+	[EVENT_NAMES.INPUT_CONTROLLER_DISCONNECTED]: [];
+	[EVENT_NAMES.INPUT_KEYBOARD]: [keys: Record<string, boolean>, code: string];
+	[EVENT_NAMES.INPUT_MOUSE]: [mouse: Mouse];
+	[EVENT_NAMES.RESIZED]: [];
 };
 
 export type GameEventListener<K extends keyof GameEventMap> = {

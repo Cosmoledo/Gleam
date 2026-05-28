@@ -70,7 +70,7 @@ export default class CanvasManager {
 		this.canvasBoundingClientRect = this.canvas.getBoundingClientRect();
 
 		if (Settings.enableResize) {
-			game.events.addEventListener(EVENT_NAMES.AFTER_RESIZE, (): void =>
+			game.events.addEventListener(EVENT_NAMES.RESIZED, (): void =>
 				this.resize(),
 			);
 		}

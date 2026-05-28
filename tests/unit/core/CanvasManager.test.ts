@@ -163,7 +163,7 @@ describe("CanvasManager.finishSetup", () => {
 		expect(cm.canvasBoundingClientRect).toBe(rect);
 	});
 
-	it("subscribes resize() to AFTER_RESIZE when Settings.enableResize is true", () => {
+	it("subscribes resize() to RESIZED when Settings.enableResize is true", () => {
 		Settings.enableResize = true;
 		makeCanvasEl("main");
 		const cm = new CanvasManager();
@@ -171,11 +171,11 @@ describe("CanvasManager.finishSetup", () => {
 		const game = makeGameWithEvents();
 		cm.finishSetup(game);
 		const resize = vi.spyOn(cm, "resize");
-		game.events.dispatchEvent(EVENT_NAMES.AFTER_RESIZE);
+		game.events.dispatchEvent(EVENT_NAMES.RESIZED);
 		expect(resize).toHaveBeenCalledTimes(1);
 	});
 
-	it("does not subscribe to AFTER_RESIZE when Settings.enableResize is false", () => {
+	it("does not subscribe to RESIZED when Settings.enableResize is false", () => {
 		Settings.enableResize = false;
 		makeCanvasEl("main");
 		const cm = new CanvasManager();
@@ -183,7 +183,7 @@ describe("CanvasManager.finishSetup", () => {
 		const game = makeGameWithEvents();
 		cm.finishSetup(game);
 		const resize = vi.spyOn(cm, "resize");
-		game.events.dispatchEvent(EVENT_NAMES.AFTER_RESIZE);
+		game.events.dispatchEvent(EVENT_NAMES.RESIZED);
 		expect(resize).not.toHaveBeenCalled();
 	});
 });

@@ -126,7 +126,7 @@ describe("Controller", () => {
 			expect(mockGp.vibrationActuator.playEffect).toHaveBeenCalled();
 		});
 
-		it("dispatches CONTROLLER_DISCONNECTED when own gamepad disconnects", async () => {
+		it("dispatches INPUT_CONTROLLER_DISCONNECTED when own gamepad disconnects", async () => {
 			const mockGp = createMockGamepad([false], [0, 0, 0, 0], 0, 5);
 			defineGamepadSupport(mockGp);
 			const { default: Controller } = await import("@/input/Controller");
@@ -150,12 +150,12 @@ describe("Controller", () => {
 					gamepad: mockGp,
 				} as GamepadEvent);
 				expect(mockGame.events.dispatchEvent).toHaveBeenCalledWith(
-					"controllerDisconnected",
+					"inputControllerDisconnected",
 				);
 			}
 		});
 
-		it("does not dispatch CONTROLLER_DISCONNECTED for different gamepad", async () => {
+		it("does not dispatch INPUT_CONTROLLER_DISCONNECTED for different gamepad", async () => {
 			const mockGp = createMockGamepad([false], [0, 0, 0, 0], 0, 5);
 			defineGamepadSupport(mockGp);
 			const { default: Controller } = await import("@/input/Controller");
@@ -272,7 +272,7 @@ describe("Controller", () => {
 			controller["lastTime"] = 0;
 			controller.update(16);
 			expect(mockGame.events.dispatchEvent).toHaveBeenCalledWith(
-				"controller",
+				"inputControllerConnected",
 				controller.buttons,
 				controller.cursors,
 			);

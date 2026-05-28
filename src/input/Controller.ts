@@ -65,7 +65,7 @@ export default class Controller {
 						event.gamepad.index,
 					);
 					this.game.events.dispatchEvent(
-						EVENT_NAMES.CONTROLLER_DISCONNECTED,
+						EVENT_NAMES.INPUT_CONTROLLER_DISCONNECTED,
 					);
 				} else {
 					console.log(
@@ -106,7 +106,7 @@ export default class Controller {
 		}
 
 		this.game.events.dispatchEvent(
-			EVENT_NAMES.CONTROLLER,
+			EVENT_NAMES.INPUT_CONTROLLER_CONNECTED,
 			this.buttons,
 			this.cursors,
 		);

@@ -50,7 +50,7 @@ export default class Gameloop {
 
 		const stopLoop = rafLoop(dt => {
 			if (this.stop) {
-				this.game.events.dispatchEvent(EVENT_NAMES.STOP);
+				this.game.events.dispatchEvent(EVENT_NAMES.GAMELOOP_STOPPED);
 				this.game.keyboard.reset();
 				this.loopHasStarted = false;
 				console.log("Simulation stopped.");
