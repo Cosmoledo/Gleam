@@ -68,25 +68,33 @@ afterEach(() => {
 	vi.restoreAllMocks();
 });
 
-// ==================== isStopped ====================
+// ==================== isLooping ====================
 
-describe("Gameloop.isStopped", () => {
-	it("starts true (no startLoop yet)", () => {
+describe("Gameloop.isLooping", () => {
+	it("returns false before startLoop", () => {
 		const { gl } = makeGameloop();
-		expect(gl.isStopped()).toBe(false); // private `stop` default is false
+		expect(gl.isLooping).toBe(false);
 	});
 
-	it("returns false after startLoop", () => {
+	it("returns true after startLoop", () => {
 		const { gl } = makeGameloop();
 		gl.startLoop();
-		expect(gl.isStopped()).toBe(false);
+		expect(gl.isLooping).toBe(true);
 	});
 
-	it("returns true after stopLoop", () => {
+	it("stays true synchronously after stopLoop (teardown is async)", () => {
 		const { gl } = makeGameloop();
 		gl.startLoop();
 		gl.stopLoop();
-		expect(gl.isStopped()).toBe(true);
+		expect(gl.isLooping).toBe(true);
+	});
+
+	it("returns false after the rAF tick that observes the stop", () => {
+		const { gl } = makeGameloop();
+		gl.startLoop();
+		gl.stopLoop();
+		stepFrame();
+		expect(gl.isLooping).toBe(false);
 	});
 });
 
@@ -97,15 +105,6 @@ describe("Gameloop.startLoop", () => {
 		const { gl } = makeGameloop();
 		gl.startLoop();
 		expect(pendingCbs.length).toBe(1);
-	});
-
-	it("clears the stop flag", () => {
-		const { gl } = makeGameloop();
-		gl.startLoop();
-		gl.stopLoop();
-		expect(gl.isStopped()).toBe(true);
-		gl.startLoop();
-		expect(gl.isStopped()).toBe(false);
 	});
 
 	it("is idempotent while the loop is already running", () => {
@@ -126,18 +125,6 @@ describe("Gameloop.startLoop", () => {
 		gl.startLoop();
 		expect(pendingCbs.length).toBe(1);
 	});
-});
-
-// ==================== stopLoop ====================
-
-describe("Gameloop.stopLoop", () => {
-	it("sets the stop flag", () => {
-		const { gl } = makeGameloop();
-		gl.startLoop();
-		gl.stopLoop();
-		expect(gl.isStopped()).toBe(true);
-	});
-
 });
 
 // ==================== loop body ====================

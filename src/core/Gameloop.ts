@@ -8,10 +8,14 @@ const MAX_STEPS_PER_FRAME = 5;
 
 export default class Gameloop {
 	public levelTime = 0;
+	private _isLooping = false;
 	private accumulator = 0;
-	private loopHasStarted = false;
-	private stop = false;
 	private game: Game;
+	private stop = false;
+
+	public get isLooping(): boolean {
+		return this._isLooping;
+	}
 
 	constructor(game: Game) {
 		this.game = game;
@@ -26,23 +30,19 @@ export default class Gameloop {
 		this.stop = true;
 	}
 
-	public isStopped(): boolean {
-		return this.stop;
-	}
-
 	private looper(): void {
-		if (this.loopHasStarted) {
+		if (this._isLooping) {
 			return;
 		}
 
-		this.loopHasStarted = true;
+		this._isLooping = true;
 		const context = this.game.canman.canvasContext;
 
 		const stopLoop = rafLoop(dt => {
 			if (this.stop) {
 				EventSystem.dispatchEvent("gameloopStopped");
 				this.game.keyboard.reset();
-				this.loopHasStarted = false;
+				this._isLooping = false;
 				console.log("Simulation stopped.");
 				stopLoop();
 				return;
