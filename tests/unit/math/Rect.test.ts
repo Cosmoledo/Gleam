@@ -60,7 +60,12 @@ describe("fromBoundingClientRect (DOMRect)", () => {
 
 describe("fromPolygon", () => {
 	it("computes bounding box from polygon points", () => {
-		const polygon = new Polygon(new Vec2(0, 0), new Vec2(10, 0), new Vec2(10, 10), new Vec2(0, 10));
+		const polygon = new Polygon(
+			new Vec2(0, 0),
+			new Vec2(10, 0),
+			new Vec2(10, 10),
+			new Vec2(0, 10),
+		);
 		const result = Rect.fromPolygon(polygon);
 		expect(result.x).toBe(0);
 		expect(result.y).toBe(0);

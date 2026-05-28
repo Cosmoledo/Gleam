@@ -150,7 +150,13 @@ describe("CanvasRenderingContext2D.drawCircleV4", () => {
 	it("scales sweep by amount", () => {
 		const { ctx } = makeCtx();
 		const arcSpy = vi.spyOn(ctx, "arc");
-		ctx.drawCircleV4({ x: 0, y: 0, w: 10, h: 10 }, 5, undefined, undefined, 0.5);
+		ctx.drawCircleV4(
+			{ x: 0, y: 0, w: 10, h: 10 },
+			5,
+			undefined,
+			undefined,
+			0.5,
+		);
 		expect(arcSpy).toHaveBeenCalledWith(5, 5, 5, 0, Math.PI);
 	});
 
@@ -537,7 +543,9 @@ describe("CanvasRenderingContext2D.writeMultilineText", () => {
 
 	it("returns true when the text fits within maxAttempts", () => {
 		const { ctx } = makeCtx();
-		expect(ctx.writeMultilineText("hello world foo bar", 0, 0, 60)).toBe(true);
+		expect(ctx.writeMultilineText("hello world foo bar", 0, 0, 60)).toBe(
+			true,
+		);
 	});
 
 	it("writes a single line when the entire string fits", () => {

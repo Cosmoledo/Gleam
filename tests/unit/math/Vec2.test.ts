@@ -97,9 +97,9 @@ describe("constructor", () => {
 	});
 
 	it("throws when x is a Vector2 and y is provided", () => {
-		expect(
-			() => new Vec2(new Vec2(1, 2) as unknown as number, 3),
-		).toThrow("When x is a Vector2, y must be omitted!");
+		expect(() => new Vec2(new Vec2(1, 2) as unknown as number, 3)).toThrow(
+			"When x is a Vector2, y must be omitted!",
+		);
 	});
 });
 

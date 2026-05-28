@@ -74,7 +74,9 @@ describe("HTMLCanvasElement.getPixelAt", () => {
 	it("returns zero/transparent for out-of-bounds coords", () => {
 		expect(canvas.getPixelAt(-1, 0, "array")).toEqual([0, 0, 0, 0]);
 		expect(canvas.getPixelAt(0, -1, "array")).toEqual([0, 0, 0, 0]);
-		expect(canvas.getPixelAt(canvas.width, 0, "array")).toEqual([0, 0, 0, 0]);
+		expect(canvas.getPixelAt(canvas.width, 0, "array")).toEqual([
+			0, 0, 0, 0,
+		]);
 		expect(canvas.getPixelAt(0, canvas.height, "array")).toEqual([
 			0, 0, 0, 0,
 		]);
