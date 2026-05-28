@@ -56,11 +56,7 @@ export default class Keyboard {
 		const keyEvent = (event: KeyboardEvent): void => {
 			const code = event.code;
 
-			if (event.type === "keydown") {
-				this.keys[code] = true;
-			} else if (event.type === "keyup") {
-				this.keys[code] = false;
-			}
+			this.keys[code] = event.type === "keydown";
 
 			if (
 				Settings.debug &&

@@ -45,11 +45,7 @@ export default class Mouse {
 
 			this.lastEvent = event;
 
-			if (event.type === "mousedown") {
-				this.pressed[event.button] = true;
-			} else if (event.type === "mouseup") {
-				this.pressed[event.button] = false;
-			}
+			this.pressed[event.button] = event.type === "mousedown";
 
 			this.game.events.dispatchEvent(EVENT_NAMES.INPUT_MOUSE, this);
 		};
