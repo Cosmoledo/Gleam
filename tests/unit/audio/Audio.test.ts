@@ -77,6 +77,31 @@ describe("Audio.register", () => {
 		expect(songs(a).has("blip")).toBe(true);
 	});
 
+	it("derives name from an extensionless path (returns basename)", () => {
+		a.register(1, "https://cdn.example.com/track/12345");
+		expect(songs(a).has("12345")).toBe(true);
+	});
+
+	it("strips a query string before deriving the name", () => {
+		a.register(1, "track.php?fmt=mp3&id=42");
+		expect(songs(a).has("track")).toBe(true);
+	});
+
+	it("decodes percent-escapes in the derived name", () => {
+		a.register(1, "/sounds/my%20sound.mp3");
+		expect(songs(a).has("my sound")).toBe(true);
+	});
+
+	it("treats a dotfile basename as the whole name (no extension stripping)", () => {
+		a.register(1, "/path/.hidden");
+		expect(songs(a).has(".hidden")).toBe(true);
+	});
+
+	it("falls back to the raw path as the name when none can be derived", () => {
+		a.register(1, "/path/");
+		expect(songs(a).has("/path/")).toBe(true);
+	});
+
 	it("uses the explicit name when RegisterData is passed", () => {
 		a.register(1, { name: "explosion", path: "/x/y.mp3" });
 		expect(songs(a).has("explosion")).toBe(true);

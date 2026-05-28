@@ -80,3 +80,20 @@ export function throttle(
 		}
 	};
 }
+
+/**
+ * Filename component of a URL/path, without directory, extension, or query string.
+ * Returns `null` when no usable name can be derived (e.g. a path ending in `/`).
+ */
+export function urlBasename(path: string): string | null {
+	const url = new URL(path, "http://_/");
+	const base = url.pathname.split("/").pop()!;
+	const dot = base.lastIndexOf(".");
+	const stem = dot > 0 ? base.slice(0, dot) : base;
+
+	if (!stem) {
+		return null;
+	}
+
+	return decodeURIComponent(stem);
+}

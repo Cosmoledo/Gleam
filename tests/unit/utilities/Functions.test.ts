@@ -8,6 +8,7 @@ import {
 	isTouchPrimary,
 	rafLoop,
 	throttle,
+	urlBasename,
 } from "@/utilities/Functions";
 
 // ==================== debounce ====================
@@ -312,5 +313,47 @@ describe("throttle", () => {
 		const throttled = throttle(fn, 50);
 		throttled();
 		expect(fn).toHaveBeenCalled();
+	});
+});
+
+// ==================== urlBasename ====================
+
+describe("urlBasename", () => {
+	it("strips directory and extension from a relative path", () => {
+		expect(urlBasename("/sounds/jump.mp3")).toBe("jump");
+	});
+
+	it("returns the basename when there is no directory", () => {
+		expect(urlBasename("blip.wav")).toBe("blip");
+	});
+
+	it("returns the basename of an extensionless URL", () => {
+		expect(urlBasename("https://cdn.example.com/track/12345")).toBe(
+			"12345",
+		);
+	});
+
+	it("ignores the query string", () => {
+		expect(urlBasename("track.php?fmt=mp3&id=42")).toBe("track");
+	});
+
+	it("only strips the trailing extension (keeps inner dots)", () => {
+		expect(urlBasename("/a/audio.tar.gz")).toBe("audio.tar");
+	});
+
+	it("decodes percent-escapes in the result", () => {
+		expect(urlBasename("/sounds/my%20sound.mp3")).toBe("my sound");
+	});
+
+	it("treats a dotfile basename as the whole name", () => {
+		expect(urlBasename("/path/.hidden")).toBe(".hidden");
+	});
+
+	it("returns null when the path ends with /", () => {
+		expect(urlBasename("/path/")).toBe(null);
+	});
+
+	it("returns null for the root path", () => {
+		expect(urlBasename("/")).toBe(null);
 	});
 });

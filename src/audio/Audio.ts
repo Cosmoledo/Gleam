@@ -1,3 +1,5 @@
+import { urlBasename } from "@/utilities/Functions";
+
 export interface RegisterData {
 	path: string;
 	name: string;
@@ -30,13 +32,7 @@ export default abstract class Audio {
 	): void {
 		songs.forEach(song => {
 			if (typeof song === "string") {
-				song = {
-					name: song.slice(
-						song.lastIndexOf("/") + 1,
-						song.lastIndexOf("."),
-					),
-					path: song,
-				};
+				song = { name: urlBasename(song) ?? song, path: song };
 			}
 
 			const audio = new window.Audio();
