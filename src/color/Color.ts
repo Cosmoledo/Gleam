@@ -23,7 +23,7 @@ export class Color {
 		if (cleanHex.length === 8) {
 			const a = parseInt(cleanHex.slice(6, 8), 16);
 
-			return new Color(r, g, b, a);
+			return new Color(r, g, b, a / 255);
 		}
 
 		return new Color(r, g, b);
@@ -109,7 +109,7 @@ export class Color {
 		const m2 = 0.7152 - 0.7152 * (1 - value);
 		const m3 = 0.0722 - 0.0722 * (1 - value);
 		const m4 = 0.2126 - 0.2126 * (1 - value);
-		const m5 = 0.7874 + 0.2126 * (1 - value);
+		const m5 = 0.7152 + 0.2848 * (1 - value);
 		const m6 = 0.0722 - 0.0722 * (1 - value);
 		const m7 = 0.2126 - 0.2126 * (1 - value);
 		const m8 = 0.7152 - 0.7152 * (1 - value);
