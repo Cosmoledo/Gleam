@@ -1,7 +1,7 @@
 import ControllerCursor from "./ControllerCursor";
 import Vec2 from "@/math/Vec2";
 import type Game from "@/core/Game";
-import { EVENT_NAMES } from "@/core/EventSystem";
+import { EventSystem } from "@/core/EventSystem";
 import { map, threshold } from "@/utilities/Number";
 
 export const CONTROLLER_KEYS = {
@@ -31,12 +31,9 @@ export default class Controller {
 	public cursors: ControllerCursor[] = [];
 	private gamepad: Gamepad | null = null;
 	private axes: Vec2[] = [];
-	private game: Game;
 	private lastTime = 0;
 
 	constructor(game: Game) {
-		this.game = game;
-
 		if (!("getGamepads" in navigator)) {
 			console.error("Controller not supported!");
 			return;
@@ -64,9 +61,7 @@ export default class Controller {
 						"Our Gamepad was disconnected:",
 						event.gamepad.index,
 					);
-					this.game.events.dispatchEvent(
-						EVENT_NAMES.INPUT_CONTROLLER_DISCONNECTED,
-					);
+					EventSystem.dispatchEvent("inputControllerDisconnected");
 				} else {
 					console.log(
 						"Different Gamepad was disconnected:",
@@ -105,8 +100,8 @@ export default class Controller {
 			this.axes.push(new Vec2(axes[i], axes[i + 1]));
 		}
 
-		this.game.events.dispatchEvent(
-			EVENT_NAMES.INPUT_CONTROLLER_CONNECTED,
+		EventSystem.dispatchEvent(
+			"inputControllerConnected",
 			this.buttons,
 			this.cursors,
 		);

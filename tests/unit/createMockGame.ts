@@ -24,16 +24,12 @@ export function createMockGame(): Game {
 	const gameloop = {
 		stopLoop: vi.fn(),
 	};
-	const events = {
-		dispatchEvent: vi.fn(),
-	};
 	const keyboard = {
 		reset: vi.fn(),
 	};
 	return {
 		canman,
 		gameloop,
-		events,
 		keyboard,
 		update: vi.fn(),
 		draw: vi.fn(),

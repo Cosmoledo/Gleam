@@ -5,6 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import Game from "@/core/Game";
 import Settings from "@/core/Settings";
 import { CANVAS_TYPES } from "@/core/CanvasManager";
+import { EventSystem } from "@/core/EventSystem";
 
 // ==================== Helpers ====================
 
@@ -71,6 +72,7 @@ beforeEach(() => {
 		pendingCbs.push(cb);
 		return pendingCbs.length;
 	});
+	(EventSystem as unknown as { eventListener: object }).eventListener = {};
 });
 
 afterEach(() => {
@@ -202,7 +204,7 @@ describe("Game.preInit", () => {
 		const g = new TestGame();
 		g.canman.setupCanvas(CANVAS_TYPES.MAIN, "#main");
 		const resized = vi.fn();
-		g.events.addEventListener("resized", resized);
+		EventSystem.addEventListener("resized", resized);
 		await g.callPreInit(false);
 		expect(resized).toHaveBeenCalledTimes(1);
 	});
@@ -221,7 +223,7 @@ describe("Game.preInit", () => {
 			)?.[1] as EventListener | undefined;
 			expect(handler).toBeDefined();
 			const resized = vi.fn();
-			g.events.addEventListener("resized", resized);
+			EventSystem.addEventListener("resized", resized);
 			handler!(new Event("resize"));
 			expect(resized).not.toHaveBeenCalled(); // still debounced
 			vi.advanceTimersByTime(250);
@@ -256,6 +258,8 @@ describe("Game.preInit", () => {
 		const g = new TestGame();
 		g.canman.setupCanvas(CANVAS_TYPES.MAIN, "#main");
 		await g.callPreInit(false);
-		await expect(g.callPreInit(false)).rejects.toThrow(/only be called once/);
+		await expect(g.callPreInit(false)).rejects.toThrow(
+			/only be called once/,
+		);
 	});
 });

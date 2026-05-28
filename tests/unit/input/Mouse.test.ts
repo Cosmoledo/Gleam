@@ -1,8 +1,9 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import Vec2 from "@/math/Vec2";
 import type Game from "@/core/Game";
 import { createMockGame } from "../createMockGame";
+import { EventSystem } from "@/core/EventSystem";
 import { MOUSE_KEYS } from "@/input/Mouse";
 
 // ==================== MOUSE_KEYS ====================
@@ -25,6 +26,8 @@ describe("Mouse", () => {
 	let mousedownCb: ((e: MouseEvent) => void) | null = null;
 	let mouseupCb: ((e: MouseEvent) => void) | null = null;
 
+	let dispatchSpy: ReturnType<typeof vi.spyOn>;
+
 	beforeEach(() => {
 		mockGame = createMockGame();
 		pointermoveCb = null;
@@ -41,6 +44,11 @@ describe("Mouse", () => {
 				mouseupCb = cb as (e: MouseEvent) => void;
 			}
 		});
+		dispatchSpy = vi.spyOn(EventSystem, "dispatchEvent");
+	});
+
+	afterEach(() => {
+		vi.restoreAllMocks();
 	});
 
 	it("registers pointermove, mousedown, and mouseup event listeners", async () => {
@@ -149,10 +157,7 @@ describe("Mouse", () => {
 				target: mockGame.canman.canvas,
 				preventDefault: vi.fn(),
 			} as unknown as MouseEvent);
-			expect(mockGame.events.dispatchEvent).toHaveBeenCalledWith(
-				"inputMouse",
-				mouse,
-			);
+			expect(dispatchSpy).toHaveBeenCalledWith("inputMouse", mouse);
 		});
 
 		it("updates posReal with client + size offset", async () => {
@@ -297,10 +302,7 @@ describe("Mouse", () => {
 				target: mockGame.canman.canvas,
 				preventDefault: vi.fn(),
 			} as unknown as MouseEvent);
-			expect(mockGame.events.dispatchEvent).toHaveBeenCalledWith(
-				"inputMouse",
-				mouse,
-			);
+			expect(dispatchSpy).toHaveBeenCalledWith("inputMouse", mouse);
 		});
 
 		it("dispatches MOUSE event on mouseup", async () => {
@@ -312,10 +314,7 @@ describe("Mouse", () => {
 				target: mockGame.canman.canvas,
 				preventDefault: vi.fn(),
 			} as unknown as MouseEvent);
-			expect(mockGame.events.dispatchEvent).toHaveBeenCalledWith(
-				"inputMouse",
-				mouse,
-			);
+			expect(dispatchSpy).toHaveBeenCalledWith("inputMouse", mouse);
 		});
 
 		it("prevents default when target is canvas on mousedown", async () => {

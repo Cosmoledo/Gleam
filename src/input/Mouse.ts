@@ -1,7 +1,7 @@
 import Vec2 from "@/math/Vec2";
 import type Game from "@/core/Game";
 import { clamp } from "@/utilities/Number";
-import { EVENT_NAMES } from "@/core/EventSystem";
+import { EventSystem } from "@/core/EventSystem";
 
 export const MOUSE_KEYS = {
 	LEFT: 0,
@@ -35,7 +35,7 @@ export default class Mouse {
 
 			this.update(event);
 
-			this.game.events.dispatchEvent(EVENT_NAMES.INPUT_MOUSE, this);
+			EventSystem.dispatchEvent("inputMouse", this);
 		};
 
 		const mouseStateChangeEvent = (event: MouseEvent): void => {
@@ -47,7 +47,7 @@ export default class Mouse {
 
 			this.pressed[event.button] = event.type === "mousedown";
 
-			this.game.events.dispatchEvent(EVENT_NAMES.INPUT_MOUSE, this);
+			EventSystem.dispatchEvent("inputMouse", this);
 		};
 
 		window.addEventListener("pointermove", mouseMoveEvent, false);

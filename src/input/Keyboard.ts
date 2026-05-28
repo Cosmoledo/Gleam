@@ -1,6 +1,6 @@
 import Settings from "@/core/Settings";
 import type Game from "@/core/Game";
-import { EVENT_NAMES } from "@/core/EventSystem";
+import { EventSystem } from "@/core/EventSystem";
 
 export const KEYBOARD_KEYS = {
 	KEY_0: "Digit0",
@@ -66,11 +66,7 @@ export default class Keyboard {
 				game.gameloop.stopLoop();
 			}
 
-			game.events.dispatchEvent(
-				EVENT_NAMES.INPUT_KEYBOARD,
-				this.keys,
-				code,
-			);
+			EventSystem.dispatchEvent("inputKeyboard", this.keys, code);
 		};
 
 		window.addEventListener("keydown", keyEvent, false);

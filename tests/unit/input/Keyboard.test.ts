@@ -1,8 +1,9 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import Settings from "@/core/Settings";
 import type Game from "@/core/Game";
 import { createMockGame } from "../createMockGame";
+import { EventSystem } from "@/core/EventSystem";
 import { KEYBOARD_KEYS } from "@/input/Keyboard";
 
 // ==================== KEYBOARD_KEYS ====================
@@ -31,6 +32,8 @@ describe("Keyboard", () => {
 	let keydownCb: ((e: KeyboardEvent) => void) | null = null;
 	let keyupCb: ((e: KeyboardEvent) => void) | null = null;
 
+	let dispatchSpy: ReturnType<typeof vi.spyOn>;
+
 	beforeEach(() => {
 		mockGame = createMockGame();
 		keydownCb = null;
@@ -44,6 +47,11 @@ describe("Keyboard", () => {
 			}
 		});
 		vi.spyOn(Settings, "debug", "get").mockReturnValue(false);
+		dispatchSpy = vi.spyOn(EventSystem, "dispatchEvent");
+	});
+
+	afterEach(() => {
+		vi.restoreAllMocks();
 	});
 
 	it("registers keydown and keyup event listeners", async () => {
@@ -73,7 +81,7 @@ describe("Keyboard", () => {
 		const { default: Keyboard } = await import("@/input/Keyboard");
 		const kb = new Keyboard(mockGame);
 		keydownCb!({ code: "KeyB", type: "keydown" } as KeyboardEvent);
-		expect(mockGame.events.dispatchEvent).toHaveBeenCalledWith(
+		expect(dispatchSpy).toHaveBeenCalledWith(
 			"inputKeyboard",
 			kb.keys,
 			"KeyB",
@@ -84,7 +92,7 @@ describe("Keyboard", () => {
 		const { default: Keyboard } = await import("@/input/Keyboard");
 		const kb = new Keyboard(mockGame);
 		keyupCb!({ code: "KeyC", type: "keyup" } as KeyboardEvent);
-		expect(mockGame.events.dispatchEvent).toHaveBeenCalledWith(
+		expect(dispatchSpy).toHaveBeenCalledWith(
 			"inputKeyboard",
 			kb.keys,
 			"KeyC",

@@ -6,6 +6,7 @@ import Gameloop from "@/core/Gameloop";
 import Settings from "@/core/Settings";
 import type Game from "@/core/Game";
 import { createMockGame } from "../createMockGame";
+import { EventSystem } from "@/core/EventSystem";
 
 // ==================== Helpers ====================
 
@@ -249,13 +250,12 @@ describe("Gameloop per-frame clear", () => {
 
 describe("Gameloop stop path", () => {
 	it("dispatches GAMELOOP_STOPPED, resets keyboard, and tears down on the next frame", () => {
+		const dispatchSpy = vi.spyOn(EventSystem, "dispatchEvent");
 		const { gl, game } = makeGameloop();
 		gl.startLoop();
 		gl.stopLoop();
 		stepFrame();
-		expect(game.events.dispatchEvent).toHaveBeenCalledWith(
-			"gameloopStopped",
-		);
+		expect(dispatchSpy).toHaveBeenCalledWith("gameloopStopped");
 		expect(game.keyboard.reset).toHaveBeenCalledTimes(1);
 		// rafLoop's internal `running=false` prevents the next rAF from being scheduled
 		expect(pendingCbs.length).toBe(0);

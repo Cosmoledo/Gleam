@@ -4,14 +4,13 @@ import Keyboard from "@/input/Keyboard";
 import Mouse from "@/input/Mouse";
 import Settings, { type SettingsOverrides } from "@/core/Settings";
 import { debounce } from "@/utilities/Functions";
-import { EVENT_NAMES, EventSystem } from "@/core/EventSystem";
+import { EventSystem } from "@/core/EventSystem";
 
 import "@/localization/Translator";
 import "@/prototypes/index";
 
 export default abstract class Game {
 	public canman = new CanvasManager();
-	public events = new EventSystem();
 	public gameloop: Gameloop;
 	public keyboard: Keyboard;
 	public mouse: Mouse;
@@ -42,12 +41,14 @@ export default abstract class Game {
 	}
 
 	protected async preInit(doInit = true): Promise<void> {
-		this.canman.finishSetup(this);
 		if (this.initialized) {
-			throw new Error("preInit() may only be called once per Game instance.");
+			throw new Error(
+				"preInit() may only be called once per Game instance.",
+			);
 		}
 		this.initialized = true;
 
+		this.canman.finishSetup();
 
 		document.addEventListener(
 			"contextmenu",
@@ -59,7 +60,7 @@ export default abstract class Game {
 
 		window.addEventListener(
 			"resize",
-			debounce(() => this.events.dispatchEvent(EVENT_NAMES.RESIZED), 250),
+			debounce(() => EventSystem.dispatchEvent("resized"), 250),
 			false,
 		);
 
@@ -69,7 +70,7 @@ export default abstract class Game {
 			await this.init();
 		}
 
-		this.events.dispatchEvent(EVENT_NAMES.RESIZED);
+		EventSystem.dispatchEvent("resized");
 
 		if (Settings.autoloop) {
 			this.gameloop.startLoop();

@@ -1,26 +1,18 @@
 import type ControllerCursor from "@/input/ControllerCursor";
 import type Mouse from "@/input/Mouse";
 
-export const EVENT_NAMES = {
-	GAMELOOP_STOPPED: "gameloopStopped",
-	INPUT_CONTROLLER_CONNECTED: "inputControllerConnected",
-	INPUT_CONTROLLER_DISCONNECTED: "inputControllerDisconnected",
-	INPUT_KEYBOARD: "inputKeyboard",
-	INPUT_MOUSE: "inputMouse",
-	RESIZED: "resized",
-} as const;
+export interface GameEventMap {
+	gameloopStopped: [];
+	inputControllerConnected: [buttons: boolean[], cursors: ControllerCursor[]];
+	inputControllerDisconnected: [];
+	inputKeyboard: [keys: Record<string, boolean>, code: string];
+	inputMouse: [mouse: Mouse];
+	resized: [];
+}
 
-export type GameEventMap = {
-	[EVENT_NAMES.GAMELOOP_STOPPED]: [];
-	[EVENT_NAMES.INPUT_CONTROLLER_CONNECTED]: [
-		buttons: boolean[],
-		cursors: ControllerCursor[],
-	];
-	[EVENT_NAMES.INPUT_CONTROLLER_DISCONNECTED]: [];
-	[EVENT_NAMES.INPUT_KEYBOARD]: [keys: Record<string, boolean>, code: string];
-	[EVENT_NAMES.INPUT_MOUSE]: [mouse: Mouse];
-	[EVENT_NAMES.RESIZED]: [];
-};
+export interface AddEventListenerOptions {
+	once?: boolean;
+}
 
 export type GameEventListener<K extends keyof GameEventMap> = {
 	callback: (...args: GameEventMap[K]) => void;
@@ -29,16 +21,19 @@ export type GameEventListener<K extends keyof GameEventMap> = {
 };
 
 export class EventSystem {
-	private eventListener: {
+	private static eventListener: {
 		[K in keyof GameEventMap]?: GameEventListener<K>[];
 	} = {};
 
-	public addEventListener<K extends keyof GameEventMap>(
+	public static addEventListener<K extends keyof GameEventMap>(
 		eventName: K,
 		callback: (...args: GameEventMap[K]) => void,
-		once: boolean = false,
+		options: AddEventListenerOptions = {},
 	): void {
-		const event: GameEventListener<K> = { callback, options: { once } };
+		const event: GameEventListener<K> = {
+			callback,
+			options: { once: options.once ?? false },
+		};
 		const list = this.eventListener[eventName];
 
 		if (list) {
@@ -50,7 +45,7 @@ export class EventSystem {
 		}
 	}
 
-	public dispatchEvent<K extends keyof GameEventMap>(
+	public static dispatchEvent<K extends keyof GameEventMap>(
 		eventName: K,
 		...params: GameEventMap[K]
 	): void {

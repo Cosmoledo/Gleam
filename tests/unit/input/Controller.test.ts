@@ -5,6 +5,7 @@ import Vec2 from "@/math/Vec2";
 import type Game from "@/core/Game";
 import { CONTROLLER_KEYS } from "@/input/Controller";
 import { createMockGame } from "../createMockGame";
+import { EventSystem } from "@/core/EventSystem";
 
 // ==================== CONTROLLER_KEYS ====================
 
@@ -71,15 +72,18 @@ function removeGamepadSupport() {
 
 describe("Controller", () => {
 	let mockGame: Game;
+	let dispatchSpy: ReturnType<typeof vi.spyOn>;
 
 	beforeEach(() => {
 		mockGame = createMockGame();
 		vi.spyOn(console, "log").mockImplementation(() => {});
 		vi.spyOn(console, "error").mockImplementation(() => {});
+		dispatchSpy = vi.spyOn(EventSystem, "dispatchEvent");
 	});
 
 	afterEach(() => {
 		removeGamepadSupport();
+		vi.restoreAllMocks();
 	});
 
 	// ==================== Constructor ====================
@@ -149,7 +153,7 @@ describe("Controller", () => {
 				(disconnectCb as (e: GamepadEvent) => void)({
 					gamepad: mockGp,
 				} as GamepadEvent);
-				expect(mockGame.events.dispatchEvent).toHaveBeenCalledWith(
+				expect(dispatchSpy).toHaveBeenCalledWith(
 					"inputControllerDisconnected",
 				);
 			}
@@ -177,7 +181,7 @@ describe("Controller", () => {
 			const controller2 = new Controller(mockGame);
 			controller2["gamepad"] = mockGp;
 
-			expect(mockGame.events.dispatchEvent).not.toHaveBeenCalled();
+			expect(dispatchSpy).not.toHaveBeenCalled();
 		});
 	});
 
@@ -189,7 +193,7 @@ describe("Controller", () => {
 			const controller = new Controller(mockGame);
 			controller["gamepad"] = null;
 			controller.draw({} as CanvasRenderingContext2D);
-			expect(mockGame.events.dispatchEvent).not.toHaveBeenCalled();
+			expect(dispatchSpy).not.toHaveBeenCalled();
 		});
 
 		it("calls draw on all cursors when gamepad exists", async () => {
@@ -227,7 +231,7 @@ describe("Controller", () => {
 			controller["gamepad"] = mockGp;
 			controller["lastTime"] = 1000;
 			controller.update(16);
-			expect(mockGame.events.dispatchEvent).not.toHaveBeenCalled();
+			expect(dispatchSpy).not.toHaveBeenCalled();
 		});
 
 		it("updates buttons from gamepad", async () => {
@@ -271,7 +275,7 @@ describe("Controller", () => {
 			controller["gamepad"] = mockGp;
 			controller["lastTime"] = 0;
 			controller.update(16);
-			expect(mockGame.events.dispatchEvent).toHaveBeenCalledWith(
+			expect(dispatchSpy).toHaveBeenCalledWith(
 				"inputControllerConnected",
 				controller.buttons,
 				controller.cursors,

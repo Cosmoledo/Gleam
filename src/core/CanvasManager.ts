@@ -1,7 +1,6 @@
 import Settings from "@/core/Settings";
 import Vec2 from "@/math/Vec2";
-import type Game from "./Game";
-import { EVENT_NAMES } from "./EventSystem";
+import { EventSystem } from "./EventSystem";
 import { getCanvasConstruct } from "@/utilities/Canvas";
 
 export const CANVAS_TYPES = {
@@ -52,7 +51,7 @@ export default class CanvasManager {
 		this.canvas.width = width;
 	}
 
-	public finishSetup(game: Game): void {
+	public finishSetup(): void {
 		const mainCanvas = Object.values(this.canvasHolder).filter(
 			holder => holder.type === CANVAS_TYPES.MAIN,
 		);
@@ -70,9 +69,7 @@ export default class CanvasManager {
 		this.canvasBoundingClientRect = this.canvas.getBoundingClientRect();
 
 		if (Settings.enableResize) {
-			game.events.addEventListener(EVENT_NAMES.RESIZED, (): void =>
-				this.resize(),
-			);
+			EventSystem.addEventListener("resized", (): void => this.resize());
 		}
 	}
 

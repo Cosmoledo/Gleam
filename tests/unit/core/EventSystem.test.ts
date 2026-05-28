@@ -1,29 +1,32 @@
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // ==================== Imports ====================
 
-import { EVENT_NAMES, EventSystem } from "@/core/EventSystem";
+import { EventSystem } from "@/core/EventSystem";
 
 // ==================== Helpers ====================
 
 type Listeners = Record<string, { consumed?: boolean }[]>;
 
-function internalListeners(es: EventSystem): Listeners {
-	return (es as unknown as { eventListener: Listeners }).eventListener;
+function internalListeners(): Listeners {
+	return (EventSystem as unknown as { eventListener: Listeners })
+		.eventListener;
 }
+
+beforeEach(() => {
+	(EventSystem as unknown as { eventListener: Listeners }).eventListener = {};
+});
 
 // ==================== dispatchEvent: empty ====================
 
 describe("EventSystem.dispatchEvent (no listeners)", () => {
 	it("is a no-op when nothing has been registered for the event", () => {
-		const es = new EventSystem();
-		expect(() => es.dispatchEvent(EVENT_NAMES.RESIZED)).not.toThrow();
+		expect(() => EventSystem.dispatchEvent("resized")).not.toThrow();
 	});
 
 	it("does not lazily create a bucket for events with no listeners", () => {
-		const es = new EventSystem();
-		es.dispatchEvent(EVENT_NAMES.RESIZED);
-		expect(internalListeners(es)[EVENT_NAMES.RESIZED]).toBeUndefined();
+		EventSystem.dispatchEvent("resized");
+		expect(internalListeners()["resized"]).toBeUndefined();
 	});
 });
 
@@ -31,27 +34,22 @@ describe("EventSystem.dispatchEvent (no listeners)", () => {
 
 describe("EventSystem.addEventListener", () => {
 	it("creates a fresh listener bucket on the first add", () => {
-		const es = new EventSystem();
-		es.addEventListener(EVENT_NAMES.RESIZED, () => {});
-		expect(internalListeners(es)[EVENT_NAMES.RESIZED]).toHaveLength(1);
+		EventSystem.addEventListener("resized", () => {});
+		expect(internalListeners()["resized"]).toHaveLength(1);
 	});
 
 	it("appends to the existing bucket on subsequent adds", () => {
-		const es = new EventSystem();
-		es.addEventListener(EVENT_NAMES.RESIZED, () => {});
-		es.addEventListener(EVENT_NAMES.RESIZED, () => {});
-		es.addEventListener(EVENT_NAMES.RESIZED, () => {});
-		expect(internalListeners(es)[EVENT_NAMES.RESIZED]).toHaveLength(3);
+		EventSystem.addEventListener("resized", () => {});
+		EventSystem.addEventListener("resized", () => {});
+		EventSystem.addEventListener("resized", () => {});
+		expect(internalListeners()["resized"]).toHaveLength(3);
 	});
 
 	it("keeps separate buckets per event name", () => {
-		const es = new EventSystem();
-		es.addEventListener(EVENT_NAMES.RESIZED, () => {});
-		es.addEventListener(EVENT_NAMES.GAMELOOP_STOPPED, () => {});
-		expect(internalListeners(es)[EVENT_NAMES.RESIZED]).toHaveLength(1);
-		expect(
-			internalListeners(es)[EVENT_NAMES.GAMELOOP_STOPPED],
-		).toHaveLength(1);
+		EventSystem.addEventListener("resized", () => {});
+		EventSystem.addEventListener("gameloopStopped", () => {});
+		expect(internalListeners()["resized"]).toHaveLength(1);
+		expect(internalListeners()["gameloopStopped"]).toHaveLength(1);
 	});
 });
 
@@ -59,35 +57,32 @@ describe("EventSystem.addEventListener", () => {
 
 describe("EventSystem.dispatchEvent invokes callbacks", () => {
 	it("calls every registered listener exactly once per dispatch", () => {
-		const es = new EventSystem();
 		const a = vi.fn();
 		const b = vi.fn();
 		const c = vi.fn();
-		es.addEventListener(EVENT_NAMES.RESIZED, a);
-		es.addEventListener(EVENT_NAMES.RESIZED, b);
-		es.addEventListener(EVENT_NAMES.RESIZED, c);
-		es.dispatchEvent(EVENT_NAMES.RESIZED);
+		EventSystem.addEventListener("resized", a);
+		EventSystem.addEventListener("resized", b);
+		EventSystem.addEventListener("resized", c);
+		EventSystem.dispatchEvent("resized");
 		expect(a).toHaveBeenCalledTimes(1);
 		expect(b).toHaveBeenCalledTimes(1);
 		expect(c).toHaveBeenCalledTimes(1);
 	});
 
 	it("forwards dispatch params to each callback", () => {
-		const es = new EventSystem();
 		const cb = vi.fn();
-		es.addEventListener(EVENT_NAMES.INPUT_KEYBOARD, cb);
+		EventSystem.addEventListener("inputKeyboard", cb);
 		const keys = { KeyA: true };
-		es.dispatchEvent(EVENT_NAMES.INPUT_KEYBOARD, keys, "KeyA");
+		EventSystem.dispatchEvent("inputKeyboard", keys, "KeyA");
 		expect(cb).toHaveBeenCalledWith(keys, "KeyA");
 	});
 
 	it("invokes listeners in reverse registration order (LIFO)", () => {
-		const es = new EventSystem();
 		const order: string[] = [];
-		es.addEventListener(EVENT_NAMES.RESIZED, () => order.push("first"));
-		es.addEventListener(EVENT_NAMES.RESIZED, () => order.push("second"));
-		es.addEventListener(EVENT_NAMES.RESIZED, () => order.push("third"));
-		es.dispatchEvent(EVENT_NAMES.RESIZED);
+		EventSystem.addEventListener("resized", () => order.push("first"));
+		EventSystem.addEventListener("resized", () => order.push("second"));
+		EventSystem.addEventListener("resized", () => order.push("third"));
+		EventSystem.dispatchEvent("resized");
 		expect(order).toEqual(["third", "second", "first"]);
 	});
 });
@@ -96,49 +91,44 @@ describe("EventSystem.dispatchEvent invokes callbacks", () => {
 
 describe("EventSystem once: true", () => {
 	it("invokes the listener on the first dispatch", () => {
-		const es = new EventSystem();
 		const cb = vi.fn();
-		es.addEventListener(EVENT_NAMES.RESIZED, cb, true);
-		es.dispatchEvent(EVENT_NAMES.RESIZED);
+		EventSystem.addEventListener("resized", cb, { once: true });
+		EventSystem.dispatchEvent("resized");
 		expect(cb).toHaveBeenCalledTimes(1);
 	});
 
 	it("does not invoke the listener on subsequent dispatches", () => {
-		const es = new EventSystem();
 		const cb = vi.fn();
-		es.addEventListener(EVENT_NAMES.RESIZED, cb, true);
-		es.dispatchEvent(EVENT_NAMES.RESIZED);
-		es.dispatchEvent(EVENT_NAMES.RESIZED);
-		es.dispatchEvent(EVENT_NAMES.RESIZED);
+		EventSystem.addEventListener("resized", cb, { once: true });
+		EventSystem.dispatchEvent("resized");
+		EventSystem.dispatchEvent("resized");
+		EventSystem.dispatchEvent("resized");
 		expect(cb).toHaveBeenCalledTimes(1);
 	});
 
 	it("removes once-listeners from the internal bucket after dispatch", () => {
-		const es = new EventSystem();
-		es.addEventListener(EVENT_NAMES.RESIZED, () => {}, true);
-		es.addEventListener(EVENT_NAMES.RESIZED, () => {});
-		es.dispatchEvent(EVENT_NAMES.RESIZED);
-		expect(internalListeners(es)[EVENT_NAMES.RESIZED]).toHaveLength(1);
+		EventSystem.addEventListener("resized", () => {}, { once: true });
+		EventSystem.addEventListener("resized", () => {});
+		EventSystem.dispatchEvent("resized");
+		expect(internalListeners()["resized"]).toHaveLength(1);
 	});
 
 	it("keeps non-once listeners alongside once-listeners", () => {
-		const es = new EventSystem();
 		const persistent = vi.fn();
 		const oneShot = vi.fn();
-		es.addEventListener(EVENT_NAMES.RESIZED, persistent);
-		es.addEventListener(EVENT_NAMES.RESIZED, oneShot, true);
-		es.dispatchEvent(EVENT_NAMES.RESIZED);
-		es.dispatchEvent(EVENT_NAMES.RESIZED);
+		EventSystem.addEventListener("resized", persistent);
+		EventSystem.addEventListener("resized", oneShot, { once: true });
+		EventSystem.dispatchEvent("resized");
+		EventSystem.dispatchEvent("resized");
 		expect(persistent).toHaveBeenCalledTimes(2);
 		expect(oneShot).toHaveBeenCalledTimes(1);
 	});
 
 	it("defaults `once` to false when omitted", () => {
-		const es = new EventSystem();
 		const cb = vi.fn();
-		es.addEventListener(EVENT_NAMES.RESIZED, cb);
-		es.dispatchEvent(EVENT_NAMES.RESIZED);
-		es.dispatchEvent(EVENT_NAMES.RESIZED);
+		EventSystem.addEventListener("resized", cb);
+		EventSystem.dispatchEvent("resized");
+		EventSystem.dispatchEvent("resized");
 		expect(cb).toHaveBeenCalledTimes(2);
 	});
 });
@@ -147,27 +137,25 @@ describe("EventSystem once: true", () => {
 
 describe("EventSystem dispatch snapshot", () => {
 	it("does not invoke listeners that were registered during the dispatch", () => {
-		const es = new EventSystem();
 		const lateCb = vi.fn();
-		es.addEventListener(EVENT_NAMES.RESIZED, () => {
-			es.addEventListener(EVENT_NAMES.RESIZED, lateCb);
+		EventSystem.addEventListener("resized", () => {
+			EventSystem.addEventListener("resized", lateCb);
 		});
-		es.dispatchEvent(EVENT_NAMES.RESIZED);
+		EventSystem.dispatchEvent("resized");
 		expect(lateCb).not.toHaveBeenCalled();
 	});
 
 	it("invokes listeners registered mid-dispatch on the next dispatch", () => {
-		const es = new EventSystem();
 		const lateCb = vi.fn();
 		let added = false;
-		es.addEventListener(EVENT_NAMES.RESIZED, () => {
+		EventSystem.addEventListener("resized", () => {
 			if (!added) {
-				es.addEventListener(EVENT_NAMES.RESIZED, lateCb);
+				EventSystem.addEventListener("resized", lateCb);
 				added = true;
 			}
 		});
-		es.dispatchEvent(EVENT_NAMES.RESIZED);
-		es.dispatchEvent(EVENT_NAMES.RESIZED);
+		EventSystem.dispatchEvent("resized");
+		EventSystem.dispatchEvent("resized");
 		expect(lateCb).toHaveBeenCalledTimes(1);
 	});
 });
@@ -176,22 +164,21 @@ describe("EventSystem dispatch snapshot", () => {
 
 describe("EventSystem re-entrant dispatch", () => {
 	it("skips a once-listener that the outer loop already consumed via a nested dispatch", () => {
-		const es = new EventSystem();
 		const oneShot = vi.fn();
 		let nested = false;
-		es.addEventListener(EVENT_NAMES.RESIZED, oneShot, true);
-		es.addEventListener(EVENT_NAMES.RESIZED, () => {
+		EventSystem.addEventListener("resized", oneShot, { once: true });
+		EventSystem.addEventListener("resized", () => {
 			if (nested) {
 				return;
 			}
 			nested = true;
 			// re-dispatch from within a listener — consumes oneShot before
 			// the outer loop reaches it.
-			es.dispatchEvent(EVENT_NAMES.RESIZED);
+			EventSystem.dispatchEvent("resized");
 		});
 		// outer dispatch: the trigger runs first (LIFO), nested dispatch consumes oneShot,
 		// then outer loop reaches the same oneShot entry and must skip it (consumed=true).
-		es.dispatchEvent(EVENT_NAMES.RESIZED);
+		EventSystem.dispatchEvent("resized");
 		expect(oneShot).toHaveBeenCalledTimes(1);
 	});
 });

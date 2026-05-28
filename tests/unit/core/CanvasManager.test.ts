@@ -5,8 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import CanvasManager, { CANVAS_TYPES } from "@/core/CanvasManager";
 import Settings from "@/core/Settings";
 import Vec2 from "@/math/Vec2";
-import type Game from "@/core/Game";
-import { EVENT_NAMES, EventSystem } from "@/core/EventSystem";
+import { EventSystem } from "@/core/EventSystem";
 
 // ==================== Helpers ====================
 
@@ -21,10 +20,6 @@ function makeCanvasEl(
 	c.height = h;
 	document.body.appendChild(c);
 	return c;
-}
-
-function makeGameWithEvents(): Game {
-	return { events: new EventSystem() } as unknown as Game;
 }
 
 function withWindow(width: number, height: number): () => void {
@@ -55,6 +50,7 @@ let savedEnableResize: boolean;
 beforeEach(() => {
 	document.body.innerHTML = "";
 	savedEnableResize = Settings.enableResize;
+	(EventSystem as unknown as { eventListener: object }).eventListener = {};
 });
 
 afterEach(() => {
@@ -124,9 +120,7 @@ describe("CanvasManager.finishSetup", () => {
 		makeCanvasEl("bg");
 		const cm = new CanvasManager();
 		cm.setupCanvas(CANVAS_TYPES.BACKGROUND, "#bg");
-		expect(() => cm.finishSetup(makeGameWithEvents())).toThrow(
-			/No main canvas defined/,
-		);
+		expect(() => cm.finishSetup()).toThrow(/No main canvas defined/);
 	});
 
 	it("throws when two MAIN canvases are registered", () => {
@@ -135,9 +129,7 @@ describe("CanvasManager.finishSetup", () => {
 		const cm = new CanvasManager();
 		cm.setupCanvas(CANVAS_TYPES.MAIN, "#a");
 		cm.setupCanvas(CANVAS_TYPES.MAIN, "#b");
-		expect(() => cm.finishSetup(makeGameWithEvents())).toThrow(
-			/Multiple main canvas defined/,
-		);
+		expect(() => cm.finishSetup()).toThrow(/Multiple main canvas defined/);
 	});
 
 	it("binds canvas/canvasContext/width/height to the MAIN holder", () => {
@@ -146,7 +138,7 @@ describe("CanvasManager.finishSetup", () => {
 		const cm = new CanvasManager();
 		cm.setupCanvas(CANVAS_TYPES.BACKGROUND, "#bg");
 		cm.setupCanvas(CANVAS_TYPES.MAIN, "#main");
-		cm.finishSetup(makeGameWithEvents());
+		cm.finishSetup();
 		expect(cm.canvas).toBe(main);
 		expect(cm.canvasContext).toBe(main.getContext("2d"));
 		expect(cm.width).toBe(800);
@@ -159,7 +151,7 @@ describe("CanvasManager.finishSetup", () => {
 		vi.spyOn(main, "getBoundingClientRect").mockReturnValue(rect);
 		const cm = new CanvasManager();
 		cm.setupCanvas(CANVAS_TYPES.MAIN, "#main");
-		cm.finishSetup(makeGameWithEvents());
+		cm.finishSetup();
 		expect(cm.canvasBoundingClientRect).toBe(rect);
 	});
 
@@ -168,10 +160,9 @@ describe("CanvasManager.finishSetup", () => {
 		makeCanvasEl("main");
 		const cm = new CanvasManager();
 		cm.setupCanvas(CANVAS_TYPES.MAIN, "#main");
-		const game = makeGameWithEvents();
-		cm.finishSetup(game);
+		cm.finishSetup();
 		const resize = vi.spyOn(cm, "resize");
-		game.events.dispatchEvent(EVENT_NAMES.RESIZED);
+		EventSystem.dispatchEvent("resized");
 		expect(resize).toHaveBeenCalledTimes(1);
 	});
 
@@ -180,10 +171,9 @@ describe("CanvasManager.finishSetup", () => {
 		makeCanvasEl("main");
 		const cm = new CanvasManager();
 		cm.setupCanvas(CANVAS_TYPES.MAIN, "#main");
-		const game = makeGameWithEvents();
-		cm.finishSetup(game);
+		cm.finishSetup();
 		const resize = vi.spyOn(cm, "resize");
-		game.events.dispatchEvent(EVENT_NAMES.RESIZED);
+		EventSystem.dispatchEvent("resized");
 		expect(resize).not.toHaveBeenCalled();
 	});
 });
@@ -199,7 +189,7 @@ describe("CanvasManager.resize", () => {
 			const main = makeCanvasEl("main", 800, 600);
 			const cm = new CanvasManager();
 			cm.setupCanvas(CANVAS_TYPES.MAIN, "#main");
-			cm.finishSetup(makeGameWithEvents());
+			cm.finishSetup();
 			cm.resize();
 			// height = innerHeight = 600; width = 600 / 0.75 = 800
 			expect(main.style.height).toBe("600px");
@@ -220,7 +210,7 @@ describe("CanvasManager.resize", () => {
 			const main = makeCanvasEl("main", 800, 600);
 			const cm = new CanvasManager();
 			cm.setupCanvas(CANVAS_TYPES.MAIN, "#main");
-			cm.finishSetup(makeGameWithEvents());
+			cm.finishSetup();
 			cm.resize();
 			// width = innerWidth = 1000; height = 1000 * 0.75 = 750
 			expect(main.style.width).toBe("1000px");
@@ -241,7 +231,7 @@ describe("CanvasManager.resize", () => {
 			const cm = new CanvasManager();
 			cm.setupCanvas(CANVAS_TYPES.MAIN, "#main");
 			cm.setupCanvas(CANVAS_TYPES.BACKGROUND, "#bg", false);
-			cm.finishSetup(makeGameWithEvents());
+			cm.finishSetup();
 			cm.resize();
 			expect(bg.style.width).toBe("");
 			expect(bg.style.height).toBe("");
@@ -258,7 +248,7 @@ describe("CanvasManager.resize", () => {
 			const cm = new CanvasManager();
 			cm.setupCanvas(CANVAS_TYPES.MAIN, "#main");
 			cm.setupCanvas(CANVAS_TYPES.BACKGROUND, "#bg");
-			cm.finishSetup(makeGameWithEvents());
+			cm.finishSetup();
 			cm.resize();
 			// bg ratio = 0.5; window ratio = 0.9 (>= 0.5) → width-bound
 			expect(bg.style.width).toBe("1000px");
@@ -286,7 +276,7 @@ describe("CanvasManager.resize", () => {
 			);
 			const cm = new CanvasManager();
 			cm.setupCanvas(CANVAS_TYPES.MAIN, "#main");
-			cm.finishSetup(makeGameWithEvents());
+			cm.finishSetup();
 			const before = cm.canvasBoundingClientRect;
 			cm.resize();
 			expect(cm.canvasBoundingClientRect).not.toBe(before);
@@ -303,7 +293,7 @@ describe("CanvasManager dimension getters", () => {
 		makeCanvasEl("main", 320, 240);
 		const cm = new CanvasManager();
 		cm.setupCanvas(CANVAS_TYPES.MAIN, "#main");
-		cm.finishSetup(makeGameWithEvents());
+		cm.finishSetup();
 		const size = cm.size;
 		expect(size).toBeInstanceOf(Vec2);
 		expect(size.x).toBe(320);
@@ -316,7 +306,7 @@ describe("CanvasManager dimension getters", () => {
 		const main = makeCanvasEl("main", 100, 100);
 		const cm = new CanvasManager();
 		cm.setupCanvas(CANVAS_TYPES.MAIN, "#main");
-		cm.finishSetup(makeGameWithEvents());
+		cm.finishSetup();
 		cm.width = 256;
 		expect(main.width).toBe(256);
 	});
@@ -325,7 +315,7 @@ describe("CanvasManager dimension getters", () => {
 		const main = makeCanvasEl("main", 100, 100);
 		const cm = new CanvasManager();
 		cm.setupCanvas(CANVAS_TYPES.MAIN, "#main");
-		cm.finishSetup(makeGameWithEvents());
+		cm.finishSetup();
 		cm.height = 128;
 		expect(main.height).toBe(128);
 	});
@@ -341,7 +331,7 @@ describe("CanvasManager.setFontSize", () => {
 			makeCanvasEl("main");
 			const cm = new CanvasManager();
 			cm.setupCanvas(CANVAS_TYPES.MAIN, "#main");
-			cm.finishSetup(makeGameWithEvents());
+			cm.finishSetup();
 			cm.setFontSize(20);
 			expect(cm.canvasContext.font).toBe("20px \"Arial\"");
 		} finally {
@@ -353,7 +343,7 @@ describe("CanvasManager.setFontSize", () => {
 		makeCanvasEl("main");
 		const cm = new CanvasManager();
 		cm.setupCanvas(CANVAS_TYPES.MAIN, "#main");
-		cm.finishSetup(makeGameWithEvents());
+		cm.finishSetup();
 		cm.setFontSize(14, "Times New Roman");
 		expect(cm.canvasContext.font).toBe("14px \"Times New Roman\"");
 	});

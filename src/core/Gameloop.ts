@@ -1,7 +1,7 @@
 import Settings from "./Settings";
 import type Game from "./Game";
 import type Sound from "@/audio/Sound";
-import { EVENT_NAMES } from "./EventSystem";
+import { EventSystem } from "./EventSystem";
 import { rafLoop } from "@/utilities/Functions";
 
 export default class Gameloop {
@@ -42,7 +42,7 @@ export default class Gameloop {
 
 		const stopLoop = rafLoop(dt => {
 			if (this.stop) {
-				this.game.events.dispatchEvent(EVENT_NAMES.GAMELOOP_STOPPED);
+				EventSystem.dispatchEvent("gameloopStopped");
 				this.game.keyboard.reset();
 				this.loopHasStarted = false;
 				console.log("Simulation stopped.");
