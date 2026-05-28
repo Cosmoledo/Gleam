@@ -59,17 +59,11 @@ function setupMainCanvas(id: string = "main"): HTMLCanvasElement {
 
 let pendingCbs: ((t: number) => void)[];
 let savedAutoloop: boolean;
-let savedDoNotClear: boolean;
-let savedUseClearRect: boolean;
-let savedBg: string;
 let savedScrollRestoration: ScrollRestoration;
 
 beforeEach(() => {
 	document.body.innerHTML = "";
 	savedAutoloop = Settings.autoloop;
-	savedDoNotClear = Settings.doNotClear;
-	savedUseClearRect = Settings.useClearRect;
-	savedBg = Settings.backgroundColor;
 	savedScrollRestoration = history.scrollRestoration;
 	vi.stubGlobal("localStorage", createFakeStorage());
 	pendingCbs = [];
@@ -81,9 +75,6 @@ beforeEach(() => {
 
 afterEach(() => {
 	Settings.autoloop = savedAutoloop;
-	Settings.doNotClear = savedDoNotClear;
-	Settings.useClearRect = savedUseClearRect;
-	Settings.backgroundColor = savedBg;
 	history.scrollRestoration = savedScrollRestoration;
 	document.body.innerHTML = "";
 	vi.unstubAllGlobals();
@@ -258,78 +249,5 @@ describe("Game.preInit", () => {
 		const start = vi.spyOn(g.gameloop, "startLoop");
 		await g.callPreInit(false);
 		expect(start).not.toHaveBeenCalled();
-	});
-});
-
-// ==================== preDraw ====================
-
-describe("Game.preDraw", () => {
-	function makeContextSpy(): {
-		ctx: CanvasRenderingContext2D;
-		clear: ReturnType<typeof vi.spyOn>;
-		fill: ReturnType<typeof vi.spyOn>;
-		} {
-		const ctx = document
-			.createElement("canvas")
-			.getContext("2d") as CanvasRenderingContext2D;
-		return {
-			ctx,
-			clear: vi.spyOn(ctx, "clearRect"),
-			fill: vi.spyOn(ctx, "fillRect"),
-		};
-	}
-
-	function callPreDraw(g: TestGame, ctx: CanvasRenderingContext2D): void {
-		(
-			g as unknown as { preDraw: (c: CanvasRenderingContext2D) => void }
-		).preDraw(ctx);
-	}
-
-	function makeGameReadyForDraw(): TestGame {
-		setupMainCanvas();
-		const g = new TestGame();
-		g.canman.setupCanvas(CANVAS_TYPES.MAIN, "#main");
-		g.canman.finishSetup(g);
-		return g;
-	}
-
-	it("uses clearRect when doNotClear=false and useClearRect=true", () => {
-		Settings.doNotClear = false;
-		Settings.useClearRect = true;
-		const g = makeGameReadyForDraw();
-		const { ctx, clear, fill } = makeContextSpy();
-		callPreDraw(g, ctx);
-		expect(clear).toHaveBeenCalledWith(0, 0, 800, 600);
-		expect(fill).not.toHaveBeenCalled();
-	});
-
-	it("uses fillRect with backgroundColor when doNotClear=false and useClearRect=false", () => {
-		Settings.doNotClear = false;
-		Settings.useClearRect = false;
-		Settings.backgroundColor = "#abcdef";
-		const g = makeGameReadyForDraw();
-		const { ctx, clear, fill } = makeContextSpy();
-		callPreDraw(g, ctx);
-		expect(fill).toHaveBeenCalledWith(0, 0, 800, 600);
-		expect(ctx.fillStyle).toBe("#abcdef");
-		expect(clear).not.toHaveBeenCalled();
-	});
-
-	it("does not clear or fill when doNotClear=true", () => {
-		Settings.doNotClear = true;
-		const g = makeGameReadyForDraw();
-		const { ctx, clear, fill } = makeContextSpy();
-		callPreDraw(g, ctx);
-		expect(clear).not.toHaveBeenCalled();
-		expect(fill).not.toHaveBeenCalled();
-	});
-
-	it("delegates to draw(context) in all branches", () => {
-		Settings.doNotClear = false;
-		Settings.useClearRect = true;
-		const g = makeGameReadyForDraw();
-		const { ctx } = makeContextSpy();
-		callPreDraw(g, ctx);
-		expect(g.drawCalls).toEqual([ctx]);
 	});
 });

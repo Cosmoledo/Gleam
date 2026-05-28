@@ -10,17 +10,9 @@ export default class Gameloop {
 	private loopHasStarted = false;
 	private stop = false;
 	private game: Game;
-	private draw: (context: CanvasRenderingContext2D) => void;
-	private update: (dt: number) => void;
 
-	constructor(
-		game: Game,
-		update: (dt: number) => void,
-		draw: (context: CanvasRenderingContext2D) => void,
-	) {
+	constructor(game: Game) {
 		this.game = game;
-		this.update = update;
-		this.draw = draw;
 	}
 
 	public startLoop(): void {
@@ -62,7 +54,7 @@ export default class Gameloop {
 			this.levelTime += dt * 1000;
 
 			while (this.accumulator > Settings.fps) {
-				this.update(Settings.fps);
+				this.game.update(Settings.fps);
 				this.accumulator -= Settings.fps;
 			}
 
@@ -70,5 +62,28 @@ export default class Gameloop {
 		});
 
 		console.log("Simulation started.");
+	}
+
+	private draw(context: CanvasRenderingContext2D): void {
+		if (!Settings.doNotClear) {
+			if (Settings.useClearRect) {
+				context.clearRect(
+					0,
+					0,
+					this.game.canman.canvas.width,
+					this.game.canman.canvas.height,
+				);
+			} else {
+				context.fillStyle = Settings.backgroundColor;
+				context.fillRect(
+					0,
+					0,
+					this.game.canman.canvas.width,
+					this.game.canman.canvas.height,
+				);
+			}
+		}
+
+		this.game.draw(context);
 	}
 }

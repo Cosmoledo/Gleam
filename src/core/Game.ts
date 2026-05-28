@@ -20,7 +20,7 @@ export default abstract class Game {
 
 		history.scrollRestoration = "manual";
 
-		this.gameloop = new Gameloop(this, this.update, this.preDraw);
+		this.gameloop = new Gameloop(this);
 		this.keyboard = new Keyboard(this);
 		new Mouse(this);
 	}
@@ -65,28 +65,5 @@ export default abstract class Game {
 		if (Settings.autoloop) {
 			this.gameloop.startLoop();
 		}
-	}
-
-	private preDraw(context: CanvasRenderingContext2D): void {
-		if (!Settings.doNotClear) {
-			if (Settings.useClearRect) {
-				context.clearRect(
-					0,
-					0,
-					this.canman.canvas.width,
-					this.canman.canvas.height,
-				);
-			} else {
-				context.fillStyle = Settings.backgroundColor;
-				context.fillRect(
-					0,
-					0,
-					this.canman.canvas.width,
-					this.canman.canvas.height,
-				);
-			}
-		}
-
-		this.draw(context);
 	}
 }

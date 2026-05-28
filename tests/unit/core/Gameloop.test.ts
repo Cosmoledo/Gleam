@@ -5,6 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import Gameloop from "@/core/Gameloop";
 import Settings from "@/core/Settings";
 import type Game from "@/core/Game";
+import { createMockGame } from "../createMockGame";
 
 // ==================== Helpers ====================
 
@@ -20,33 +21,28 @@ function stepFrame(deltaMs: number = 16): void {
 	cb(rafTime);
 }
 
-interface GameStub {
-	canman: { canvasContext: object };
-	events: { dispatchEvent: ReturnType<typeof vi.fn> };
-	keyboard: { reset: ReturnType<typeof vi.fn> };
-}
+type Spy = ReturnType<typeof vi.fn>;
 
-function makeGameStub(): GameStub {
+function makeGameloop(): {
+	gl: Gameloop;
+	game: Game;
+	update: Spy;
+	draw: Spy;
+	} {
+	const game = createMockGame();
+	const gl = new Gameloop(game);
 	return {
-		canman: { canvasContext: {} },
-		events: { dispatchEvent: vi.fn() },
-		keyboard: { reset: vi.fn() },
+		gl,
+		game,
+		update: game.update as unknown as Spy,
+		draw: game.draw as unknown as Spy,
 	};
 }
 
-function makeGameloop(stub: GameStub = makeGameStub()): {
-	gl: Gameloop;
-	update: ReturnType<typeof vi.fn>;
-	draw: ReturnType<typeof vi.fn>;
-	stub: GameStub;
-} {
-	const update = vi.fn();
-	const draw = vi.fn();
-	const gl = new Gameloop(stub as unknown as Game, update, draw);
-	return { gl, update, draw, stub };
-}
-
 let savedFps: number;
+let savedDoNotClear: boolean;
+let savedUseClearRect: boolean;
+let savedBg: string;
 
 beforeEach(() => {
 	pendingCbs = [];
@@ -57,10 +53,16 @@ beforeEach(() => {
 	});
 	vi.spyOn(console, "log").mockImplementation(() => {});
 	savedFps = Settings.fps;
+	savedDoNotClear = Settings.doNotClear;
+	savedUseClearRect = Settings.useClearRect;
+	savedBg = Settings.backgroundColor;
 });
 
 afterEach(() => {
 	Settings.fps = savedFps;
+	Settings.doNotClear = savedDoNotClear;
+	Settings.useClearRect = savedUseClearRect;
+	Settings.backgroundColor = savedBg;
 	vi.unstubAllGlobals();
 	vi.restoreAllMocks();
 });
@@ -154,15 +156,17 @@ describe("Gameloop.stopLoop", () => {
 describe("Gameloop tick mechanics", () => {
 	it("calls draw once per rAF frame", () => {
 		Settings.fps = 1; // make the update-loop trivial
-		const { gl, draw, stub } = makeGameloop();
+		Settings.doNotClear = true; // skip clear branch to keep this test focused
+		const { gl, game, draw } = makeGameloop();
 		gl.startLoop();
 		stepFrame(16);
 		expect(draw).toHaveBeenCalledTimes(1);
-		expect(draw).toHaveBeenLastCalledWith(stub.canman.canvasContext);
+		expect(draw).toHaveBeenLastCalledWith(game.canman.canvasContext);
 	});
 
 	it("accumulates real time into levelTime in milliseconds", () => {
 		Settings.fps = 1; // do not consume the accumulator with updates
+		Settings.doNotClear = true;
 		const { gl } = makeGameloop();
 		gl.startLoop();
 		stepFrame(16); // first frame: dt=0 (lastTime starts at 0)
@@ -173,6 +177,7 @@ describe("Gameloop tick mechanics", () => {
 
 	it("calls update once per fps-sized accumulator slot, then drains the accumulator", () => {
 		Settings.fps = 0.01; // 10ms slots
+		Settings.doNotClear = true;
 		const { gl, update } = makeGameloop();
 		gl.startLoop();
 		stepFrame(16); // dt=0 — no slot consumed
@@ -184,18 +189,74 @@ describe("Gameloop tick mechanics", () => {
 	});
 });
 
+// ==================== per-frame clear / fill ====================
+
+describe("Gameloop per-frame clear", () => {
+	it("uses clearRect when doNotClear=false and useClearRect=true", () => {
+		Settings.fps = 1;
+		Settings.doNotClear = false;
+		Settings.useClearRect = true;
+		const { gl, game } = makeGameloop();
+		const clear = vi.spyOn(game.canman.canvasContext, "clearRect");
+		const fill = vi.spyOn(game.canman.canvasContext, "fillRect");
+		gl.startLoop();
+		stepFrame(16);
+		expect(clear).toHaveBeenCalledWith(0, 0, 800, 600);
+		expect(fill).not.toHaveBeenCalled();
+	});
+
+	it("uses fillRect with backgroundColor when doNotClear=false and useClearRect=false", () => {
+		Settings.fps = 1;
+		Settings.doNotClear = false;
+		Settings.useClearRect = false;
+		Settings.backgroundColor = "#abcdef";
+		const { gl, game } = makeGameloop();
+		const ctx = game.canman.canvasContext;
+		const clear = vi.spyOn(ctx, "clearRect");
+		const fill = vi.spyOn(ctx, "fillRect");
+		gl.startLoop();
+		stepFrame(16);
+		expect(fill).toHaveBeenCalledWith(0, 0, 800, 600);
+		expect(ctx.fillStyle).toBe("#abcdef");
+		expect(clear).not.toHaveBeenCalled();
+	});
+
+	it("does not clear or fill when doNotClear=true", () => {
+		Settings.fps = 1;
+		Settings.doNotClear = true;
+		const { gl, game } = makeGameloop();
+		const clear = vi.spyOn(game.canman.canvasContext, "clearRect");
+		const fill = vi.spyOn(game.canman.canvasContext, "fillRect");
+		gl.startLoop();
+		stepFrame(16);
+		expect(clear).not.toHaveBeenCalled();
+		expect(fill).not.toHaveBeenCalled();
+	});
+
+	it("delegates to game.draw(context) in all branches", () => {
+		Settings.fps = 1;
+		Settings.doNotClear = false;
+		Settings.useClearRect = true;
+		const { gl, game, draw } = makeGameloop();
+		gl.startLoop();
+		stepFrame(16);
+		expect(draw).toHaveBeenCalledTimes(1);
+		expect(draw).toHaveBeenLastCalledWith(game.canman.canvasContext);
+	});
+});
+
 // ==================== stop path inside the loop ====================
 
 describe("Gameloop stop path", () => {
 	it("dispatches GAMELOOP_STOPPED, resets keyboard, and tears down on the next frame", () => {
-		const { gl, stub } = makeGameloop();
+		const { gl, game } = makeGameloop();
 		gl.startLoop();
 		gl.stopLoop();
 		stepFrame();
-		expect(stub.events.dispatchEvent).toHaveBeenCalledWith(
+		expect(game.events.dispatchEvent).toHaveBeenCalledWith(
 			"gameloopStopped",
 		);
-		expect(stub.keyboard.reset).toHaveBeenCalledTimes(1);
+		expect(game.keyboard.reset).toHaveBeenCalledTimes(1);
 		// rafLoop's internal `running=false` prevents the next rAF from being scheduled
 		expect(pendingCbs.length).toBe(0);
 	});
