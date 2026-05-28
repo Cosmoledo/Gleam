@@ -3,6 +3,9 @@ import type Game from "./Game";
 import { EventSystem } from "./EventSystem";
 import { rafLoop } from "@/utilities/Functions";
 
+const MAX_DT_SECONDS = 0.25;
+const MAX_STEPS_PER_FRAME = 5;
+
 export default class Gameloop {
 	public levelTime = 0;
 	private accumulator = 0;
@@ -45,12 +48,19 @@ export default class Gameloop {
 				return;
 			}
 
-			this.accumulator += dt;
-			this.levelTime += dt * 1000;
+			// Snap on big gaps (tab backgrounded, debugger break) — running
+			// many updates to catch up would fast-forward the player.
+			if (dt > MAX_DT_SECONDS) {
+				this.accumulator = 0;
+			} else {
+				this.accumulator += dt;
+			}
 
-			while (this.accumulator > Settings.fps) {
+			let steps = MAX_STEPS_PER_FRAME;
+			while (steps-- > 0 && this.accumulator >= Settings.fps) {
 				this.game.update(Settings.fps);
 				this.accumulator -= Settings.fps;
+				this.levelTime += Settings.fps * 1000;
 			}
 
 			this.draw(context);

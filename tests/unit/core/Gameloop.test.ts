@@ -153,14 +153,14 @@ describe("Gameloop tick mechanics", () => {
 		expect(draw).toHaveBeenLastCalledWith(game.canman.canvasContext);
 	});
 
-	it("accumulates real time into levelTime in milliseconds", () => {
-		Settings.fps = 1; // do not consume the accumulator with updates
+	it("advances levelTime in milliseconds, one fixed-step slot at a time", () => {
+		Settings.fps = 0.016; // step size matches dt → one step per frame
 		Settings.doNotClear = true;
 		const { gl } = makeGameloop();
 		gl.startLoop();
-		stepFrame(16); // first frame: dt=0 (lastTime starts at 0)
-		stepFrame(16); // dt = (32-16)/1000 = 0.016 → levelTime += 16
-		stepFrame(16); // dt = (48-32)/1000 = 0.016 → levelTime += 16
+		stepFrame(16); // dt=0 — no step
+		stepFrame(16); // dt=0.016 → 1 step → levelTime += 16
+		stepFrame(16); // dt=0.016 → 1 step → levelTime += 16
 		expect(gl.levelTime).toBeCloseTo(32);
 	});
 
@@ -175,6 +175,30 @@ describe("Gameloop tick mechanics", () => {
 		expect(update).toHaveBeenLastCalledWith(0.01);
 		stepFrame(16); // dt=0.016 → accumulator=0.022 → two updates
 		expect(update).toHaveBeenCalledTimes(3);
+	});
+
+	it("snaps the accumulator on big dt instead of fast-forwarding", () => {
+		// dt > 0.25s (tab backgrounded, debugger break) — running thousands of
+		// updates to catch up would visibly fast-forward the player. Discard.
+		Settings.fps = 0.01;
+		Settings.doNotClear = true;
+		const { gl, update } = makeGameloop();
+		gl.startLoop();
+		stepFrame(16); // baseline (dt=0)
+		stepFrame(1000); // dt = 1s → snap, accumulator stays 0
+		expect(update).not.toHaveBeenCalled();
+		expect(gl.levelTime).toBe(0);
+	});
+
+	it("caps updates per frame to prevent the spiral of death", () => {
+		// dt under the snap threshold but with many slots queued.
+		Settings.fps = 0.001; // 1ms slots
+		Settings.doNotClear = true;
+		const { gl, update } = makeGameloop();
+		gl.startLoop();
+		stepFrame(16); // baseline (dt=0)
+		stepFrame(240); // dt=0.24s (< 0.25 snap) → 240 slots, but cap is 5
+		expect(update).toHaveBeenCalledTimes(5);
 	});
 });
 
