@@ -32,7 +32,7 @@ export default class Gameloop {
 		this.stop = true;
 
 		if ("sound" in this) {
-			(this.sound as Sound).pause();
+			(this.sound as Sound).stop();
 		}
 	}
 
