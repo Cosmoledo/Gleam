@@ -155,19 +155,16 @@ CanvasRenderingContext2D.prototype.generateColor = function (
 		rect: Rect,
 		radius: number,
 	): void {
-		const rectClone = rect.clone();
-		rectClone.x += context.lineWidth;
-		rectClone.y += context.lineWidth;
-		rectClone.w -= context.lineWidth * 2;
-		rectClone.h -= context.lineWidth * 2;
-		rectClone.update();
+		const rectClone = rect.inflate(-context.lineWidth);
 
+		/* c8 ignore start -- generateColor always passes a square rect at fixed size, so the w-clamp's else-branch and the entire h-clamp are dead under current usage; kept for future callers that may pass non-square or larger rects. */
 		if (rectClone.w < 2 * radius) {
 			radius = rectClone.w * 0.5;
 		}
 		if (rectClone.h < 2 * radius) {
 			radius = rectClone.h * 0.5;
 		}
+		/* c8 ignore stop */
 
 		context.beginPath();
 		context.moveTo(rectClone.x + radius, rectClone.y);
