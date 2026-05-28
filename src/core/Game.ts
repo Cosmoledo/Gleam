@@ -14,6 +14,8 @@ export default abstract class Game {
 	public events = new EventSystem();
 	public gameloop: Gameloop;
 	public keyboard: Keyboard;
+	public mouse: Mouse;
+	private initialized = false;
 
 	constructor(settingOverrides: SettingsOverrides = {}) {
 		Settings.init(settingOverrides, this);
@@ -22,7 +24,7 @@ export default abstract class Game {
 
 		this.gameloop = new Gameloop(this);
 		this.keyboard = new Keyboard(this);
-		new Mouse(this);
+		this.mouse = new Mouse(this);
 	}
 
 	public draw(_context: CanvasRenderingContext2D): void {
@@ -34,11 +36,18 @@ export default abstract class Game {
 	}
 
 	public async init(): Promise<void> {
-		throw new Error("Override init function! And call preInit()");
+		throw new Error(
+			"Override init() and start the game via preInit() — do not call init() directly.",
+		);
 	}
 
 	protected async preInit(doInit = true): Promise<void> {
 		this.canman.finishSetup(this);
+		if (this.initialized) {
+			throw new Error("preInit() may only be called once per Game instance.");
+		}
+		this.initialized = true;
+
 
 		document.addEventListener(
 			"contextmenu",

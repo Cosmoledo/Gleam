@@ -250,4 +250,12 @@ describe("Game.preInit", () => {
 		await g.callPreInit(false);
 		expect(start).not.toHaveBeenCalled();
 	});
+
+	it("throws when called a second time", async () => {
+		setupMainCanvas();
+		const g = new TestGame();
+		g.canman.setupCanvas(CANVAS_TYPES.MAIN, "#main");
+		await g.callPreInit(false);
+		await expect(g.callPreInit(false)).rejects.toThrow(/only be called once/);
+	});
 });
