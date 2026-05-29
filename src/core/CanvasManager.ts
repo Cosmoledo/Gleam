@@ -52,6 +52,10 @@ export default class CanvasManager {
 	}
 
 	public finishSetup(): void {
+		if (this.mainHolder) {
+			throw new Error("Already set up.");
+		}
+
 		const mainCanvas = Object.values(this.canvasHolder).filter(
 			holder => holder.type === CANVAS_TYPES.MAIN,
 		);
@@ -65,6 +69,10 @@ export default class CanvasManager {
 		}
 
 		this.mainHolder = mainCanvas[0];
+
+		if (this.width === 0 || this.height === 0) {
+			throw new Error("Main canvas has zero width or height.");
+		}
 
 		this.canvasBoundingClientRect = this.canvas.getBoundingClientRect();
 
@@ -118,12 +126,8 @@ export default class CanvasManager {
 			throw new Error("Canvas '" + selector + "' does not exist!");
 		}
 
-		const name = selector.replace("#", "");
-
-		if (this.canvasHolder[name]) {
-			throw new Error(
-				"Canvas '" + selector + "' was already registered!",
-			);
+		if (this.canvasHolder[selector]) {
+			throw new Error(`Canvas "${selector}" was already registered!`);
 		}
 
 		const newCanvas: CanvasHolder = Object.assign(
@@ -139,7 +143,7 @@ export default class CanvasManager {
 		newCanvas.context.strokeStyle = "white";
 		newCanvas.context.font = "12px Arial";
 
-		this.canvasHolder[name] = newCanvas;
+		this.canvasHolder[selector] = newCanvas;
 
 		return newCanvas;
 	}

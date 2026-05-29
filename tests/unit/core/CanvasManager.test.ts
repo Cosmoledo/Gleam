@@ -74,16 +74,16 @@ describe("CanvasManager.setupCanvas", () => {
 		const cm = new CanvasManager();
 		cm.setupCanvas(CANVAS_TYPES.MAIN, "#scene");
 		expect(() => cm.setupCanvas(CANVAS_TYPES.MAIN, "#scene")).toThrow(
-			/Canvas '#scene' was already registered/,
+			/Canvas "#scene" was already registered/,
 		);
 	});
 
-	it("stores the holder under the selector stripped of '#'", () => {
+	it("stores the holder keyed by the full selector", () => {
 		makeCanvasEl("scene");
 		const cm = new CanvasManager();
 		cm.setupCanvas(CANVAS_TYPES.MAIN, "#scene");
-		expect(cm.canvasHolder.scene).toBeDefined();
-		expect(cm.canvasHolder.scene.id).toBe("#scene");
+		expect(cm.canvasHolder["#scene"]).toBeDefined();
+		expect(cm.canvasHolder["#scene"].id).toBe("#scene");
 	});
 
 	it("returns the registered holder with type, resize, canvas, and context", () => {
@@ -175,6 +175,22 @@ describe("CanvasManager.finishSetup", () => {
 		const resize = vi.spyOn(cm, "resize");
 		EventSystem.dispatchEvent("resized");
 		expect(resize).not.toHaveBeenCalled();
+	});
+
+	it("throws on re-entry after a successful setup", () => {
+		makeCanvasEl("main");
+		const cm = new CanvasManager();
+		cm.setupCanvas(CANVAS_TYPES.MAIN, "#main");
+		cm.finishSetup();
+		expect(() => cm.finishSetup()).toThrow(/Already set up/);
+	});
+
+	it("throws when the main canvas has zero width or height", () => {
+		const main = makeCanvasEl("main", 800, 600);
+		main.width = 0;
+		const cm = new CanvasManager();
+		cm.setupCanvas(CANVAS_TYPES.MAIN, "#main");
+		expect(() => cm.finishSetup()).toThrow(/zero width or height/);
 	});
 });
 
