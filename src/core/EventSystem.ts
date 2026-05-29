@@ -1,5 +1,6 @@
 import type ControllerCursor from "@/input/ControllerCursor";
 import type Mouse from "@/input/Mouse";
+import { remove } from "@/utilities/Array";
 import { throttleByKey } from "@/utilities/Functions";
 
 export interface GameEventMap {
@@ -13,12 +14,14 @@ export interface GameEventMap {
 
 export interface AddEventListenerOptions {
 	once?: boolean;
+	signal?: AbortSignal;
 }
 
 export type GameEventListener<K extends keyof GameEventMap> = {
 	callback: (...args: GameEventMap[K]) => void;
-	options: { once: boolean };
 	consumed?: boolean;
+	dispose: () => void;
+	options: { once: boolean; signal?: AbortSignal };
 };
 
 export class EventSystem {
@@ -42,10 +45,25 @@ export class EventSystem {
 		eventName: K,
 		callback: (...args: GameEventMap[K]) => void,
 		options: AddEventListenerOptions = {},
-	): void {
+	): () => void {
+		if (options.signal?.aborted) {
+			return function dispose(): void {};
+		}
+
+		function dispose(): void {
+			event.consumed = true;
+
+			if (event.options.signal) {
+				event.options.signal.removeEventListener("abort", dispose);
+			}
+
+			remove(EventSystem.eventListener[eventName]!, event);
+		}
+
 		const event: GameEventListener<K> = {
 			callback,
-			options: { once: options.once ?? false },
+			options: { once: options.once ?? false, signal: options.signal },
+			dispose,
 		};
 		const list = this.eventListener[eventName];
 
@@ -56,6 +74,12 @@ export class EventSystem {
 				eventName
 			] = [event];
 		}
+
+		if (options.signal) {
+			options.signal.addEventListener("abort", dispose, { once: true });
+		}
+
+		return dispose;
 	}
 
 	public static dispatchEvent<K extends keyof GameEventMap>(
@@ -89,7 +113,7 @@ export class EventSystem {
 
 		for (let i = events.length - 1; i >= 0; i--) {
 			if (events[i].consumed) {
-				events.splice(i, 1);
+				events[i].dispose();
 			}
 		}
 	}

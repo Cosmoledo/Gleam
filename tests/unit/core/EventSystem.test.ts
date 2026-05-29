@@ -235,9 +235,7 @@ describe("EventSystem listener errors", () => {
 	});
 
 	it("includes a suppressed-count suffix when re-firing after throttle window", () => {
-		const nowSpy = vi
-			.spyOn(performance, "now")
-			.mockReturnValue(1_000_000);
+		const nowSpy = vi.spyOn(performance, "now").mockReturnValue(1_000_000);
 		try {
 			EventSystem.addEventListener("resized", () => {
 				throw new Error("repeated");
@@ -252,5 +250,166 @@ describe("EventSystem listener errors", () => {
 		} finally {
 			nowSpy.mockRestore();
 		}
+	});
+});
+
+// ==================== addEventListener disposer ====================
+
+describe("EventSystem.addEventListener disposer", () => {
+	it("detaches the listener from subsequent dispatches", () => {
+		const cb = vi.fn();
+		const off = EventSystem.addEventListener("resized", cb);
+		EventSystem.dispatchEvent("resized");
+		off();
+		EventSystem.dispatchEvent("resized");
+		expect(cb).toHaveBeenCalledTimes(1);
+	});
+
+	it("removes the listener from the internal bucket", () => {
+		const off = EventSystem.addEventListener("resized", () => {});
+		expect(internalListeners()["resized"]).toHaveLength(1);
+		off();
+		expect(internalListeners()["resized"]).toHaveLength(0);
+	});
+
+	it("is idempotent: second call is a no-op", () => {
+		const off = EventSystem.addEventListener("resized", () => {});
+		off();
+		expect(() => off()).not.toThrow();
+		expect(internalListeners()["resized"]).toHaveLength(0);
+	});
+
+	it("is a no-op after a once-listener has already fired", () => {
+		const off = EventSystem.addEventListener("resized", () => {}, {
+			once: true,
+		});
+		EventSystem.dispatchEvent("resized");
+		expect(() => off()).not.toThrow();
+	});
+
+	it("removes only the matching registration when the same callback is registered twice", () => {
+		const cb = vi.fn();
+		const off1 = EventSystem.addEventListener("resized", cb);
+		EventSystem.addEventListener("resized", cb);
+		off1();
+		EventSystem.dispatchEvent("resized");
+		expect(cb).toHaveBeenCalledTimes(1);
+	});
+
+	it("detaches a listener that disposes itself from inside its callback", () => {
+		const cb = vi.fn();
+		const after = vi.fn();
+		let off: () => void;
+		off = EventSystem.addEventListener("resized", () => {
+			cb();
+			off();
+		});
+		EventSystem.addEventListener("resized", after);
+		EventSystem.dispatchEvent("resized");
+		EventSystem.dispatchEvent("resized");
+		expect(cb).toHaveBeenCalledTimes(1);
+		expect(after).toHaveBeenCalledTimes(2);
+	});
+
+	it("skips a sibling listener disposed mid-dispatch in the same tick", () => {
+		const later = vi.fn();
+		let offLater: () => void;
+		EventSystem.addEventListener("resized", () => {
+			offLater();
+		});
+		offLater = EventSystem.addEventListener("resized", later);
+		EventSystem.dispatchEvent("resized");
+		expect(later).not.toHaveBeenCalled();
+	});
+});
+
+// ==================== addEventListener signal ====================
+
+describe("EventSystem.addEventListener signal", () => {
+	it("does not register the listener when signal is already aborted", () => {
+		const controller = new AbortController();
+		controller.abort();
+		const cb = vi.fn();
+		EventSystem.addEventListener("resized", cb, {
+			signal: controller.signal,
+		});
+		EventSystem.dispatchEvent("resized");
+		expect(cb).not.toHaveBeenCalled();
+		expect(internalListeners()["resized"]).toBeUndefined();
+	});
+
+	it("returns a no-op disposer when signal is already aborted", () => {
+		const controller = new AbortController();
+		controller.abort();
+		const off = EventSystem.addEventListener("resized", () => {}, {
+			signal: controller.signal,
+		});
+		expect(() => off()).not.toThrow();
+	});
+
+	it("detaches the listener when the signal aborts after registration", () => {
+		const controller = new AbortController();
+		const cb = vi.fn();
+		EventSystem.addEventListener("resized", cb, {
+			signal: controller.signal,
+		});
+		EventSystem.dispatchEvent("resized");
+		controller.abort();
+		EventSystem.dispatchEvent("resized");
+		expect(cb).toHaveBeenCalledTimes(1);
+		expect(internalListeners()["resized"]).toHaveLength(0);
+	});
+
+	it("skips later signal-bound listeners when the signal aborts mid-dispatch", () => {
+		const controller = new AbortController();
+		const later = vi.fn();
+		EventSystem.addEventListener("resized", () => {
+			controller.abort();
+		});
+		EventSystem.addEventListener("resized", later, {
+			signal: controller.signal,
+		});
+		EventSystem.dispatchEvent("resized");
+		expect(later).not.toHaveBeenCalled();
+	});
+
+	it("interacts cleanly with once: firing once then aborting is a safe no-op", () => {
+		const controller = new AbortController();
+		const cb = vi.fn();
+		EventSystem.addEventListener("resized", cb, {
+			once: true,
+			signal: controller.signal,
+		});
+		EventSystem.dispatchEvent("resized");
+		expect(() => controller.abort()).not.toThrow();
+		EventSystem.dispatchEvent("resized");
+		expect(cb).toHaveBeenCalledTimes(1);
+	});
+
+	it("aborts multiple listeners across different events with one controller", () => {
+		const controller = new AbortController();
+		const onResize = vi.fn();
+		const onKey = vi.fn();
+		EventSystem.addEventListener("resized", onResize, {
+			signal: controller.signal,
+		});
+		EventSystem.addEventListener("inputKeyboard", onKey, {
+			signal: controller.signal,
+		});
+		controller.abort();
+		EventSystem.dispatchEvent("resized");
+		EventSystem.dispatchEvent("inputKeyboard", {}, "KeyA");
+		expect(onResize).not.toHaveBeenCalled();
+		expect(onKey).not.toHaveBeenCalled();
+	});
+
+	it("does not throw when the same controller is aborted twice", () => {
+		const controller = new AbortController();
+		EventSystem.addEventListener("resized", () => {}, {
+			signal: controller.signal,
+		});
+		controller.abort();
+		expect(() => controller.abort()).not.toThrow();
+		expect(internalListeners()["resized"]).toHaveLength(0);
 	});
 });
