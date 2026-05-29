@@ -8,6 +8,7 @@ import {
 	isTouchPrimary,
 	rafLoop,
 	throttle,
+	throttleByKey,
 	urlBasename,
 } from "@/utilities/Functions";
 
@@ -313,6 +314,79 @@ describe("throttle", () => {
 		const throttled = throttle(fn, 50);
 		throttled();
 		expect(fn).toHaveBeenCalled();
+	});
+
+	it("fires on the first call even when performance.now() < delay", () => {
+		baseTime = 5;
+		const fn = vi.fn();
+		const throttled = throttle(fn, 50);
+		throttled();
+		expect(fn).toHaveBeenCalledTimes(1);
+	});
+});
+
+// ==================== throttleByKey ====================
+
+describe("throttleByKey", () => {
+	let nowSpy: ReturnType<typeof vi.spyOn>;
+	let baseTime = 100;
+
+	beforeEach(() => {
+		baseTime = 100;
+		nowSpy = vi
+			.spyOn(performance, "now")
+			.mockImplementation(() => baseTime);
+	});
+
+	afterEach(() => {
+		nowSpy.mockRestore();
+	});
+
+	it("fires immediately on the first call for a given key", () => {
+		const fn = vi.fn();
+		const throttled = throttleByKey<[string]>(fn, 50);
+		throttled("k1", "payload");
+		expect(fn).toHaveBeenCalledTimes(1);
+		expect(fn).toHaveBeenCalledWith(1, "payload");
+	});
+
+	it("suppresses subsequent calls for the same key within the delay", () => {
+		const fn = vi.fn();
+		const throttled = throttleByKey<[]>(fn, 50);
+		throttled("k1");
+		throttled("k1");
+		throttled("k1");
+		expect(fn).toHaveBeenCalledTimes(1);
+	});
+
+	it("different keys do not throttle each other", () => {
+		const fn = vi.fn();
+		const throttled = throttleByKey<[]>(fn, 50);
+		throttled("a");
+		throttled("b");
+		throttled("c");
+		expect(fn).toHaveBeenCalledTimes(3);
+	});
+
+	it("passes the most recent args through on the fire", () => {
+		const fn = vi.fn();
+		const throttled = throttleByKey<[string]>(fn, 50);
+		throttled("k1", "first");
+		throttled("k1", "second");
+		throttled("k1", "third");
+		baseTime = 160;
+		throttled("k1", "fourth");
+		expect(fn).toHaveBeenNthCalledWith(1, 1, "first");
+		expect(fn).toHaveBeenNthCalledWith(2, 3, "fourth");
+	});
+
+	it("fires again after delay has passed for the same key", () => {
+		const fn = vi.fn();
+		const throttled = throttleByKey<[]>(fn, 50);
+		throttled("k1");
+		baseTime = 155;
+		throttled("k1");
+		expect(fn).toHaveBeenCalledTimes(2);
 	});
 });
 

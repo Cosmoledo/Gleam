@@ -64,7 +64,7 @@ export function throttle(
 	callback: (callCount: number) => void,
 	delay: number,
 ): () => void {
-	let lastCalled = 0;
+	let lastCalled = -Infinity;
 	let callCount = 0;
 
 	return () => {
@@ -78,6 +78,38 @@ export function throttle(
 			callCount = 0;
 			callback(count);
 		}
+	};
+}
+
+/**
+ * Like `throttle`, but tracks the last firing independently per `key` —
+ * different keys never throttle each other. Use for de-duplicating repeated
+ * error/warning logs by message identity. When the throttle fires, args from
+ * the most recent call for that key are passed through alongside `callCount`.
+ */
+export function throttleByKey<T extends unknown[]>(
+	callback: (callCount: number, ...args: T) => void,
+	delay: number,
+): (key: string, ...args: T) => void {
+	const wrappers = new Map<string, (...args: T) => void>();
+
+	return (key, ...args) => {
+		let wrapper = wrappers.get(key);
+
+		if (!wrapper) {
+			let latest: T;
+			const throttled = throttle(
+				count => callback(count, ...latest),
+				delay,
+			);
+			wrapper = (...a: T) => {
+				latest = a;
+				throttled();
+			};
+			wrappers.set(key, wrapper);
+		}
+
+		wrapper(...args);
 	};
 }
 

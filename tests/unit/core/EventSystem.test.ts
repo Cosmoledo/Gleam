@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // ==================== Imports ====================
 
@@ -77,13 +77,13 @@ describe("EventSystem.dispatchEvent invokes callbacks", () => {
 		expect(cb).toHaveBeenCalledWith(keys, "KeyA");
 	});
 
-	it("invokes listeners in reverse registration order (LIFO)", () => {
+	it("invokes listeners in registration order (FIFO)", () => {
 		const order: string[] = [];
 		EventSystem.addEventListener("resized", () => order.push("first"));
 		EventSystem.addEventListener("resized", () => order.push("second"));
 		EventSystem.addEventListener("resized", () => order.push("third"));
 		EventSystem.dispatchEvent("resized");
-		expect(order).toEqual(["third", "second", "first"]);
+		expect(order).toEqual(["first", "second", "third"]);
 	});
 });
 
@@ -166,7 +166,6 @@ describe("EventSystem re-entrant dispatch", () => {
 	it("skips a once-listener that the outer loop already consumed via a nested dispatch", () => {
 		const oneShot = vi.fn();
 		let nested = false;
-		EventSystem.addEventListener("resized", oneShot, { once: true });
 		EventSystem.addEventListener("resized", () => {
 			if (nested) {
 				return;
@@ -176,9 +175,82 @@ describe("EventSystem re-entrant dispatch", () => {
 			// the outer loop reaches it.
 			EventSystem.dispatchEvent("resized");
 		});
-		// outer dispatch: the trigger runs first (LIFO), nested dispatch consumes oneShot,
+		EventSystem.addEventListener("resized", oneShot, { once: true });
+		// outer dispatch: the trigger runs first (FIFO), nested dispatch consumes oneShot,
 		// then outer loop reaches the same oneShot entry and must skip it (consumed=true).
 		EventSystem.dispatchEvent("resized");
 		expect(oneShot).toHaveBeenCalledTimes(1);
+	});
+});
+
+// ==================== listener error isolation ====================
+
+describe("EventSystem listener errors", () => {
+	let errSpy: ReturnType<typeof vi.spyOn>;
+
+	beforeEach(() => {
+		errSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+	});
+
+	afterEach(() => {
+		errSpy.mockRestore();
+	});
+
+	it("continues dispatching to remaining listeners when one throws", () => {
+		const after = vi.fn();
+		EventSystem.addEventListener("resized", () => {
+			throw new Error("boom-1");
+		});
+		EventSystem.addEventListener("resized", after);
+		EventSystem.dispatchEvent("resized");
+		expect(after).toHaveBeenCalledTimes(1);
+	});
+
+	it("logs the thrown error to console.error", () => {
+		EventSystem.addEventListener("resized", () => {
+			throw new Error("boom-2");
+		});
+		EventSystem.dispatchEvent("resized");
+		expect(errSpy).toHaveBeenCalledTimes(1);
+		expect(errSpy.mock.calls[0][0]).toMatch(/"resized" threw/);
+	});
+
+	it("removes a once-listener even when it throws", () => {
+		const cb = vi.fn(() => {
+			throw new Error("boom-3");
+		});
+		EventSystem.addEventListener("resized", cb, { once: true });
+		EventSystem.dispatchEvent("resized");
+		EventSystem.dispatchEvent("resized");
+		expect(cb).toHaveBeenCalledTimes(1);
+	});
+
+	it("logs a non-Error throwable by stringifying it", () => {
+		EventSystem.addEventListener("resized", () => {
+			throw "plain-string-throw";
+		});
+		EventSystem.dispatchEvent("resized");
+		expect(errSpy).toHaveBeenCalledTimes(1);
+		expect(errSpy.mock.calls[0][1]).toBe("plain-string-throw");
+	});
+
+	it("includes a suppressed-count suffix when re-firing after throttle window", () => {
+		const nowSpy = vi
+			.spyOn(performance, "now")
+			.mockReturnValue(1_000_000);
+		try {
+			EventSystem.addEventListener("resized", () => {
+				throw new Error("repeated");
+			});
+			EventSystem.dispatchEvent("resized");
+			EventSystem.dispatchEvent("resized");
+			EventSystem.dispatchEvent("resized");
+			nowSpy.mockReturnValue(1_002_000);
+			EventSystem.dispatchEvent("resized");
+			expect(errSpy).toHaveBeenCalledTimes(2);
+			expect(errSpy.mock.calls[1][0]).toMatch(/x3 since last log/);
+		} finally {
+			nowSpy.mockRestore();
+		}
 	});
 });

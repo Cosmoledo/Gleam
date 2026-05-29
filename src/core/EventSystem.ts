@@ -1,5 +1,6 @@
 import type ControllerCursor from "@/input/ControllerCursor";
 import type Mouse from "@/input/Mouse";
+import { throttleByKey } from "@/utilities/Functions";
 
 export interface GameEventMap {
 	gameloopStopped: [];
@@ -24,6 +25,18 @@ export class EventSystem {
 	private static eventListener: {
 		[K in keyof GameEventMap]?: GameEventListener<K>[];
 	} = {};
+
+	private static logListenerError = throttleByKey(
+		(count: number, eventName: string, err: unknown) => {
+			const suffix = count > 1 ? ` (x${count} since last log)` : "";
+
+			console.error(
+				`EventSystem listener for "${eventName}" threw${suffix}:`,
+				err,
+			);
+		},
+		1000,
+	);
 
 	public static addEventListener<K extends keyof GameEventMap>(
 		eventName: K,
@@ -57,19 +70,22 @@ export class EventSystem {
 
 		const snapshot = events.slice();
 
-		for (let i = snapshot.length - 1; i >= 0; i--) {
-			const entry = snapshot[i];
-
+		snapshot.forEach(entry => {
 			if (entry.consumed) {
-				continue;
+				return;
 			}
 
 			if (entry.options.once) {
 				entry.consumed = true;
 			}
 
-			entry.callback(...params);
-		}
+			try {
+				entry.callback(...params);
+			} catch (err) {
+				const msg = err instanceof Error ? err.message : String(err);
+				this.logListenerError(`${eventName}:${msg}`, eventName, err);
+			}
+		});
 
 		for (let i = events.length - 1; i >= 0; i--) {
 			if (events[i].consumed) {
