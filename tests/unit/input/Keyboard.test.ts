@@ -189,5 +189,14 @@ describe("Keyboard", () => {
 			kb.reset();
 			expect(kb.keys).toEqual({});
 		});
+
+		it("is called when the gameloopStopped event fires", async () => {
+			const { default: Keyboard } = await import("@/input/Keyboard");
+			const kb = new Keyboard(mockGame);
+			keydownCb!({ code: "KeyW", type: "keydown" } as KeyboardEvent);
+			expect(kb.isPressed("KeyW")).toBe(true);
+			EventSystem.dispatchEvent("gameloopStopped");
+			expect(kb.isPressed("KeyW")).toBe(false);
+		});
 	});
 });

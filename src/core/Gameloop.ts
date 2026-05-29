@@ -22,6 +22,12 @@ export default class Gameloop {
 	}
 
 	public startLoop(): void {
+		if (this._isLooping && this.stop) {
+			throw new Error(
+				"Gameloop teardown is pending; wait for the \"gameloopStopped\" event before restarting.",
+			);
+		}
+
 		this.stop = false;
 		this.looper();
 	}
@@ -40,9 +46,8 @@ export default class Gameloop {
 
 		const stopLoop = rafLoop(dt => {
 			if (this.stop) {
-				EventSystem.dispatchEvent("gameloopStopped");
-				this.game.keyboard.reset();
 				this._isLooping = false;
+				EventSystem.dispatchEvent("gameloopStopped");
 				console.log("Simulation stopped.");
 				stopLoop();
 				return;

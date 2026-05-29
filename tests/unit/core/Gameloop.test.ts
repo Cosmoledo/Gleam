@@ -125,6 +125,13 @@ describe("Gameloop.startLoop", () => {
 		gl.startLoop();
 		expect(pendingCbs.length).toBe(1);
 	});
+
+	it("throws if called after stopLoop but before the teardown tick", () => {
+		const { gl } = makeGameloop();
+		gl.startLoop();
+		gl.stopLoop();
+		expect(() => gl.startLoop()).toThrow(/teardown is pending/);
+	});
 });
 
 // ==================== loop body ====================
@@ -248,14 +255,13 @@ describe("Gameloop per-frame clear", () => {
 // ==================== stop path inside the loop ====================
 
 describe("Gameloop stop path", () => {
-	it("dispatches GAMELOOP_STOPPED, resets keyboard, and tears down on the next frame", () => {
+	it("dispatches gameloopStopped and tears down on the next frame", () => {
 		const dispatchSpy = vi.spyOn(EventSystem, "dispatchEvent");
-		const { gl, game } = makeGameloop();
+		const { gl } = makeGameloop();
 		gl.startLoop();
 		gl.stopLoop();
 		stepFrame();
 		expect(dispatchSpy).toHaveBeenCalledWith("gameloopStopped");
-		expect(game.keyboard.reset).toHaveBeenCalledTimes(1);
 		// rafLoop's internal `running=false` prevents the next rAF from being scheduled
 		expect(pendingCbs.length).toBe(0);
 	});
