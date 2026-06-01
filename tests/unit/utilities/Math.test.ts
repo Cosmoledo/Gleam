@@ -140,6 +140,14 @@ describe("randomBetweenFloat", () => {
 		vi.useRealTimers();
 		vi.restoreAllMocks();
 	});
+
+	it("swaps bounds when min > max", () => {
+		for (let i = 0; i < 100; i++) {
+			const result = randomBetweenFloat(10, 1);
+			expect(result).toBeGreaterThanOrEqual(1);
+			expect(result).toBeLessThan(10);
+		}
+	});
 });
 
 // ==================== randomBetweenInt ====================
@@ -192,6 +200,15 @@ describe("randomBetweenInt", () => {
 
 		vi.useRealTimers();
 		vi.restoreAllMocks();
+	});
+
+	it("swaps bounds when min > max", () => {
+		for (let i = 0; i < 100; i++) {
+			const result = randomBetweenInt(-80, -100);
+			expect(result).toBeGreaterThanOrEqual(-100);
+			expect(result).toBeLessThanOrEqual(-80);
+			expect(Number.isInteger(result)).toBe(true);
+		}
 	});
 });
 

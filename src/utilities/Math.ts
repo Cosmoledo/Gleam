@@ -25,16 +25,24 @@ export function random2Pi(): number {
 }
 
 /**
- * Generate a random float between two values
+ * Generate a random float between two values. Bounds may be passed in either order.
  */
 export function randomBetweenFloat(min: number, max: number): number {
+	if (min > max) {
+		[min, max] = [max, min];
+	}
+
 	return min + Math.random() * (max - min);
 }
 
 /**
- * Generate a random integer in `[min, max]` (both bounds inclusive).
+ * Generate a random integer in `[min, max]` (both bounds inclusive). Bounds may be passed in either order.
  */
 export function randomBetweenInt(min: number, max: number): number {
+	if (min > max) {
+		[min, max] = [max, min];
+	}
+
 	return Math.floor(min + Math.random() * (max - min + 1));
 }
 
