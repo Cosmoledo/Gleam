@@ -1,7 +1,7 @@
 #!/usr/bin/env node
-// Single build entry: regenerates the barrel, wipes dist/, then emits bundled
-// ESM (one file each for the main barrel and the prototypes side-effect entry),
-// bundled types via dts-bundle-generator, and IIFE bundles for <script>-tag use.
+// Single build entry: regenerates the barrel, wipes dist/, then emits a
+// bundled ESM file, two IIFE bundles (dev + minified) for <script>-tag use,
+// and a single bundled .d.ts via dts-bundle-generator.
 // The barrel is deleted at the end — it exists only during the build.
 
 import { build } from "esbuild";

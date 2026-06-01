@@ -35,7 +35,7 @@ Browser tests that exercise canvas prototypes need `import "@/prototypes/index";
 | `src/color/` | Rich `Color` class + `ColorShifter` (see also `utilities/Color.ts` for free fns) |
 | `src/audio/` | `Sound` |
 | `src/utilities/` | Pure helpers: `Array`, `Canvas`, `Color` (free fns), `DOM`, `Functions` (`delay`, `isMobile`), `Grid`, `Json`, `Math`, `Number`, `String` |
-| `src/prototypes/` | Side-effect imports extending `HTMLCanvasElement`, `CanvasRenderingContext2D`, `Audio`, `Storage` |
+| `src/prototypes/` | Side-effect imports extending `HTMLCanvasElement`, `HTMLImageElement`, `CanvasRenderingContext2D`, `Audio` |
 | `src/loader/` | Asset/data loaders (`UrlLoaders`, `TiledMap`) |
 | `src/content/` | Game entities (`Animator`, `Particle`, `Projectile`) |
 | `src/effects/` | Visual effects (`Screenshake`) |

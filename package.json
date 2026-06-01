@@ -18,6 +18,9 @@
 		"./dist/gamelib.js",
 		"./dist/gamelib.min.js"
 	],
+	"files": [
+		"dist"
+	],
 	"scripts": {
 		"build": "node scripts/build.mjs",
 		"lint": "eslint src tests --ext .ts",

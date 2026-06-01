@@ -2,7 +2,7 @@
 // Generates src/index.ts by re-exporting every module under src/ except
 // the exclude list. Defaults are re-aliased to their file basename
 // (relying on the PascalCase-file-name = default-export-name convention).
-// Run before `tsc` via the `prebuild` npm script.
+// Invoked by scripts/build.mjs; the barrel is deleted after bundling.
 
 import { readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
 import { join, relative } from "node:path";
@@ -13,7 +13,7 @@ const SRC = join(ROOT, "src");
 const OUT = join(SRC, "index.ts");
 
 const EXCLUDE_DIRS = new Set(["prototypes"]);
-const EXCLUDE_FILES = new Set(["index.ts", "index.d.ts"]);
+const EXCLUDE_FILES = new Set(["index.ts"]);
 
 function walk(dir) {
 	const out = [];
