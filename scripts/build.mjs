@@ -39,24 +39,24 @@ await build({
 	...esbuildCommon,
 	entryPoints: [BARREL],
 	format: "esm",
-	outfile: join(DIST, "gamelib.esm.js"),
+	outfile: join(DIST, "gleam.esm.js"),
 });
 
 await build({
 	...esbuildCommon,
 	entryPoints: [BARREL],
 	format: "iife",
-	globalName: "GameLIB",
-	outfile: join(DIST, "gamelib.js"),
+	globalName: "Gleam",
+	outfile: join(DIST, "gleam.js"),
 });
 
 await build({
 	...esbuildCommon,
 	entryPoints: [BARREL],
 	format: "iife",
-	globalName: "GameLIB",
+	globalName: "Gleam",
 	minify: true,
-	outfile: join(DIST, "gamelib.min.js"),
+	outfile: join(DIST, "gleam.min.js"),
 });
 
 function bundleTypes(entry, outfile) {
@@ -71,6 +71,6 @@ function bundleTypes(entry, outfile) {
 	]);
 }
 
-bundleTypes(BARREL, join(DIST, "gamelib.d.ts"));
+bundleTypes(BARREL, join(DIST, "gleam.d.ts"));
 
 rmSync(BARREL, { force: true });

@@ -1,4 +1,4 @@
-# GameLIB — AI Agent Instructions
+# Gleam — AI Agent Instructions
 
 Read the gitignored file `.ai/memory.md` for additional rules.
 

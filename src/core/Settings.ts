@@ -7,7 +7,7 @@ export type SettingsOverrides = Partial<
 	>
 >;
 
-const LOCAL_STORAGE_KEY = "gamelib";
+const LOCAL_STORAGE_KEY = "gleam";
 
 export default class Settings {
 	public static antialias = false;

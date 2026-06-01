@@ -1,22 +1,22 @@
 {
-	"name": "game-lib",
+	"name": "@cosmoledo/gleam",
 	"version": "1.0.0",
 	"description": "A TypeScript game development framework with canvas rendering, audio support, and utility functions",
 	"type": "module",
-	"main": "dist/gamelib.esm.js",
-	"types": "dist/gamelib.d.ts",
+	"main": "dist/gleam.esm.js",
+	"types": "dist/gleam.d.ts",
 	"exports": {
 		".": {
-			"types": "./dist/gamelib.d.ts",
-			"import": "./dist/gamelib.esm.js"
+			"types": "./dist/gleam.d.ts",
+			"import": "./dist/gleam.esm.js"
 		}
 	},
 	"sideEffects": [
 		"./src/prototypes/*",
 		"./src/localization/Translator.ts",
-		"./dist/gamelib.esm.js",
-		"./dist/gamelib.js",
-		"./dist/gamelib.min.js"
+		"./dist/gleam.esm.js",
+		"./dist/gleam.js",
+		"./dist/gleam.min.js"
 	],
 	"files": [
 		"dist"
@@ -37,7 +37,7 @@
 		"2d",
 		"renderer"
 	],
-	"author": "GameLIB Team",
+	"author": "Cosmoledo",
 	"license": "MIT",
 	"dependencies": {
 		"bezier-easing": "^3.0.0"

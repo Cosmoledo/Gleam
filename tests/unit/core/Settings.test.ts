@@ -60,7 +60,7 @@ function createFakeStorage(): Storage {
 	};
 }
 
-const LOCAL_STORAGE_KEY = "gamelib";
+const LOCAL_STORAGE_KEY = "gleam";
 
 let snapshot: Record<FieldKey, unknown>;
 let savedLanguage: string;
@@ -306,7 +306,7 @@ describe("Settings.setLocalStorage", () => {
 		expect(Settings.localStorage.language).toBe("pt");
 	});
 
-	it("persists the entire _localStorage object as JSON under 'gamelib'", () => {
+	it("persists the entire _localStorage object as JSON under 'gleam'", () => {
 		Settings.setLocalStorage("language", "pt");
 		const raw = localStorage.getItem(LOCAL_STORAGE_KEY);
 		expect(raw).not.toBeNull();
