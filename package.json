@@ -5,8 +5,8 @@
 	"main": "dist/index.js",
 	"types": "index.d.ts",
 	"scripts": {
-		"build": "tspc",
-		"watch": "tspc -w",
+		"build": "tspc -p tsconfig.build.json",
+		"watch": "tspc -p tsconfig.build.json -w",
 		"lint": "eslint src tests --ext .ts",
 		"test": "vitest run",
 		"test:unit": "vitest run --project unit",
