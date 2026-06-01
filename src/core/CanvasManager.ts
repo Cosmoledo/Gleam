@@ -1,6 +1,6 @@
+import EventSystem from "./EventSystem";
 import Settings from "@/core/Settings";
 import Vec2 from "@/math/Vec2";
-import { EventSystem } from "./EventSystem";
 import { getCanvasConstruct } from "@/utilities/Canvas";
 
 export const CANVAS_TYPES = {

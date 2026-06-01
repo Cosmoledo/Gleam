@@ -24,7 +24,7 @@ export type GameEventListener<K extends keyof GameEventMap> = {
 	options: { once: boolean; signal?: AbortSignal };
 };
 
-export class EventSystem {
+export default class EventSystem {
 	private static eventListener: {
 		[K in keyof GameEventMap]?: GameEventListener<K>[];
 	} = {};

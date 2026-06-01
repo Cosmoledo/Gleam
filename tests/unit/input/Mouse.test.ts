@@ -1,9 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import EventSystem from "@/core/EventSystem";
 import Vec2 from "@/math/Vec2";
 import type Game from "@/core/Game";
 import { createMockGame } from "../createMockGame";
-import { EventSystem } from "@/core/EventSystem";
 import { MOUSE_KEYS } from "@/input/Mouse";
 
 // ==================== MOUSE_KEYS ====================

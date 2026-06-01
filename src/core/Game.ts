@@ -1,10 +1,10 @@
 import CanvasManager from "@/core/CanvasManager";
+import EventSystem from "@/core/EventSystem";
 import Gameloop from "./Gameloop";
 import Keyboard from "@/input/Keyboard";
 import Mouse from "@/input/Mouse";
 import Settings, { type SettingsOverrides } from "@/core/Settings";
 import { debounce } from "@/utilities/Functions";
-import { EventSystem } from "@/core/EventSystem";
 
 import "@/localization/Translator";
 import "@/prototypes/index";

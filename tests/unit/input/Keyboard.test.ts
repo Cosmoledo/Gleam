@@ -1,9 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import EventSystem from "@/core/EventSystem";
 import Settings from "@/core/Settings";
 import type Game from "@/core/Game";
 import { createMockGame } from "../createMockGame";
-import { EventSystem } from "@/core/EventSystem";
 import { KEYBOARD_KEYS } from "@/input/Keyboard";
 
 // ==================== KEYBOARD_KEYS ====================

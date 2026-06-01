@@ -3,9 +3,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 // ==================== Imports ====================
 
 import CanvasManager, { CANVAS_TYPES } from "@/core/CanvasManager";
+import EventSystem from "@/core/EventSystem";
 import Settings from "@/core/Settings";
 import Vec2 from "@/math/Vec2";
-import { EventSystem } from "@/core/EventSystem";
 
 // ==================== Helpers ====================
 

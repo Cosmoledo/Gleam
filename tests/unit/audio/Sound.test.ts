@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import EventSystem from "@/core/EventSystem";
 import Sound from "@/audio/Sound";
-import { EventSystem } from "@/core/EventSystem";
 
 import "@/prototypes/Audio";
 

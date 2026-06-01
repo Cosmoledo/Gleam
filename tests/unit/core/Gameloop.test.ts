@@ -2,11 +2,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // ==================== Imports ====================
 
+import EventSystem from "@/core/EventSystem";
 import Gameloop from "@/core/Gameloop";
 import Settings from "@/core/Settings";
 import type Game from "@/core/Game";
 import { createMockGame } from "../createMockGame";
-import { EventSystem } from "@/core/EventSystem";
 
 // ==================== Helpers ====================
 

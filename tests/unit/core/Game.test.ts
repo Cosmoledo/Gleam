@@ -2,10 +2,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // ==================== Imports ====================
 
+import EventSystem from "@/core/EventSystem";
 import Game from "@/core/Game";
 import Settings from "@/core/Settings";
 import { CANVAS_TYPES } from "@/core/CanvasManager";
-import { EventSystem } from "@/core/EventSystem";
 
 // ==================== Helpers ====================
 

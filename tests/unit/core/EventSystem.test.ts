@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // ==================== Imports ====================
 
-import { EventSystem } from "@/core/EventSystem";
+import EventSystem from "@/core/EventSystem";
 
 // ==================== Helpers ====================
 

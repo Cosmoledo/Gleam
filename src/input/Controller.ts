@@ -1,7 +1,7 @@
 import ControllerCursor from "./ControllerCursor";
+import EventSystem from "@/core/EventSystem";
 import Vec2 from "@/math/Vec2";
 import type Game from "@/core/Game";
-import { EventSystem } from "@/core/EventSystem";
 import { map, threshold } from "@/utilities/Number";
 
 export const CONTROLLER_KEYS = {

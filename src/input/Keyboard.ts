@@ -1,6 +1,6 @@
+import EventSystem from "@/core/EventSystem";
 import Settings from "@/core/Settings";
 import type Game from "@/core/Game";
-import { EventSystem } from "@/core/EventSystem";
 
 export const KEYBOARD_KEYS = {
 	KEY_0: "Digit0",

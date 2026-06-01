@@ -1,7 +1,7 @@
+import EventSystem from "@/core/EventSystem";
 import Vec2 from "@/math/Vec2";
 import type Game from "@/core/Game";
 import { clamp } from "@/utilities/Number";
-import { EventSystem } from "@/core/EventSystem";
 
 export const MOUSE_KEYS = {
 	LEFT: 0,

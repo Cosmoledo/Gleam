@@ -1,4 +1,4 @@
-import { EventSystem } from "@/core/EventSystem";
+import EventSystem from "@/core/EventSystem";
 import { urlBasename } from "@/utilities/Functions";
 
 export interface RegisterData {

@@ -1,6 +1,6 @@
+import EventSystem from "./EventSystem";
 import Settings from "./Settings";
 import type Game from "./Game";
-import { EventSystem } from "./EventSystem";
 import { rafLoop } from "@/utilities/Functions";
 
 const MAX_DT_SECONDS = 0.25;
