@@ -1,10 +1,12 @@
-const fs = require("fs");
-const path = require("path");
+import fs from "node:fs";
+import path from "node:path";
 
 const MIN_COVERAGE = 95;
 
 function calcCoverage() {
-	const data = require("./coverage/coverage-final.json");
+	const data = JSON.parse(
+		fs.readFileSync("./coverage/coverage-final.json", "utf8"),
+	);
 	/** @type Array<{
 		path: string;
 		stmt: {
@@ -92,7 +94,7 @@ function calcCoverage() {
 }
 
 function hasFileATest() {
-	const SKIP = /(^|\/)(index\.d\.ts|index\.ts)$/;
+	const SKIP = /\.d\.ts$|(^|\/)index\.ts$/;
 
 	/**
 	 * @param {string} dir

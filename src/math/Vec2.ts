@@ -2,6 +2,16 @@ import Rect from "./Rect";
 import { clamp } from "@/utilities/Number";
 import { throttle } from "@/utilities/Functions";
 
+export interface Vector2 {
+	x: number;
+	y: number;
+}
+
+export interface Vector4 extends Vector2 {
+	w: number;
+	h: number;
+}
+
 /**
  * Operation types for vector calculations
  */
@@ -43,13 +53,13 @@ export default class Vec2 {
 	public x = 0;
 	public y = 0;
 
-	constructor(x: GameLIB.Vector2 | number = 0, y?: number) {
+	constructor(x: Vector2 | number = 0, y?: number) {
 		this.calculate(Operation.Equal, x, y);
 	}
 
-	public set(v: GameLIB.Vector2): Vec2;
+	public set(v: Vector2): Vec2;
 	public set(x: number, y?: number): Vec2;
-	public set(x: GameLIB.Vector2 | number, y?: number): Vec2 {
+	public set(x: Vector2 | number, y?: number): Vec2 {
 		return this.calculate(Operation.Equal, x, y);
 	}
 
@@ -57,9 +67,9 @@ export default class Vec2 {
 		return this.map(Math.abs);
 	}
 
-	public add(v: GameLIB.Vector2): Vec2;
+	public add(v: Vector2): Vec2;
 	public add(x: number, y?: number): Vec2;
-	public add(x: GameLIB.Vector2 | number, y?: number): Vec2 {
+	public add(x: Vector2 | number, y?: number): Vec2 {
 		return this.calculate(Operation.Add, x, y);
 	}
 
@@ -74,9 +84,9 @@ export default class Vec2 {
 		return this;
 	}
 
-	public div(v: GameLIB.Vector2): Vec2;
+	public div(v: Vector2): Vec2;
 	public div(x: number, y?: number): Vec2;
-	public div(x: GameLIB.Vector2 | number, y?: number): Vec2 {
+	public div(x: Vector2 | number, y?: number): Vec2 {
 		return this.calculate(Operation.Div, x, y);
 	}
 
@@ -94,15 +104,15 @@ export default class Vec2 {
 		return this;
 	}
 
-	public mod(v: GameLIB.Vector2): Vec2;
+	public mod(v: Vector2): Vec2;
 	public mod(x: number, y?: number): Vec2;
-	public mod(x: GameLIB.Vector2 | number, y?: number): Vec2 {
+	public mod(x: Vector2 | number, y?: number): Vec2 {
 		return this.calculate(Operation.Mod, x, y);
 	}
 
-	public mult(v: GameLIB.Vector2): Vec2;
+	public mult(v: Vector2): Vec2;
 	public mult(x: number, y?: number): Vec2;
-	public mult(x: GameLIB.Vector2 | number, y?: number): Vec2 {
+	public mult(x: Vector2 | number, y?: number): Vec2 {
 		return this.calculate(Operation.Mult, x, y);
 	}
 
@@ -123,9 +133,9 @@ export default class Vec2 {
 		return this.map(value => value / length);
 	}
 
-	public rem(v: GameLIB.Vector2): Vec2;
+	public rem(v: Vector2): Vec2;
 	public rem(x: number, y?: number): Vec2;
-	public rem(x: GameLIB.Vector2 | number, y?: number): Vec2 {
+	public rem(x: Vector2 | number, y?: number): Vec2 {
 		return this.calculate(Operation.Rem, x, y);
 	}
 
@@ -135,13 +145,13 @@ export default class Vec2 {
 		return this;
 	}
 
-	public sub(v: GameLIB.Vector2): Vec2;
+	public sub(v: Vector2): Vec2;
 	public sub(x: number, y?: number): Vec2;
-	public sub(x: GameLIB.Vector2 | number, y?: number): Vec2 {
+	public sub(x: Vector2 | number, y?: number): Vec2 {
 		return this.calculate(Operation.Sub, x, y);
 	}
 
-	public angle(...other: GameLIB.Vector2[]): number {
+	public angle(...other: Vector2[]): number {
 		const out = this.clone();
 
 		other.forEach(vec2 => out.sub(vec2));
@@ -149,17 +159,17 @@ export default class Vec2 {
 		return Math.atan2(out.y, out.x);
 	}
 
-	public distance(other: GameLIB.Vector2): number {
+	public distance(other: Vector2): number {
 		return Math.sqrt(
 			Math.pow(other.x - this.x, 2) + Math.pow(other.y - this.y, 2),
 		);
 	}
 
-	public distanceManhattan(other: GameLIB.Vector2): number {
+	public distanceManhattan(other: Vector2): number {
 		return Math.abs(other.x - this.x) + Math.abs(other.y - this.y);
 	}
 
-	public dotProduct(other: GameLIB.Vector2): number {
+	public dotProduct(other: Vector2): number {
 		return this.x * other.x + this.y * other.y;
 	}
 
@@ -187,14 +197,11 @@ export default class Vec2 {
 		return [this.x, this.y];
 	}
 
-	public toRectAddPos(x: GameLIB.Vector2 | number, y?: number): Rect {
+	public toRectAddPos(x: Vector2 | number, y?: number): Rect {
 		return this.concat(true, x, y);
 	}
 
-	public toRectAddSize(
-		width: GameLIB.Vector2 | number,
-		height?: number,
-	): Rect {
+	public toRectAddSize(width: Vector2 | number, height?: number): Rect {
 		return this.concat(false, width, height);
 	}
 
@@ -206,9 +213,9 @@ export default class Vec2 {
 		return new Vec2(this.x, this.y);
 	}
 
-	public equals(v: GameLIB.Vector2): boolean;
+	public equals(v: Vector2): boolean;
 	public equals(x: number, y?: number): boolean;
-	public equals(x: GameLIB.Vector2 | number, y?: number): boolean {
+	public equals(x: Vector2 | number, y?: number): boolean {
 		const [x2, y2]: number[] = this.getValues(x, y);
 
 		return this.x === x2 && this.y === y2;
@@ -216,7 +223,7 @@ export default class Vec2 {
 
 	private calculate(
 		operation: (typeof Operation)[keyof typeof Operation],
-		x: GameLIB.Vector2 | number,
+		x: Vector2 | number,
 		y?: number,
 	): Vec2 {
 		const [x2, y2]: number[] = this.getValues(x, y);
@@ -269,11 +276,7 @@ export default class Vec2 {
 		return this;
 	}
 
-	private concat(
-		first: boolean,
-		x: GameLIB.Vector2 | number,
-		y?: number,
-	): Rect {
+	private concat(first: boolean, x: Vector2 | number, y?: number): Rect {
 		const [x2, y2]: number[] = this.getValues(x, y);
 
 		if (first) {
@@ -283,7 +286,7 @@ export default class Vec2 {
 		return new Rect(this.x, this.y, x2, y2);
 	}
 
-	private getValues(x: GameLIB.Vector2 | number, y?: number): number[] {
+	private getValues(x: Vector2 | number, y?: number): number[] {
 		let inputX = 0;
 		let inputY = 0;
 

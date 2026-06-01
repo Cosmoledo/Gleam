@@ -1,15 +1,15 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import Audio from "@/audio/Audio";
+import AudioBase from "@/audio/AudioBase";
 import EventSystem from "@/core/EventSystem";
 
 import "@/prototypes/Audio";
 
 // ==================== Imports ====================
 
-class TestAudio extends Audio {}
+class TestAudio extends AudioBase {}
 
-function songs(audio: Audio): Map<string, HTMLAudioElement> {
+function songs(audio: AudioBase): Map<string, HTMLAudioElement> {
 	return (audio as unknown as { songs: Map<string, HTMLAudioElement> }).songs;
 }
 
@@ -19,7 +19,7 @@ beforeEach(() => {
 
 // ==================== constructor ====================
 
-describe("Audio constructor", () => {
+describe("AudioBase constructor", () => {
 	it("defaults enabled to true", () => {
 		const a = new TestAudio();
 		expect(a.enabled).toBe(true);
@@ -45,7 +45,7 @@ describe("Audio constructor", () => {
 
 // ==================== enabled setter ====================
 
-describe("Audio.enabled setter", () => {
+describe("AudioBase.enabled setter", () => {
 	it("setting enabled to false calls stop()", () => {
 		const a = new TestAudio(true);
 		const spy = vi.spyOn(a, "stop");
@@ -72,7 +72,7 @@ describe("Audio.enabled setter", () => {
 
 // ==================== register ====================
 
-describe("Audio.register", () => {
+describe("AudioBase.register", () => {
 	let a: TestAudio;
 
 	beforeEach(() => {
@@ -188,7 +188,7 @@ describe("Audio.register", () => {
 
 // ==================== stop (base) ====================
 
-describe("Audio.stop (base)", () => {
+describe("AudioBase.stop (base)", () => {
 	it("is a no-op and does not throw", () => {
 		const a = new TestAudio();
 		expect(() => a.stop()).not.toThrow();

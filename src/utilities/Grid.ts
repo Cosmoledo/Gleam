@@ -1,3 +1,5 @@
+import type { Vector2 } from "@/math/Vec2";
+
 /**
  * Clone a 2D grid; the outer array and each row become independent copies.
  * Row cells are kept as-is (suitable for primitive cells; for nested structures use `deepClone`).
@@ -9,7 +11,7 @@ export function cloneGrid<T>(grid: ReadonlyArray<ReadonlyArray<T>>): T[][] {
 /**
  * Convert a 1D index to `{x, y}` for a 2D grid of the given row width.
  */
-export function convert1DTo2D(index: number, width: number): GameLIB.Vector2 {
+export function convert1DTo2D(index: number, width: number): Vector2 {
 	return {
 		x: index % width,
 		y: (index / width) | 0,

@@ -1,6 +1,6 @@
 import BezierEasing from "bezier-easing";
 
-import Audio from "./Audio";
+import AudioBase from "./AudioBase";
 import { clamp } from "@/utilities/Number";
 import { rafLoop } from "@/utilities/Functions";
 import { randomItem, remove } from "@/utilities/Array";
@@ -10,7 +10,7 @@ type BezierPoints = readonly [number, number, number, number];
 const EASE_IN: BezierPoints = [0.42, 0, 1, 1];
 const EASE_OUT: BezierPoints = [0, 0, 0.58, 1];
 
-export default class Music extends Audio {
+export default class Music extends AudioBase {
 	private last: HTMLAudioElement | null = null;
 	private current: HTMLAudioElement | null = null;
 	private next: HTMLAudioElement | null = null;

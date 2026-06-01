@@ -1,4 +1,5 @@
 import { Color } from "./Color";
+import type { RGB } from "@/utilities/Color";
 
 /**
  * Used when hue-rotate does not work e.g. on dark images
@@ -9,7 +10,7 @@ import { Color } from "./Color";
  * I would suggest console.log some filters, pick nice ones and hardcode them instead:
  * console.log(colorShifter(randomRgb(1, 10)));
  */
-export function colorShifter(rgb: GameLIB.RGB) {
+export function colorShifter(rgb: RGB) {
 	const color = new Color(rgb[0], rgb[1], rgb[2]);
 	const solver = new Solver(color);
 	const result = solver.solve();

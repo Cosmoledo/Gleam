@@ -7,7 +7,7 @@ export interface RegisterData {
 	volume?: number;
 }
 
-export default abstract class Audio {
+export default abstract class AudioBase {
 	protected songs: Map<string, HTMLAudioElement> = new Map();
 	private _enabled: boolean;
 

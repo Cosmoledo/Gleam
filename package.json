@@ -2,11 +2,24 @@
 	"name": "game-lib",
 	"version": "1.0.0",
 	"description": "A TypeScript game development framework with canvas rendering, audio support, and utility functions",
-	"main": "dist/index.js",
-	"types": "index.d.ts",
+	"type": "module",
+	"main": "dist/gamelib.esm.js",
+	"types": "dist/gamelib.d.ts",
+	"exports": {
+		".": {
+			"types": "./dist/gamelib.d.ts",
+			"import": "./dist/gamelib.esm.js"
+		}
+	},
+	"sideEffects": [
+		"./src/prototypes/*",
+		"./src/localization/Translator.ts",
+		"./dist/gamelib.esm.js",
+		"./dist/gamelib.js",
+		"./dist/gamelib.min.js"
+	],
 	"scripts": {
-		"build": "tspc -p tsconfig.build.json",
-		"watch": "tspc -p tsconfig.build.json -w",
+		"build": "node scripts/build.mjs",
 		"lint": "eslint src tests --ext .ts",
 		"test": "vitest run",
 		"test:unit": "vitest run --project unit",
@@ -33,11 +46,11 @@
 		"@vitest/browser": "^4.1.7",
 		"@vitest/browser-playwright": "^4.1.7",
 		"@vitest/coverage-v8": "^4.1.6",
+		"dts-bundle-generator": "^9.5.1",
+		"esbuild": "^0.28.0",
 		"happy-dom": "^20.9.0",
 		"playwright": "^1.60.0",
-		"ts-patch": "^4.0.1",
 		"typescript": "^6.0.3",
-		"typescript-transform-paths": "^4.0.0",
 		"vitest": "^4.1.6",
 		"vitest-canvas-mock": "^1.1.4"
 	},

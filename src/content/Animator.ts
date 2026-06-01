@@ -2,7 +2,7 @@ import Vec2 from "@/math/Vec2";
 import { createNewCanvas } from "@/utilities/Canvas";
 import { randomBetweenFloat } from "@/utilities/Math";
 
-export interface Animation {
+export interface SpriteAnimation {
 	default?: boolean;
 	name: string;
 	sprites: HTMLCanvasElement[] | HTMLImageElement[];
@@ -46,7 +46,7 @@ export default class Animator {
 	public lookLeft = false;
 	public onEnd: onEndType | undefined;
 	public size: Vec2 = new Vec2();
-	private animations: Animation[] = [];
+	private animations: SpriteAnimation[] = [];
 	private currentAnimation = 0;
 	private entity: BaseEntity;
 	private lastPlayed: string | undefined;
@@ -55,7 +55,7 @@ export default class Animator {
 	private playVersion = 0;
 	private timer = 0;
 
-	public get current(): Animation {
+	public get current(): SpriteAnimation {
 		return this.animations[this.currentAnimation];
 	}
 
@@ -132,12 +132,14 @@ export default class Animator {
 	): void {
 		if (
 			defaultAnim &&
-			this.animations.some((anim: Animation) => anim.default)
+			this.animations.some((anim: SpriteAnimation) => anim.default)
 		) {
 			console.error("Only one default animation allowed!");
 		}
 
-		if (this.animations.some((anim: Animation) => anim.name === name)) {
+		if (
+			this.animations.some((anim: SpriteAnimation) => anim.name === name)
+		) {
 			console.error("Duplicate animation name!");
 		}
 
@@ -153,7 +155,7 @@ export default class Animator {
 		}
 	}
 
-	public addAnimation(anim: Animation, defaultAnim = false): void {
+	public addAnimation(anim: SpriteAnimation, defaultAnim = false): void {
 		this.add(
 			anim.name,
 			anim.sprites,
@@ -179,7 +181,7 @@ export default class Animator {
 
 	public play(name: string, onEnd?: onEndType, onFrame?: onFrameType): void {
 		const index = this.animations.findIndex(
-			(anim: Animation) => anim.name === name,
+			(anim: SpriteAnimation) => anim.name === name,
 		);
 
 		if (index < 0) {
@@ -248,7 +250,7 @@ export default class Animator {
 
 	public reset(): void {
 		const defaultAnim = this.animations.find(
-			(anim: Animation) => anim.default,
+			(anim: SpriteAnimation) => anim.default,
 		);
 
 		if (defaultAnim) {

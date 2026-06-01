@@ -10,7 +10,7 @@ npx vitest run || { echo "Found issues, exiting"; exit 1; }
 echo "No issues runnning tests"
 
 echo ""
-node checkCoverage.js
+node scripts/checkCoverage.js
 
 echo "Building project..."
 npm run build

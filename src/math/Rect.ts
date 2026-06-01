@@ -1,5 +1,6 @@
 import Vec2 from "@/math/Vec2";
 import type Polygon from "@/math/Polygon";
+import type { Vector2, Vector4 } from "@/math/Vec2";
 
 export default class Rect {
 	public static fromBoundingClientRect(rect: DOMRect | HTMLElement): Rect {
@@ -53,7 +54,7 @@ export default class Rect {
 	}
 
 	public set(
-		x: GameLIB.Vector4 | GameLIB.Vector2 | number = 0,
+		x: Vector4 | Vector2 | number = 0,
 		y: number = 0,
 		w?: number,
 		h?: number,
@@ -116,7 +117,7 @@ export default class Rect {
 		);
 	}
 
-	public collidePoint(vec: GameLIB.Vector2): boolean {
+	public collidePoint(vec: Vector2): boolean {
 		return (
 			this.x <= vec.x &&
 			vec.x <= this.x + this.w &&

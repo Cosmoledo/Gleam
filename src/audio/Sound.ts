@@ -1,7 +1,7 @@
-import Audio from "./Audio";
+import AudioBase from "./AudioBase";
 import { remove } from "@/utilities/Array";
 
-export default class Sound extends Audio {
+export default class Sound extends AudioBase {
 	private currentSounds: HTMLAudioElement[] = [];
 
 	public play(name: string): void {

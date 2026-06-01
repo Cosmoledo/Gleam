@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // ==================== Imports ====================
 
-import Animator, { type Animation } from "@/content/Animator";
+import Animator, { type SpriteAnimation } from "@/content/Animator";
 import Vec2 from "@/math/Vec2";
 
 // ==================== Helpers ====================
@@ -114,7 +114,7 @@ describe("Animator.add", () => {
 describe("Animator.addAnimation", () => {
 	it("delegates to add and respects the default flag on the animation object", () => {
 		const a = new Animator(makeEntity(), uniqueNamespace());
-		const anim: Animation = {
+		const anim: SpriteAnimation = {
 			default: true,
 			name: "spin",
 			sprites: makeSprites(2),
@@ -126,7 +126,7 @@ describe("Animator.addAnimation", () => {
 
 	it("forwards the defaultAnim argument", () => {
 		const a = new Animator(makeEntity(), uniqueNamespace());
-		const anim: Animation = {
+		const anim: SpriteAnimation = {
 			name: "spin",
 			sprites: makeSprites(2),
 			timing: 0.2,

@@ -12,7 +12,7 @@ export interface GameEventMap {
 	resized: [];
 }
 
-export interface AddEventListenerOptions {
+export interface EventSystemOptions {
 	once?: boolean;
 	signal?: AbortSignal;
 }
@@ -44,7 +44,7 @@ export default class EventSystem {
 	public static addEventListener<K extends keyof GameEventMap>(
 		eventName: K,
 		callback: (...args: GameEventMap[K]) => void,
-		options: AddEventListenerOptions = {},
+		options: EventSystemOptions = {},
 	): () => void {
 		if (options.signal?.aborted) {
 			return function dispose(): void {};

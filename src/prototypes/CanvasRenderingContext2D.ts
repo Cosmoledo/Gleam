@@ -1,5 +1,105 @@
 import Rect from "@/math/Rect";
 import { createNewCanvas } from "@/utilities/Canvas";
+import type { Vector2, Vector4 } from "@/math/Vec2";
+
+declare global {
+	interface CanvasRenderingContext2D {
+		drawBar(rect: Rect, amount: number, c1?: string, c2?: string): void;
+		drawCircleV2(
+			vecPos: Vector2,
+			rad: number,
+			lineWidth?: number,
+			strokeStyle?: string,
+			amount?: number,
+		): void;
+		drawCircleV4(
+			vecPos: Vector4,
+			rad: number,
+			lineWidth?: number,
+			strokeStyle?: string,
+			amount?: number,
+		): void;
+		drawDottedRect(rect: Rect): void;
+		drawHpBar(
+			pos: Vector2,
+			filled?: number,
+			offset?: Vector2,
+			width?: number,
+			height?: number,
+			border?: number,
+			colors?: string[],
+		): void;
+		drawLine(x1: number, y1: number, x2: number, y2: number): void;
+		drawPolygon(
+			polygonCount: number,
+			pos: Vector2,
+			strokeStyle?: string,
+		): void;
+		drawRect(rect: Rect, strokeStyle?: string): void;
+		drawRect(
+			x: number,
+			y: number,
+			w: number,
+			h: number,
+			strokeStyle?: string,
+		): void;
+		drawRotated(
+			image: HTMLCanvasElement,
+			x: number,
+			y: number,
+			radians: number,
+		): void;
+		drawTriangle(rect: Rect): void;
+		fillCircle(vecPos: Vector2, rad: number, fillStyle?: string): void;
+		fillRectObject(rect: Rect): void;
+		generateColor(
+			size: number,
+			color: string,
+		): {
+			colors: [number, number][];
+			image: HTMLCanvasElement;
+			drawPartialRoundRect: (
+				rect: Rect,
+				amount: number,
+				offsetX?: number,
+				offsetY?: number,
+			) => void;
+		};
+		roundRect(
+			x: number,
+			y: number,
+			w: number,
+			h: number,
+			color?: string,
+			padding?: number,
+			radius?: number,
+			fill?: boolean,
+		): void;
+		roundRectObject(
+			rect: Vector4,
+			color: string,
+			padding?: number,
+			radius?: number,
+		): void;
+		writeMultilineText(
+			text: string,
+			x: number,
+			y: number,
+			width: number,
+			color?: string,
+			lineOffset?: number,
+			maxAttempts?: number,
+		): boolean;
+		writeText(
+			text: string,
+			x: number,
+			y: number,
+			color?: string,
+			measureTextOffset?: number,
+			font?: string,
+		): void;
+	}
+}
 
 /**
  * Fill a two-color bar (`c1` background, `c2` foreground, sized by `amount`). Writes `fillStyle`; the value persists on the context — wrap in `save()`/`restore()` if you need to preserve prior state.
@@ -21,9 +121,9 @@ CanvasRenderingContext2D.prototype.drawBar = function (
  * Draw a three-layer HP bar (outer, frame, fill). Writes `fillStyle`; the value persists on the context — wrap in `save()`/`restore()` if you need to preserve prior state.
  */
 CanvasRenderingContext2D.prototype.drawHpBar = function (
-	pos: GameLIB.Vector2,
+	pos: Vector2,
 	filled = 0.8,
-	offset: GameLIB.Vector2 = {
+	offset: Vector2 = {
 		x: 0,
 		y: 0,
 	},
@@ -58,7 +158,7 @@ CanvasRenderingContext2D.prototype.drawHpBar = function (
  * Stroke a circle. Writes `strokeStyle`/`lineWidth` only when supplied; values persist on the context — wrap in `save()`/`restore()` if you need to preserve prior state.
  */
 CanvasRenderingContext2D.prototype.drawCircleV2 = function (
-	vec2: GameLIB.Vector2,
+	vec2: Vector2,
 	rad: number,
 	lineWidth?: number,
 	strokeStyle?: string,
@@ -82,7 +182,7 @@ CanvasRenderingContext2D.prototype.drawCircleV2 = function (
  * Stroke a circle inscribed in `rect`. Writes `strokeStyle`/`lineWidth` only when supplied; values persist on the context — wrap in `save()`/`restore()` if you need to preserve prior state.
  */
 CanvasRenderingContext2D.prototype.drawCircleV4 = function (
-	rect: GameLIB.Vector4,
+	rect: Vector4,
 	rad: number,
 	lineWidth?: number,
 	strokeStyle?: string,
@@ -309,7 +409,7 @@ CanvasRenderingContext2D.prototype.roundRect = function (
  * `roundRect` variant accepting a `Vector4`; inherits the same state writes.
  */
 CanvasRenderingContext2D.prototype.roundRectObject = function (
-	rect: GameLIB.Vector4,
+	rect: Vector4,
 	color: string,
 	padding?: number,
 	radius?: number,
@@ -356,7 +456,7 @@ CanvasRenderingContext2D.prototype.drawRect = function (
  * Fill a circle. Writes `fillStyle` only when supplied; the value persists on the context — wrap in `save()`/`restore()` if you need to preserve prior state.
  */
 CanvasRenderingContext2D.prototype.fillCircle = function (
-	vecPos: GameLIB.Vector2,
+	vecPos: Vector2,
 	rad: number,
 	fillStyle?: string,
 ): void {
@@ -405,7 +505,7 @@ CanvasRenderingContext2D.prototype.drawRotated = function (
  */
 CanvasRenderingContext2D.prototype.drawPolygon = function (
 	polygonCount: number,
-	pos: GameLIB.Vector2,
+	pos: Vector2,
 	strokeStyle = "white",
 ): void {
 	const rad = Math.min(pos.x, pos.y) * 0.5;

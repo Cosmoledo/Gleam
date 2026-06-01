@@ -1,3 +1,9 @@
+export interface CSSVariables {
+	root: HTMLElement;
+	get(name: string): string;
+	set(name: string, value: string): void;
+}
+
 /**
  * `querySelector` variant that throws when no element matches.
  * Optionally narrow the return type per tag, e.g. `getElement<HTMLCanvasElement>("canvas")`.
@@ -40,7 +46,7 @@ export function setVisibility(element: HTMLElement, active: boolean): void {
 /**
  * Returns `get` / `set` helpers for CSS custom properties (`--name`) on the `:root` element.
  */
-export function initCSSVariables(): GameLIB.CSSVariables {
+export function initCSSVariables(): CSSVariables {
 	const root = getElement(":root");
 
 	return {

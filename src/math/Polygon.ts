@@ -1,6 +1,13 @@
 import Vec2 from "@/math/Vec2";
 import type Rect from "@/math/Rect";
 import { throttle } from "@/utilities/Functions";
+import type { Vector2 } from "@/math/Vec2";
+
+export interface PolygonCollisionResult {
+	intersect: boolean;
+	minimumTranslationVector: Vec2;
+	willIntersect: boolean;
+}
 
 const throttledTrace = throttle((count: number) => {
 	console.trace(
@@ -271,7 +278,7 @@ export default class Polygon {
 		context.stroke();
 	}
 
-	public addPoint(x: GameLIB.Vector2 | number, y?: number): Polygon {
+	public addPoint(x: Vector2 | number, y?: number): Polygon {
 		this.points.push(new Vec2(x, y));
 
 		return this;
@@ -327,8 +334,8 @@ export default class Polygon {
 	public collide(
 		otherPolygon: Polygon,
 		velocity: Vec2 = new Vec2(),
-	): GameLIB.PolygonCollisionResult {
-		const result: GameLIB.PolygonCollisionResult = {
+	): PolygonCollisionResult {
+		const result: PolygonCollisionResult = {
 			intersect: true,
 			minimumTranslationVector: new Vec2(),
 			willIntersect: true,

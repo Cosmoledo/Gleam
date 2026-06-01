@@ -1,5 +1,7 @@
 import { randomBetweenInt } from "./Math";
 
+export type RGB = [number, number, number];
+
 /**
  * Convert an `(r, g, b)` triple (0-255) to a `#rrggbb` hex string.
  * Low-level; prefer `Color.toHex()` outside hot per-pixel loops.
@@ -32,7 +34,7 @@ export function rgb2Int(
  * Convert a `#rgb` or `#rrggbb` hex string to an `[r, g, b]` integer tuple.
  * Low-level; prefer `Color.fromHex()` outside hot per-pixel loops. Caller must pass a valid hex string.
  */
-export function hex2rgb(hex: string): GameLIB.RGB {
+export function hex2rgb(hex: string): RGB {
 	return hex
 		.replace(
 			/^#?([a-f\d])([a-f\d])([a-f\d])$/i,
@@ -41,7 +43,7 @@ export function hex2rgb(hex: string): GameLIB.RGB {
 		)
 		.substring(1)
 		.match(/.{2}/g)!
-		.map((x: string) => parseInt(x, 16)) as GameLIB.RGB;
+		.map((x: string) => parseInt(x, 16)) as RGB;
 }
 
 /**
@@ -81,7 +83,7 @@ export function randomHex(): string {
 /**
  * Random `[r, g, b]` integer tuple; each channel uniform in `[min, max]`.
  */
-export function randomRgb(min = 0, max = 255): GameLIB.RGB {
+export function randomRgb(min = 0, max = 255): RGB {
 	return [
 		randomBetweenInt(min, max),
 		randomBetweenInt(min, max),

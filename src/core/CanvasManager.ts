@@ -1,7 +1,7 @@
 import EventSystem from "./EventSystem";
 import Settings from "@/core/Settings";
 import Vec2 from "@/math/Vec2";
-import { getCanvasConstruct } from "@/utilities/Canvas";
+import { type CanvasConstruct, getCanvasConstruct } from "@/utilities/Canvas";
 
 export const CANVAS_TYPES = {
 	ANY: Symbol("any"),
@@ -10,7 +10,7 @@ export const CANVAS_TYPES = {
 	MAIN: Symbol("main"),
 } as const;
 
-export interface CanvasHolder extends GameLIB.CanvasConstruct {
+export interface CanvasHolder extends CanvasConstruct {
 	id: string;
 	resize: boolean;
 	type: symbol;

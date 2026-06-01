@@ -1,6 +1,36 @@
 import { convert2DTo1D } from "@/utilities/Grid";
 import { createNewCanvas } from "@/utilities/Canvas";
-import { hex2rgb, rgb2Int } from "@/utilities/Color";
+import { hex2rgb, type RGB, rgb2Int } from "@/utilities/Color";
+
+declare global {
+	interface HTMLCanvasElement {
+		autoCrop(): HTMLCanvasElement;
+		clone(): HTMLCanvasElement;
+		flipX(offsetX?: number): HTMLCanvasElement;
+		flipY(offsetY?: number): HTMLCanvasElement;
+		getPixelAt(x: number, y: number, output?: "integer"): number;
+		getPixelAt(x: number, y: number, output: "array"): [...RGB, number];
+		getPixelAt(
+			x: number,
+			y: number,
+			output: "json",
+		): { r: number; g: number; b: number; a: number };
+		getPixelAt(x: number, y: number, output: "string"): string;
+		replaceColors(replacements: Record<string, string>): HTMLCanvasElement;
+		hasAnyColor(): boolean;
+		resize(size: number, isWidth?: boolean): HTMLCanvasElement;
+		rotateBy(radians: number): HTMLCanvasElement;
+		rotateByAligned(radians: number): HTMLCanvasElement;
+		scaleBy(scaleX?: number, scaleY?: number): HTMLCanvasElement;
+		subImage(
+			x: number,
+			y: number,
+			w?: number,
+			h?: number,
+		): HTMLCanvasElement;
+		toImage(): HTMLImageElement;
+	}
+}
 
 HTMLCanvasElement.prototype.hasAnyColor = function (): boolean {
 	const rgba = this.getContext("2d")!.getImageData(
@@ -60,7 +90,7 @@ HTMLCanvasElement.prototype.getPixelAt = function (
 HTMLCanvasElement.prototype.replaceColors = function (
 	replacements: Record<string, string>,
 ): HTMLCanvasElement {
-	const lookup = new Map<number, GameLIB.RGB>();
+	const lookup = new Map<number, RGB>();
 	for (const from in replacements) {
 		const [fr, fg, fb] = hex2rgb(from);
 		const [tr, tg, tb] = hex2rgb(replacements[from]);

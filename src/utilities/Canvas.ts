@@ -4,6 +4,11 @@ import { rgb2Int } from "./Color";
 
 import "@/prototypes/HTMLCanvasElement"; // splitSpriteSheet relies on the subImage patch
 
+export interface CanvasConstruct {
+	canvas: HTMLCanvasElement;
+	context: CanvasRenderingContext2D;
+}
+
 /**
  * Create a new `<canvas>` of the given size with its 2D context. Antialiasing defaults to `Settings.antialias`.
  */
@@ -11,7 +16,7 @@ export function createNewCanvas(
 	width: number,
 	height: number,
 	antialias: boolean = Settings.antialias,
-): GameLIB.CanvasConstruct {
+): CanvasConstruct {
 	const canvas = document.createElement("canvas");
 	canvas.width = width;
 	canvas.height = height;
@@ -28,7 +33,7 @@ export function createNewCanvas(
 /**
  * Look up an existing canvas by CSS selector and return it with its 2D context.
  */
-export function getCanvasConstruct(selector: string): GameLIB.CanvasConstruct {
+export function getCanvasConstruct(selector: string): CanvasConstruct {
 	const canvas = getElement<HTMLCanvasElement>(selector);
 	const context = canvas.getContext("2d")!;
 

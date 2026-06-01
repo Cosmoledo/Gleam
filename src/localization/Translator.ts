@@ -1,5 +1,11 @@
 import Settings from "@/core/Settings";
 
+declare global {
+	interface Window {
+		_(key: string): string;
+	}
+}
+
 window._ = function fallbackTranslate() {
 	throw new Error("Call 'prepareLanguage' first!");
 };
