@@ -184,6 +184,63 @@ describe("AudioBase.register", () => {
 		expect(audio.src).toContain("new.mp3");
 		expect(audio.volume).toBeCloseTo(0.9);
 	});
+
+	it("logs an error when the audio element fails to load the source", () => {
+		const errSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+		a.register(1, { name: "broken", path: "/not-audio.html" });
+		const audio = songs(a).get("broken")!;
+		Object.defineProperty(audio, "error", {
+			configurable: true,
+			get: () => ({ code: 4, message: "" }),
+		});
+		audio.dispatchEvent(new Event("error"));
+		expect(errSpy).toHaveBeenCalledTimes(1);
+		expect(errSpy.mock.calls[0][0]).toMatch(/broken/);
+		expect(errSpy.mock.calls[0][0]).toMatch(/SRC_NOT_SUPPORTED/);
+		errSpy.mockRestore();
+	});
+
+	it("logs 'unknown' when the audio element exposes no error object", () => {
+		const errSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+		a.register(1, { name: "nullerr", path: "/x.mp3" });
+		const audio = songs(a).get("nullerr")!;
+		Object.defineProperty(audio, "error", {
+			configurable: true,
+			get: () => null,
+		});
+		audio.dispatchEvent(new Event("error"));
+		expect(errSpy).toHaveBeenCalledTimes(1);
+		expect(errSpy.mock.calls[0][0]).toMatch(/unknown/);
+		errSpy.mockRestore();
+	});
+
+	it("falls back to the numeric code when the MediaError code is unrecognized", () => {
+		const errSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+		a.register(1, { name: "weird", path: "/x.mp3" });
+		const audio = songs(a).get("weird")!;
+		Object.defineProperty(audio, "error", {
+			configurable: true,
+			get: () => ({ code: 99, message: "" }),
+		});
+		audio.dispatchEvent(new Event("error"));
+		expect(errSpy).toHaveBeenCalledTimes(1);
+		expect(errSpy.mock.calls[0][0]).toMatch(/: 99/);
+		errSpy.mockRestore();
+	});
+
+	it("appends the MediaError message when one is provided", () => {
+		const errSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+		a.register(1, { name: "msg", path: "/x.mp3" });
+		const audio = songs(a).get("msg")!;
+		Object.defineProperty(audio, "error", {
+			configurable: true,
+			get: () => ({ code: 3, message: "bad header" }),
+		});
+		audio.dispatchEvent(new Event("error"));
+		expect(errSpy).toHaveBeenCalledTimes(1);
+		expect(errSpy.mock.calls[0][0]).toMatch(/DECODE: bad header/);
+		errSpy.mockRestore();
+	});
 });
 
 // ==================== stop (base) ====================

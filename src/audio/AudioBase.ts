@@ -7,6 +7,13 @@ export interface RegisterData {
 	volume?: number;
 }
 
+const MEDIA_ERROR_CODES: Record<number, string> = {
+	1: "ABORTED",
+	2: "NETWORK",
+	3: "DECODE",
+	4: "SRC_NOT_SUPPORTED",
+};
+
 export default abstract class AudioBase {
 	protected songs: Map<string, HTMLAudioElement> = new Map();
 	private _enabled: boolean;
@@ -39,6 +46,16 @@ export default abstract class AudioBase {
 			}
 
 			const audio = new window.Audio();
+
+			audio.addEventListener("error", () => {
+				const err = audio.error;
+				const reason = err
+					? `${MEDIA_ERROR_CODES[err.code] ?? err.code}${err.message ? `: ${err.message}` : ""}`
+					: "unknown";
+				console.error(
+					`Failed to load audio "${song.name}" from "${audio.src}": ${reason}`,
+				);
+			});
 
 			audio.preload = "auto";
 			audio.src = song.path;
