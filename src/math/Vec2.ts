@@ -27,7 +27,7 @@ const Operation = {
 
 const warnZeroNormalize = throttle(
 	count =>
-		console.trace(
+		console.warn(
 			`Vec2.normalize() called on zero vector ${count}× since last warning; returning zero.`,
 		),
 	1000,
@@ -35,7 +35,7 @@ const warnZeroNormalize = throttle(
 
 const warnNonFinite = throttle(
 	count =>
-		console.trace(
+		console.warn(
 			`Vec2 operation produced non-finite value ${count}× since last warning; check for zero divisor.`,
 		),
 	1000,

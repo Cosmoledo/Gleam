@@ -1171,22 +1171,22 @@ describe("clone", () => {
 
 describe("warnings and invariants", () => {
 	it("traces a warning when normalize is called on a zero vector", () => {
-		const traceSpy = vi
-			.spyOn(console, "trace")
+		const warnSpy = vi
+			.spyOn(console, "warn")
 			.mockImplementation(() => {});
 		const nowSpy = vi.spyOn(performance, "now").mockReturnValue(1e9);
 
 		new Vec2(0, 0).normalize();
 
-		expect(traceSpy).toHaveBeenCalled();
+		expect(warnSpy).toHaveBeenCalled();
 
 		nowSpy.mockRestore();
-		traceSpy.mockRestore();
+		warnSpy.mockRestore();
 	});
 
 	it("traces a warning when an operation produces a non-finite value", () => {
-		const traceSpy = vi
-			.spyOn(console, "trace")
+		const warnSpy = vi
+			.spyOn(console, "warn")
 			.mockImplementation(() => {});
 		const nowSpy = vi.spyOn(performance, "now").mockReturnValue(1e9);
 
@@ -1194,10 +1194,10 @@ describe("warnings and invariants", () => {
 
 		expect(v.x).toBe(Infinity);
 		expect(v.y).toBe(Infinity);
-		expect(traceSpy).toHaveBeenCalled();
+		expect(warnSpy).toHaveBeenCalled();
 
 		nowSpy.mockRestore();
-		traceSpy.mockRestore();
+		warnSpy.mockRestore();
 	});
 
 	it("leaves state untouched for an unknown calculate operation", () => {

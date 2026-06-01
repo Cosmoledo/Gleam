@@ -302,8 +302,8 @@ describe("collide", () => {
 	});
 
 	it("traces a warning when one polygon has no edges", () => {
-		const traceSpy = vi
-			.spyOn(console, "trace")
+		const warnSpy = vi
+			.spyOn(console, "warn")
 			.mockImplementation(() => {});
 		const nowSpy = vi.spyOn(performance, "now").mockReturnValue(1e9);
 
@@ -315,10 +315,10 @@ describe("collide", () => {
 		);
 		p1.collide(p2);
 
-		expect(traceSpy).toHaveBeenCalled();
+		expect(warnSpy).toHaveBeenCalled();
 
 		nowSpy.mockRestore();
-		traceSpy.mockRestore();
+		warnSpy.mockRestore();
 	});
 
 	it("detects willIntersect with velocity", () => {
