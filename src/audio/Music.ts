@@ -55,7 +55,7 @@ export default class Music extends AudioBase {
 		}
 
 		if (this.songs.size === 0) {
-			throw new Error("No songs registered!");
+			throw new Error("No music registered!");
 		}
 
 		if (this.fadeCancel) {
@@ -65,6 +65,14 @@ export default class Music extends AudioBase {
 			this.current?.stop();
 			this.current = this.next;
 			this.next = null;
+		}
+
+		if (this.songs.size === 1) {
+			console.info("Only one music registered, playing that looped.");
+			this.current = this.songs.values().next().value!;
+			this.current.loop = true;
+			this.current.play();
+			return;
 		}
 
 		if (name && this.songs.has(name)) {
@@ -80,9 +88,9 @@ export default class Music extends AudioBase {
 
 			if (!this.next) {
 				console.warn(
-					"Not enough songs to get random one, playing best possible one.",
+					"Not enough songs to pick a fresh one, replaying the previous one.",
 				);
-				this.next = this.last ?? this.current!;
+				this.next = this.last!;
 			}
 		}
 

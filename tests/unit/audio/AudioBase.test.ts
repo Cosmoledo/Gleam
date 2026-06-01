@@ -166,23 +166,16 @@ describe("AudioBase.register", () => {
 		a.register(1, "/a.mp3", { name: "b", path: "/x.wav" }, "/folder/c.ogg");
 		const map = songs(a);
 		expect(map.size).toBe(3);
-		expect(map.has("a")).toBe(true);
-		expect(map.has("b")).toBe(true);
-		expect(map.has("c")).toBe(true);
+		expect(map.get("a")?.getAttribute("src")).toBe("/a.mp3");
+		expect(map.get("b")?.getAttribute("src")).toBe("/x.wav");
+		expect(map.get("c")?.getAttribute("src")).toBe("/folder/c.ogg");
 	});
 
-	it("calls across the same instance accumulate songs", () => {
+	it("throws when called a second time on the same instance", () => {
 		a.register(1, { name: "a", path: "/a.mp3" });
-		a.register(1, { name: "b", path: "/b.mp3" });
-		expect(songs(a).size).toBe(2);
-	});
-
-	it("re-registering the same name overwrites the previous entry", () => {
-		a.register(1, { name: "x", path: "/old.mp3", volume: 0.1 });
-		a.register(1, { name: "x", path: "/new.mp3", volume: 0.9 });
-		const audio = songs(a).get("x")!;
-		expect(audio.src).toContain("new.mp3");
-		expect(audio.volume).toBeCloseTo(0.9);
+		expect(() =>
+			a.register(1, { name: "b", path: "/b.mp3" }),
+		).toThrow(/once/);
 	});
 
 	it("logs an error when the audio element fails to load the source", () => {

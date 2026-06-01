@@ -151,7 +151,7 @@ describe("Music.fade", () => {
 
 	it("throws when no songs are registered", () => {
 		const m = new Music();
-		expect(() => m.fade()).toThrow(/No songs/);
+		expect(() => m.fade()).toThrow(/No music/);
 	});
 
 	it("uses the named song when registered", () => {
@@ -167,25 +167,37 @@ describe("Music.fade", () => {
 
 	it("logs error and falls back to random when name is not registered", () => {
 		const m = new Music();
-		m.register(1, { name: "only", path: "/only.mp3" });
+		m.register(
+			1,
+			{ name: "a", path: "/a.mp3" },
+			{ name: "b", path: "/b.mp3" },
+		);
 		m.fade("unknown");
 		expect(console.error).toHaveBeenCalledWith(
 			expect.stringContaining("unknown"),
 		);
-		expect(internals(m).next?.id).toBe("only");
+		expect(["a", "b"]).toContain(internals(m).next?.id);
 	});
 
 	it("picks a random song when name is null", () => {
 		const m = new Music();
-		m.register(1, { name: "only", path: "/only.mp3" });
+		m.register(
+			1,
+			{ name: "a", path: "/a.mp3" },
+			{ name: "b", path: "/b.mp3" },
+		);
 		m.fade();
-		expect(internals(m).next?.id).toBe("only");
+		expect(["a", "b"]).toContain(internals(m).next?.id);
 	});
 
 	it("sets next.volume to 0 and plays it", () => {
 		const m = new Music();
-		m.register(0.7, { name: "s", path: "/s.mp3" });
-		m.fade("s");
+		m.register(
+			0.7,
+			{ name: "a", path: "/a.mp3" },
+			{ name: "b", path: "/b.mp3" },
+		);
+		m.fade("a");
 		expect(internals(m).next?.volume).toBe(0);
 		expect(HTMLAudioElement.prototype.play).toHaveBeenCalled();
 	});
@@ -207,19 +219,28 @@ describe("Music.fade", () => {
 
 	it("when getRandom finds no new song, falls back to current", () => {
 		const m = new Music();
-		m.register(1, { name: "only", path: "/only.mp3" });
-		const only = internals(m).songs.get("only")!;
-		internals(m).current = only;
-		// With only one song that is already current, getRandom() returns null
-		// and fade() should fall back to the last/current song.
+		m.register(
+			1,
+			{ name: "a", path: "/a.mp3" },
+			{ name: "b", path: "/b.mp3" },
+		);
+		const a = internals(m).songs.get("a")!;
+		const b = internals(m).songs.get("b")!;
+		// Both songs are excluded by getRandom (last + current) → null → fallback.
+		internals(m).last = a;
+		internals(m).current = b;
 		m.fade();
-		expect(internals(m).next).toBe(only);
+		expect(internals(m).next).toBe(a);
 	});
 
 	it("drives fade to completion via rafLoop (promotes next to current)", () => {
 		const m = new Music();
-		m.register(0.5, { name: "s", path: "/s.mp3" });
-		m.fade("s");
+		m.register(
+			0.5,
+			{ name: "a", path: "/a.mp3" },
+			{ name: "b", path: "/b.mp3" },
+		);
+		m.fade("a");
 		const target = internals(m).next!;
 		flushUntilDone(m);
 		expect(internals(m).fadeCancel).toBe(null);
@@ -259,6 +280,16 @@ describe("Music.fade", () => {
 		// last=a, current=b → the only candidate left is c
 		m.fade();
 		expect(internals(m).next?.id).toBe("c");
+	});
+
+	it("with a single registered song, post-completion sets native loop and clears onended", () => {
+		const m = new Music();
+		m.register(1, { name: "only", path: "/only.mp3" });
+		m.fade("only");
+		flushUntilDone(m);
+		const cur = internals(m).current!;
+		expect(cur.loop).toBe(true);
+		expect(cur.onended).toBe(null);
 	});
 
 	it("post-completion next.onended handler restarts the fade", () => {
@@ -303,8 +334,12 @@ describe("Music.fade", () => {
 describe("Music.stop", () => {
 	it("clears the in-progress fade and resets next", () => {
 		const m = new Music();
-		m.register(1, { name: "s", path: "/s.mp3" });
-		m.fade("s");
+		m.register(
+			1,
+			{ name: "a", path: "/a.mp3" },
+			{ name: "b", path: "/b.mp3" },
+		);
+		m.fade("a");
 		expect(internals(m).fadeCancel).not.toBe(null);
 		m.stop();
 		expect(internals(m).fadeCancel).toBe(null);

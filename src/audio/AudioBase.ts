@@ -17,6 +17,7 @@ const MEDIA_ERROR_CODES: Record<number, string> = {
 export default abstract class AudioBase {
 	protected songs: Map<string, HTMLAudioElement> = new Map();
 	private _enabled: boolean;
+	private registered: boolean = false;
 
 	public get enabled(): boolean {
 		return this._enabled;
@@ -40,6 +41,11 @@ export default abstract class AudioBase {
 		defaultVolume: number = 1,
 		...songs: (RegisterData | string)[]
 	): void {
+		if (this.registered) {
+			throw new Error("register() can only be called once per instance");
+		}
+		this.registered = true;
+
 		songs.forEach(song => {
 			if (typeof song === "string") {
 				song = { name: urlBasename(song) ?? song, path: song };
