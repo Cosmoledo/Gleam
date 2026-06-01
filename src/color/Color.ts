@@ -81,7 +81,7 @@ export class Color {
 		this.set(r, g, b, a);
 	}
 
-	public set(r: number, g: number, b: number, a?: number): void {
+	public set(r: number, g: number, b: number, a?: number): this {
 		this._r = Math.round(clamp(r, 0, 255));
 		this._g = Math.round(clamp(g, 0, 255));
 		this._b = Math.round(clamp(b, 0, 255));
@@ -89,22 +89,24 @@ export class Color {
 		if (a !== undefined) {
 			this._alpha = clamp(a, 0, 1);
 		}
+
+		return this;
 	}
 
-	public brightness(factor: number): void {
-		this.set(this.r * factor, this.g * factor, this.b * factor);
+	public brightness(factor: number): this {
+		return this.set(this.r * factor, this.g * factor, this.b * factor);
 	}
 
-	public contrast(factor: number): void {
+	public contrast(factor: number): this {
 		const midtone = 127.5;
-		this.set(
+		return this.set(
 			midtone + (this.r - midtone) * factor,
 			midtone + (this.g - midtone) * factor,
 			midtone + (this.b - midtone) * factor,
 		);
 	}
 
-	public grayscale(value: number = 1): void {
+	public grayscale(value: number = 1): this {
 		const m1 = 0.2126 + 0.7874 * (1 - value);
 		const m2 = 0.7152 - 0.7152 * (1 - value);
 		const m3 = 0.0722 - 0.0722 * (1 - value);
@@ -115,14 +117,14 @@ export class Color {
 		const m8 = 0.7152 - 0.7152 * (1 - value);
 		const m9 = 0.0722 + 0.9278 * (1 - value);
 
-		this.set(
+		return this.set(
 			this.r * m1 + this.g * m2 + this.b * m3,
 			this.r * m4 + this.g * m5 + this.b * m6,
 			this.r * m7 + this.g * m8 + this.b * m9,
 		);
 	}
 
-	public hueRotate(degrees: number): void {
+	public hueRotate(degrees: number): this {
 		const radians = (degrees * Math.PI) / 180;
 		const cos = Math.cos(radians);
 		const sin = Math.sin(radians);
@@ -137,24 +139,24 @@ export class Color {
 		const m8 = 0.715 - cos * 0.715 + sin * 0.715;
 		const m9 = 0.072 + cos * 0.928 + sin * 0.072;
 
-		this.set(
+		return this.set(
 			this.r * m1 + this.g * m2 + this.b * m3,
 			this.r * m4 + this.g * m5 + this.b * m6,
 			this.r * m7 + this.g * m8 + this.b * m9,
 		);
 	}
 
-	public invert(factor: number = 1): void {
-		this.set(
+	public invert(factor: number = 1): this {
+		return this.set(
 			this.r * (1 - factor) + (255 - this.r) * factor,
 			this.g * (1 - factor) + (255 - this.g) * factor,
 			this.b * (1 - factor) + (255 - this.b) * factor,
 		);
 	}
 
-	public mix(other: Color, amount: number): void {
+	public mix(other: Color, amount: number): this {
 		const inv = 1 - amount;
-		this.set(
+		return this.set(
 			this.r * inv + other.r * amount,
 			this.g * inv + other.g * amount,
 			this.b * inv + other.b * amount,
@@ -162,7 +164,7 @@ export class Color {
 		);
 	}
 
-	public saturate(value: number = 1): void {
+	public saturate(value: number = 1): this {
 		const m1 = 0.213 + 0.787 * value;
 		const m2 = 0.715 - 0.715 * value;
 		const m3 = 0.072 - 0.072 * value;
@@ -173,14 +175,14 @@ export class Color {
 		const m8 = 0.715 - 0.715 * value;
 		const m9 = 0.072 + 0.928 * value;
 
-		this.set(
+		return this.set(
 			this.r * m1 + this.g * m2 + this.b * m3,
 			this.r * m4 + this.g * m5 + this.b * m6,
 			this.r * m7 + this.g * m8 + this.b * m9,
 		);
 	}
 
-	public sepia(value: number = 1): void {
+	public sepia(value: number = 1): this {
 		const m1 = 0.393 + 0.607 * (1 - value);
 		const m2 = 0.769 - 0.769 * (1 - value);
 		const m3 = 0.189 - 0.189 * (1 - value);
@@ -191,17 +193,17 @@ export class Color {
 		const m8 = 0.534 - 0.534 * (1 - value);
 		const m9 = 0.131 + 0.869 * (1 - value);
 
-		this.set(
+		return this.set(
 			this.r * m1 + this.g * m2 + this.b * m3,
 			this.r * m4 + this.g * m5 + this.b * m6,
 			this.r * m7 + this.g * m8 + this.b * m9,
 		);
 	}
 
-	public shade(percent: number): void {
+	public shade(percent: number): this {
 		const target = percent < 0 ? 0 : 255;
 		const p = Math.abs(percent);
-		this.set(
+		return this.set(
 			this.r + (target - this.r) * p,
 			this.g + (target - this.g) * p,
 			this.b + (target - this.b) * p,
