@@ -2,6 +2,8 @@ import "./Audio";
 import "./CanvasRenderingContext2D";
 import "./HTMLCanvasElement";
 
+export {};
+
 declare global {
 	interface HTMLImageElement {
 		subImage(

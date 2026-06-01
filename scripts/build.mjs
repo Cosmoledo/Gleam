@@ -64,6 +64,7 @@ function bundleTypes(entry, outfile) {
 		"dts-bundle-generator",
 		"--project",
 		TSCONFIG,
+		"--inline-declare-global",
 		"-o",
 		outfile,
 		entry,

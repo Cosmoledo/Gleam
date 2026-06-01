@@ -5,14 +5,14 @@
 // Invoked by scripts/build.mjs; the barrel is deleted after bundling.
 
 import { readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
-import { join, relative } from "node:path";
+import { dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 
-const ROOT = join(fileURLToPath(import.meta.url), "../..");
+const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const SRC = join(ROOT, "src");
 const OUT = join(SRC, "index.ts");
 
-const EXCLUDE_DIRS = new Set(["prototypes"]);
+const EXCLUDE_DIRS = new Set();
 const EXCLUDE_FILES = new Set(["index.ts"]);
 
 function walk(dir) {

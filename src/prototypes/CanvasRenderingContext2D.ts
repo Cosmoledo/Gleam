@@ -2,6 +2,8 @@ import Rect from "@/math/Rect";
 import { createNewCanvas } from "@/utilities/Canvas";
 import type { Vector2, Vector4 } from "@/math/Vec2";
 
+export {};
+
 declare global {
 	interface CanvasRenderingContext2D {
 		drawBar(rect: Rect, amount: number, c1?: string, c2?: string): void;

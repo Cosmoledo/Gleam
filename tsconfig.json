@@ -23,6 +23,7 @@
 		},
 		"rootDir": "./",
 		"skipDefaultLibCheck": true,
+		"skipLibCheck": true,
 		"sourceMap": true,
 		"strict": true,
 		"strictBindCallApply": true,

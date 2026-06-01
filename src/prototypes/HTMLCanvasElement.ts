@@ -2,6 +2,8 @@ import { convert2DTo1D } from "@/utilities/Grid";
 import { createNewCanvas } from "@/utilities/Canvas";
 import { hex2rgb, type RGB, rgb2Int } from "@/utilities/Color";
 
+export {};
+
 declare global {
 	interface HTMLCanvasElement {
 		autoCrop(): HTMLCanvasElement;
