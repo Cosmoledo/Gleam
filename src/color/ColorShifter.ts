@@ -31,7 +31,7 @@ class Solver {
 
 	constructor(target: Color) {
 		this.target = target;
-		this.targetHSL = target.hsl();
+		this.targetHSL = target.toHSLObject();
 		this.reusedColor = new Color(0, 0, 0);
 	}
 
@@ -59,7 +59,7 @@ class Solver {
 		color.brightness(filters[4] / 100);
 		color.contrast(filters[5] / 100);
 
-		const colorHSL = color.hsl();
+		const colorHSL = color.toHSLObject();
 
 		return (
 			Math.abs(color.r - this.target.r) +

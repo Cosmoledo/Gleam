@@ -597,46 +597,46 @@ describe("shade", () => {
 	});
 });
 
-// ==================== hsl ====================
+// ==================== toHSLObject ====================
 
-describe("hsl", () => {
+describe("toHSLObject", () => {
 	it("returns h=0, s=0 for black", () => {
-		const { h, s, l } = new Color(0, 0, 0).hsl();
+		const { h, s, l } = new Color(0, 0, 0).toHSLObject();
 		expect(h).toBe(0);
 		expect(s).toBe(0);
 		expect(l).toBe(0);
 	});
 
 	it("returns h=0, s=0 for white", () => {
-		const { h, s, l } = new Color(255, 255, 255).hsl();
+		const { h, s, l } = new Color(255, 255, 255).toHSLObject();
 		expect(h).toBe(0);
 		expect(s).toBe(0);
 		expect(l).toBe(100);
 	});
 
 	it("returns h=0, s=0 for mid-gray", () => {
-		const { h, s, l } = new Color(128, 128, 128).hsl();
+		const { h, s, l } = new Color(128, 128, 128).toHSLObject();
 		expect(h).toBe(0);
 		expect(s).toBe(0);
 		expect(l).toBeCloseTo(50.2, 1);
 	});
 
 	it("returns h=0 for pure red", () => {
-		const { h, s, l } = new Color(255, 0, 0).hsl();
+		const { h, s, l } = new Color(255, 0, 0).toHSLObject();
 		expect(h).toBe(0);
 		expect(s).toBe(100);
 		expect(l).toBe(50);
 	});
 
 	it("returns h=120 for pure green", () => {
-		const { h, s, l } = new Color(0, 255, 0).hsl();
+		const { h, s, l } = new Color(0, 255, 0).toHSLObject();
 		expect(h).toBe(120);
 		expect(s).toBe(100);
 		expect(l).toBe(50);
 	});
 
 	it("returns h=240 for pure blue", () => {
-		const { h, s, l } = new Color(0, 0, 255).hsl();
+		const { h, s, l } = new Color(0, 0, 255).toHSLObject();
 		expect(h).toBe(240);
 		expect(s).toBe(100);
 		expect(l).toBe(50);
@@ -644,45 +644,49 @@ describe("hsl", () => {
 
 	it("returns h ~= 300 (g < b branch) for magenta-ish input", () => {
 		// red is max and b > g triggers the `g < b ? 6 : 0` offset
-		const { h } = new Color(200, 0, 100).hsl();
+		const { h } = new Color(200, 0, 100).toHSLObject();
 		expect(h).toBeGreaterThan(300);
 		expect(h).toBeLessThan(360);
 	});
 
 	it("uses the high-lightness branch of saturation (l > 0.5)", () => {
 		// light pink: l > 50, exercises s = d / (2 - max - min)
-		const { s, l } = new Color(255, 200, 200).hsl();
+		const { s, l } = new Color(255, 200, 200).toHSLObject();
 		expect(l).toBeGreaterThan(50);
 		expect(s).toBe(100);
 	});
 
 	it("returns alpha from the Color", () => {
-		const { a } = new Color(255, 0, 0, 0.3).hsl();
+		const { a } = new Color(255, 0, 0, 0.3).toHSLObject();
 		expect(a).toBeCloseTo(0.3);
 	});
 
 	it("round-trips alpha through fromHSL → hsl", () => {
 		const c = Color.fromHSL(180, 50, 50, 0.7);
-		const { a } = c.hsl();
+		const { a } = c.toHSLObject();
 		expect(a).toBeCloseTo(0.7);
 	});
 });
 
-// ==================== toCSS ====================
+// ==================== toRGB ====================
 
-describe("toCSS", () => {
-	it("formats with alpha 1.00", () => {
-		expect(new Color(10, 20, 30).toCSS()).toBe("rgba(10, 20, 30, 1.00)");
+describe("toRGB", () => {
+	it("uses rgb(...) when alpha = 1", () => {
+		expect(new Color(10, 20, 30).toRGB()).toBe("rgb(10, 20, 30)");
 	});
 
-	it("formats with custom alpha to 2 decimals", () => {
-		expect(new Color(10, 20, 30, 0.5).toCSS()).toBe(
+	it("uses rgba(...) with 2-decimal alpha when alpha < 1", () => {
+		expect(new Color(10, 20, 30, 0.5).toRGB()).toBe(
 			"rgba(10, 20, 30, 0.50)",
 		);
 	});
 
+	it("uses rgba(...) when alpha = 0", () => {
+		expect(new Color(10, 20, 30, 0).toRGB()).toBe("rgba(10, 20, 30, 0.00)");
+	});
+
 	it("uses post-clamp channel values", () => {
-		expect(new Color(-5, 300, 128).toCSS()).toBe("rgba(0, 255, 128, 1.00)");
+		expect(new Color(-5, 300, 128).toRGB()).toBe("rgb(0, 255, 128)");
 	});
 });
 
@@ -779,13 +783,15 @@ describe("equals", () => {
 	});
 
 	it("returns false when alpha differs", () => {
-		expect(new Color(10, 20, 30, 0.5).equals(new Color(10, 20, 30, 0.6))).toBe(
-			false,
-		);
+		expect(
+			new Color(10, 20, 30, 0.5).equals(new Color(10, 20, 30, 0.6)),
+		).toBe(false);
 	});
 
 	it("treats default alpha 1 and explicit 1 as equal", () => {
-		expect(new Color(10, 20, 30).equals(new Color(10, 20, 30, 1))).toBe(true);
+		expect(new Color(10, 20, 30).equals(new Color(10, 20, 30, 1))).toBe(
+			true,
+		);
 	});
 
 	it("skips alpha when compareAlpha=false", () => {

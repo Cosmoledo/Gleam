@@ -230,7 +230,32 @@ export class Color {
 		);
 	}
 
-	public hsl(): { h: number; s: number; l: number; a: number } {
+	public toHex(): string {
+		const r = Math.round(this.r).toString(16).padStart(2, "0");
+		const g = Math.round(this.g).toString(16).padStart(2, "0");
+		const b = Math.round(this.b).toString(16).padStart(2, "0");
+		const rgb = `#${r}${g}${b}`;
+
+		if (this.alpha === 1) {
+			return rgb;
+		}
+
+		const a = Math.round(this.alpha * 255);
+		return `${rgb}${a.toString(16).padStart(2, "0")}`;
+	}
+
+	public toHSL(): string {
+		const { h, s, l } = this.toHSLObject();
+		const cssH = Math.round(h);
+		const cssS = Math.round(s);
+		const cssL = Math.round(l);
+
+		return this.alpha === 1
+			? `hsl(${cssH}, ${cssS}%, ${cssL}%)`
+			: `hsla(${cssH}, ${cssS}%, ${cssL}%, ${this.alpha.toFixed(2)})`;
+	}
+
+	public toHSLObject(): { h: number; s: number; l: number; a: number } {
 		const r = this.r / 255;
 		const g = this.g / 255;
 		const b = this.b / 255;
@@ -264,38 +289,14 @@ export class Color {
 		return { h: h * 360, s: s * 100, l: l * 100, a: this.alpha };
 	}
 
-	public toCSS(): string {
-		const alpha = this.alpha.toFixed(2);
+	public toRGB(): string {
 		const r = Math.round(this.r);
 		const g = Math.round(this.g);
 		const b = Math.round(this.b);
 
-		return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-	}
-
-	public toHex(): string {
-		const r = Math.round(this.r).toString(16).padStart(2, "0");
-		const g = Math.round(this.g).toString(16).padStart(2, "0");
-		const b = Math.round(this.b).toString(16).padStart(2, "0");
-		const rgb = `#${r}${g}${b}`;
-
-		if (this.alpha === 1) {
-			return rgb;
-		}
-
-		const a = Math.round(this.alpha * 255);
-		return `${rgb}${a.toString(16).padStart(2, "0")}`;
-	}
-
-	public toHSL(): string {
-		const { h, s, l } = this.hsl();
-		const cssH = Math.round(h);
-		const cssS = Math.round(s);
-		const cssL = Math.round(l);
-
 		return this.alpha === 1
-			? `hsl(${cssH}, ${cssS}%, ${cssL}%)`
-			: `hsla(${cssH}, ${cssS}%, ${cssL}%, ${this.alpha.toFixed(2)})`;
+			? `rgb(${r}, ${g}, ${b})`
+			: `rgba(${r}, ${g}, ${b}, ${this.alpha.toFixed(2)})`;
 	}
 
 	public clone(): Color {
