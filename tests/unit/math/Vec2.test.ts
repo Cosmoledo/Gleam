@@ -589,6 +589,13 @@ describe("normalize", () => {
 		expect(v.y).toBe(0);
 	});
 
+	it("handles near-zero vector (treats as zero)", () => {
+		const v = new Vec2(1e-10, 1e-10);
+		v.normalize();
+		expect(v.x).toBe(1e-10);
+		expect(v.y).toBe(1e-10);
+	});
+
 	it("normalizes negative vector", () => {
 		const v = new Vec2(-3, -4);
 		v.normalize();
@@ -629,6 +636,13 @@ describe("normalizeManhattan", () => {
 		v.normalizeManhattan();
 		expect(v.x).toBe(0);
 		expect(v.y).toBe(0);
+	});
+
+	it("handles near-zero vector (treats as zero)", () => {
+		const v = new Vec2(1e-10, 1e-10);
+		v.normalizeManhattan();
+		expect(v.x).toBe(1e-10);
+		expect(v.y).toBe(1e-10);
 	});
 
 	it("normalizes unit manhattan vector", () => {
