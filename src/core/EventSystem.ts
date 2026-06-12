@@ -17,7 +17,7 @@ export interface EventSystemOptions {
 	signal?: AbortSignal;
 }
 
-export type GameEventListener<K extends keyof GameEventMap> = {
+type GameEventListener<K extends keyof GameEventMap> = {
 	callback: (...args: GameEventMap[K]) => void;
 	consumed?: boolean;
 	dispose: () => void;
