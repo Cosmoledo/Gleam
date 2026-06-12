@@ -1,6 +1,5 @@
 import type ControllerCursor from "@/input/ControllerCursor";
 import type Mouse from "@/input/Mouse";
-import { remove } from "@/utilities/Array";
 import { throttleByKey } from "@/utilities/Functions";
 
 export interface GameEventMap {
@@ -19,15 +18,19 @@ export interface EventSystemOptions {
 
 type GameEventListener<K extends keyof GameEventMap> = {
 	callback: (...args: GameEventMap[K]) => void;
-	consumed?: boolean;
 	dispose: () => void;
 	options: { once: boolean; signal?: AbortSignal };
 };
 
 export default class EventSystem {
 	private static eventListener: {
-		[K in keyof GameEventMap]?: GameEventListener<K>[];
+		[K in keyof GameEventMap]?: Map<number, GameEventListener<K>>;
 	} = {};
+
+	// Monotonic counter — each listener gets an id assigned at registration.
+	// `dispatchEvent` captures the value at start as a boundary so listeners
+	// registered mid-dispatch (id > maxId) are deferred to the next dispatch.
+	private static nextId = 0;
 
 	private static logListenerError = throttleByKey(
 		(count: number, eventName: string, err: unknown) => {
@@ -50,30 +53,45 @@ export default class EventSystem {
 			return function dispose(): void {};
 		}
 
-		function dispose(): void {
-			event.consumed = true;
+		const id = ++this.nextId;
 
-			if (event.options.signal) {
-				event.options.signal.removeEventListener("abort", dispose);
+		// `function` declaration (not arrow) so it's hoisted and can reference
+		// the `listener` constant defined below — both close over the same id.
+		// Used by: user-returned disposer, the once-path in dispatchEvent, and
+		// the signal's abort handler. Idempotent via Map.delete's false return.
+		function dispose(): void {
+			const bucket = EventSystem.eventListener[eventName];
+
+			if (!bucket?.delete(id)) {
+				return;
 			}
 
-			remove(EventSystem.eventListener[eventName]!, event);
+			// Drop the bucket entry when empty so `eventListener` doesn't grow
+			// monotonically and `dispatchEvent` can short-circuit on `!bucket`
+			// without a per-dispatch size check.
+			if (bucket.size === 0) {
+				delete EventSystem.eventListener[eventName];
+			}
+
+			if (listener.options.signal) {
+				listener.options.signal.removeEventListener("abort", dispose);
+			}
 		}
 
-		const event: GameEventListener<K> = {
+		const listener: GameEventListener<K> = {
 			callback,
-			options: { once: options.once ?? false, signal: options.signal },
 			dispose,
+			options: { once: options.once ?? false, signal: options.signal },
 		};
-		const list = this.eventListener[eventName];
 
-		if (list) {
-			list.push(event);
-		} else {
-			(this.eventListener as Record<K, GameEventListener<K>[]>)[
-				eventName
-			] = [event];
+		let bucket = this.eventListener[eventName];
+
+		if (!bucket) {
+			bucket = new Map();
+			this.eventListener[eventName] = bucket;
 		}
+
+		bucket.set(id, listener);
 
 		if (options.signal) {
 			options.signal.addEventListener("abort", dispose, { once: true });
@@ -86,21 +104,34 @@ export default class EventSystem {
 		eventName: K,
 		...params: GameEventMap[K]
 	): void {
-		const events = this.eventListener[eventName];
+		const bucket = this.eventListener[eventName];
 
-		if (!events) {
+		if (!bucket) {
 			return;
 		}
 
-		const snapshot = events.slice();
+		// Snapshot the id boundary — listeners registered during this dispatch
+		// (which would have ids > maxId) are skipped this round.
+		const maxId = this.nextId;
 
-		snapshot.forEach(entry => {
-			if (entry.consumed) {
+		// Map.forEach is safe under mid-iteration mutation:
+		//   - entries deleted during the walk are skipped natively, so a callback
+		//     calling dispose() on itself, a sibling, or via nested dispatch needs
+		//     no extra bookkeeping;
+		//   - entries added during the walk would otherwise be visited, but the
+		//     `id > maxId` filter excludes them;
+		//   - nested forEach on the same Map keeps its own position, so recursive
+		//     dispatch works without depth tracking.
+		bucket.forEach((entry, id) => {
+			if (id > maxId) {
 				return;
 			}
 
+			// Remove the once-listener *before* invoking the callback so a nested
+			// dispatch of the same event can't fire it a second time, and so a
+			// throwing callback still leaves the bucket clean.
 			if (entry.options.once) {
-				entry.consumed = true;
+				entry.dispose();
 			}
 
 			try {
@@ -110,11 +141,5 @@ export default class EventSystem {
 				this.logListenerError(`${eventName}:${msg}`, eventName, err);
 			}
 		});
-
-		for (let i = events.length - 1; i >= 0; i--) {
-			if (events[i].consumed) {
-				events[i].dispose();
-			}
-		}
 	}
 }

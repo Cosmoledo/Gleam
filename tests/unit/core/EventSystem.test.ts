@@ -6,11 +6,15 @@ import EventSystem from "@/core/EventSystem";
 
 // ==================== Helpers ====================
 
-type Listeners = Record<string, { consumed?: boolean }[]>;
+type Listeners = Record<string, Map<number, unknown> | undefined>;
 
 function internalListeners(): Listeners {
 	return (EventSystem as unknown as { eventListener: Listeners })
 		.eventListener;
+}
+
+function bucketSize(name: string): number | undefined {
+	return internalListeners()[name]?.size;
 }
 
 beforeEach(() => {
@@ -35,21 +39,21 @@ describe("EventSystem.dispatchEvent (no listeners)", () => {
 describe("EventSystem.addEventListener", () => {
 	it("creates a fresh listener bucket on the first add", () => {
 		EventSystem.addEventListener("resized", () => {});
-		expect(internalListeners()["resized"]).toHaveLength(1);
+		expect(bucketSize("resized")).toBe(1);
 	});
 
 	it("appends to the existing bucket on subsequent adds", () => {
 		EventSystem.addEventListener("resized", () => {});
 		EventSystem.addEventListener("resized", () => {});
 		EventSystem.addEventListener("resized", () => {});
-		expect(internalListeners()["resized"]).toHaveLength(3);
+		expect(bucketSize("resized")).toBe(3);
 	});
 
 	it("keeps separate buckets per event name", () => {
 		EventSystem.addEventListener("resized", () => {});
 		EventSystem.addEventListener("gameloopStopped", () => {});
-		expect(internalListeners()["resized"]).toHaveLength(1);
-		expect(internalListeners()["gameloopStopped"]).toHaveLength(1);
+		expect(bucketSize("resized")).toBe(1);
+		expect(bucketSize("gameloopStopped")).toBe(1);
 	});
 });
 
@@ -110,7 +114,7 @@ describe("EventSystem once: true", () => {
 		EventSystem.addEventListener("resized", () => {}, { once: true });
 		EventSystem.addEventListener("resized", () => {});
 		EventSystem.dispatchEvent("resized");
-		expect(internalListeners()["resized"]).toHaveLength(1);
+		expect(bucketSize("resized")).toBe(1);
 	});
 
 	it("keeps non-once listeners alongside once-listeners", () => {
@@ -267,16 +271,16 @@ describe("EventSystem.addEventListener disposer", () => {
 
 	it("removes the listener from the internal bucket", () => {
 		const off = EventSystem.addEventListener("resized", () => {});
-		expect(internalListeners()["resized"]).toHaveLength(1);
+		expect(bucketSize("resized")).toBe(1);
 		off();
-		expect(internalListeners()["resized"]).toHaveLength(0);
+		expect(bucketSize("resized")).toBeUndefined();
 	});
 
 	it("is idempotent: second call is a no-op", () => {
 		const off = EventSystem.addEventListener("resized", () => {});
 		off();
 		expect(() => off()).not.toThrow();
-		expect(internalListeners()["resized"]).toHaveLength(0);
+		expect(bucketSize("resized")).toBeUndefined();
 	});
 
 	it("is a no-op after a once-listener has already fired", () => {
@@ -357,7 +361,7 @@ describe("EventSystem.addEventListener signal", () => {
 		controller.abort();
 		EventSystem.dispatchEvent("resized");
 		expect(cb).toHaveBeenCalledTimes(1);
-		expect(internalListeners()["resized"]).toHaveLength(0);
+		expect(bucketSize("resized")).toBeUndefined();
 	});
 
 	it("skips later signal-bound listeners when the signal aborts mid-dispatch", () => {
@@ -410,6 +414,6 @@ describe("EventSystem.addEventListener signal", () => {
 		});
 		controller.abort();
 		expect(() => controller.abort()).not.toThrow();
-		expect(internalListeners()["resized"]).toHaveLength(0);
+		expect(bucketSize("resized")).toBeUndefined();
 	});
 });
