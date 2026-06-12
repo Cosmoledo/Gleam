@@ -108,6 +108,12 @@ describe("fromPolygon", () => {
 		expect(result.w).toBe(100);
 		expect(result.h).toBe(100);
 	});
+
+	it("throws on empty polygon", () => {
+		expect(() => Rect.fromPolygon(new Polygon())).toThrow(
+			"Supplied polygon has no points!",
+		);
+	});
 });
 
 // ==================== Constructor ====================
@@ -364,7 +370,6 @@ describe("update", () => {
 		r.y = 10;
 		r.w = 15;
 		r.h = 25;
-		r.update();
 		expect(r.sides.bottom).toBe(35);
 		expect(r.sides.right).toBe(20);
 		expect(r.sides.centerPos.x).toBeCloseTo(12.5);
@@ -375,14 +380,12 @@ describe("update", () => {
 
 	it("handles negative dimensions", () => {
 		const r = new Rect(10, 10, -20, -30);
-		r.update();
 		expect(r.sides.bottom).toBe(-20);
 		expect(r.sides.right).toBe(-10);
 	});
 
 	it("handles zero dimensions", () => {
 		const r = new Rect(5, 5, 0, 0);
-		r.update();
 		expect(r.sides.bottom).toBe(5);
 		expect(r.sides.right).toBe(5);
 		expect(r.sides.centerPos.x).toBe(5);
@@ -393,7 +396,6 @@ describe("update", () => {
 
 	it("handles decimal dimensions", () => {
 		const r = new Rect(0, 0, 1.5, 2.5);
-		r.update();
 		expect(r.sides.centerPos.x).toBeCloseTo(0.75);
 		expect(r.sides.centerPos.y).toBeCloseTo(1.25);
 		expect(r.sides.halfSize.x).toBeCloseTo(0.75);

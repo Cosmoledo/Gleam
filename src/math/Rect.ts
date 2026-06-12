@@ -2,6 +2,13 @@ import Vec2 from "@/math/Vec2";
 import type Polygon from "@/math/Polygon";
 import type { Vector2, Vector4 } from "@/math/Vec2";
 
+interface Sides {
+	bottom: number;
+	centerPos: Vec2;
+	halfSize: Vec2;
+	right: number;
+}
+
 export default class Rect {
 	public static fromBoundingClientRect(rect: DOMRect | HTMLElement): Rect {
 		if (rect instanceof HTMLElement) {
@@ -12,6 +19,10 @@ export default class Rect {
 	}
 
 	public static fromPolygon(polygon: Polygon): Rect {
+		if (polygon.points.length === 0) {
+			throw new Error("Supplied polygon has no points!");
+		}
+
 		let minX = Infinity;
 		let minY = Infinity;
 		let maxX = -Infinity;
@@ -38,16 +49,66 @@ export default class Rect {
 		return new Rect(minX, minY, maxX - minX, maxY - minY);
 	}
 
-	public h = 0;
-	public sides!: {
-		bottom: number;
-		centerPos: Vec2;
-		halfSize: Vec2;
-		right: number;
-	};
-	public w = 0;
-	public x = 0;
-	public y = 0;
+	public _h = 0;
+	public _w = 0;
+	public _x = 0;
+	public _y = 0;
+	private _sides!: Sides;
+	private sideIsDirty: boolean = true;
+
+	public get h(): number {
+		return this._h;
+	}
+
+	public set h(value: number) {
+		this._h = value;
+		this.sideIsDirty = true;
+	}
+
+	public get w(): number {
+		return this._w;
+	}
+
+	public set w(value: number) {
+		this._w = value;
+		this.sideIsDirty = true;
+	}
+
+	public get x(): number {
+		return this._x;
+	}
+
+	public set x(value: number) {
+		this._x = value;
+		this.sideIsDirty = true;
+	}
+
+	public get y(): number {
+		return this._y;
+	}
+
+	public set y(value: number) {
+		this._y = value;
+		this.sideIsDirty = true;
+	}
+
+	public get sides(): Readonly<Sides> {
+		if (this.sideIsDirty) {
+			this._sides = {
+				bottom: this.y + this.h,
+				centerPos: new Vec2(
+					this.x + this.w * 0.5,
+					this.y + this.h * 0.5,
+				),
+				halfSize: new Vec2(this.w * 0.5, this.h * 0.5),
+				right: this.x + this.w,
+			};
+
+			this.sideIsDirty = false;
+		}
+
+		return this._sides;
+	}
 
 	constructor(x = 0, y = 0, w = 0, h = 0) {
 		this.set(x, y, w, h);
@@ -80,23 +141,15 @@ export default class Rect {
 			this.h = h;
 		}
 
-		this.update();
+		this.sideIsDirty = true;
 		return this;
 	}
 
-	public round(): void {
+	public round(): Rect {
 		this.x = Math.round(this.x);
 		this.y = Math.round(this.y);
-		this.update();
-	}
 
-	public update(): void {
-		this.sides = {
-			bottom: this.y + this.h,
-			centerPos: new Vec2(this.x + this.w * 0.5, this.y + this.h * 0.5),
-			halfSize: new Vec2(this.w * 0.5, this.h * 0.5),
-			right: this.x + this.w,
-		};
+		return this;
 	}
 
 	public collide(rect: Rect): boolean {
