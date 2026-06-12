@@ -130,8 +130,7 @@ export class Color {
 		);
 	}
 
-	public hueRotate(degrees: number): this {
-		const radians = (degrees * Math.PI) / 180;
+	public hueRotate(radians: number): this {
 		const cos = Math.cos(radians);
 		const sin = Math.sin(radians);
 

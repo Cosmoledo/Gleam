@@ -1,7 +1,7 @@
 import Vec2 from "@/math/Vec2";
 import type Rect from "@/math/Rect";
 import { throttle } from "@/utilities/Functions";
-import { wrapDegrees } from "@/utilities/Math";
+import { wrapRadians } from "@/utilities/Math";
 
 export interface PolygonCollisionResult {
 	intersect: boolean;
@@ -21,7 +21,7 @@ function pointDirection(
 	xto: number,
 	yto: number,
 ): number {
-	return (Math.atan2(yto - yfrom, xto - xfrom) * 180) / Math.PI;
+	return Math.atan2(yto - yfrom, xto - xfrom);
 }
 
 function intervalDistance(
@@ -50,6 +50,10 @@ function projectPolygon(axis: Vec2, polygon: Polygon, bounds: Vec2): void {
 }
 
 export default class Polygon {
+	/**
+	 * `angle` is the simplification threshold in radians: vertices whose turn
+	 * angle wraps to within ±`angle` of straight are dropped.
+	 */
 	public static fromCanvas(
 		canvas: HTMLCanvasElement,
 		detail: number,
@@ -152,7 +156,7 @@ export default class Polygon {
 				vertexY[i + 2],
 			);
 
-			if (Math.abs(wrapDegrees(ang1 - ang2)) <= angle) {
+			if (Math.abs(wrapRadians(ang1 - ang2)) <= angle) {
 				vertexK[i + 1] = 0;
 			}
 		}
@@ -170,7 +174,7 @@ export default class Polygon {
 			vertexY[0],
 		);
 
-		if (Math.abs(wrapDegrees(ang1 - ang2)) <= angle) {
+		if (Math.abs(wrapRadians(ang1 - ang2)) <= angle) {
 			vertexK[numPoints - 1] = 0;
 		}
 
@@ -182,7 +186,7 @@ export default class Polygon {
 		);
 		ang2 = pointDirection(vertexX[0], vertexY[0], vertexX[1], vertexY[1]);
 
-		if (Math.abs(wrapDegrees(ang1 - ang2)) <= angle) {
+		if (Math.abs(wrapRadians(ang1 - ang2)) <= angle) {
 			vertexK[0] = 0;
 		}
 

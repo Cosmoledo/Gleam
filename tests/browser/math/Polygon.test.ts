@@ -13,7 +13,7 @@ describe("Polygon.fromCanvas", () => {
 		canvas.width = 150;
 		canvas.height = 100;
 
-		expect(() => Polygon.fromCanvas(canvas, 100, 45)).toThrow(
+		expect(() => Polygon.fromCanvas(canvas, 100, Math.PI / 4)).toThrow(
 			"Polygon.fromCanvas: scan produced \"0\" vertices (need >=3). Canvas may be empty or detail (100) too large.",
 		);
 	});
@@ -26,7 +26,7 @@ describe("Polygon.fromCanvas", () => {
 		ctx.fillStyle = "#ffffff";
 		ctx.fillRect(10, 10, 80, 40);
 
-		const p = Polygon.fromCanvas(canvas, 10, 10);
+		const p = Polygon.fromCanvas(canvas, 10, Math.PI / 18);
 		expect(p.points.length).toBeGreaterThanOrEqual(3);
 	});
 
@@ -38,7 +38,7 @@ describe("Polygon.fromCanvas", () => {
 		ctx.fillStyle = "#ffffff";
 		ctx.fillRect(10, 10, 80, 40);
 
-		const p = Polygon.fromCanvas(canvas, 10, 360);
+		const p = Polygon.fromCanvas(canvas, 10, Math.PI * 2);
 		expect(p).toBeInstanceOf(Polygon);
 	});
 

@@ -96,6 +96,13 @@ export function toDegrees(radians: number): number {
 }
 
 /**
+ * Convert degrees to radians
+ */
+export function toRadians(degrees: number): number {
+	return (degrees * Math.PI) / 180;
+}
+
+/**
  * Wrap an angle in radians into `[-PI, PI)`.
  */
 export function wrapRadians(angle: number): number {
@@ -107,13 +114,6 @@ export function wrapRadians(angle: number): number {
  */
 export function wrapDegrees(angle: number): number {
 	return wrapValue(angle, -180, 180);
-}
-
-/**
- * Convert degrees to radians
- */
-export function toRadians(degrees: number): number {
-	return (degrees * Math.PI) / 180;
 }
 
 /**

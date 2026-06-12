@@ -354,7 +354,7 @@ describe("grayscale", () => {
 // ==================== hueRotate ====================
 
 describe("hueRotate", () => {
-	it("leaves channels unchanged with 0 degrees", () => {
+	it("leaves channels unchanged with 0 radians", () => {
 		const c = new Color(200, 100, 50);
 		c.hueRotate(0);
 		expect(c.r).toBe(200);
@@ -362,18 +362,18 @@ describe("hueRotate", () => {
 		expect(c.b).toBe(50);
 	});
 
-	it("leaves channels approximately unchanged with 360 degrees", () => {
+	it("leaves channels approximately unchanged with 2π radians", () => {
 		const c = new Color(200, 100, 50);
-		c.hueRotate(360);
-		// matrix at 360deg matches 0deg up to floating-point + rounding
+		c.hueRotate(Math.PI * 2);
+		// matrix at full rotation matches 0 up to floating-point + rounding
 		expect(c.r).toBeCloseTo(200, 0);
 		expect(c.g).toBeCloseTo(100, 0);
 		expect(c.b).toBeCloseTo(50, 0);
 	});
 
-	it("rotates red toward green-ish at 120 degrees", () => {
+	it("rotates red toward green-ish at 2π/3 radians", () => {
 		const c = new Color(255, 0, 0);
-		c.hueRotate(120);
+		c.hueRotate((Math.PI * 2) / 3);
 		// the matrix is approximate (not a true HSL rotation), but green should dominate
 		expect(c.g).toBeGreaterThan(c.r);
 		expect(c.g).toBeGreaterThan(c.b);

@@ -55,7 +55,7 @@ class Solver {
 		color.invert(filters[0] / 100);
 		color.sepia(filters[1] / 100);
 		color.saturate(filters[2] / 100);
-		color.hueRotate(filters[3] * 3.6);
+		color.hueRotate((filters[3] / 100) * Math.PI * 2);
 		color.brightness(filters[4] / 100);
 		color.contrast(filters[5] / 100);
 

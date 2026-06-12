@@ -22,7 +22,7 @@ Browser tests that exercise canvas prototypes need `import "@/prototypes/index";
 - **Single `Game` instance per page.** The lib registers global listeners on `window`/`document` and sets `history.scrollRestoration`. Don't design APIs for multi-`Game` use.
 - **`Settings`** is a static-class singleton (`src/core/Settings.ts`). Read/write top-level fields directly (`Settings.fps = 60`). `Settings.setLocalStorage(key, value)` writes persisted `localStorage` subkeys. `Settings.init(overrides, game)` runs once from `Game`'s constructor.
 - **`Color` split:** rich `Color` class in `src/color/Color.ts` (mutators, transforms, CSS output); low-level free functions in `src/utilities/Color.ts` (`rgb2hex`, `hex2rgb`, `hueToRGB`, `randomHex`, `randomRgb`). Use free functions in hot per-pixel loops — `Color` construction allocates and clamps.
-- **All `Color.to*` methods produce CSS-compatible strings** (`toHex`, `toHSL`, `toCSS`). `fromHSL`/`hsl()` use hue in degrees `[0, 360]`.
+- **All `Color.to*` methods produce CSS-compatible strings** (`toHex`, `toHSL`, `toCSS`). `fromHSL`/`hsl()` use hue in degrees `[0, 360]` (CSS convention); every other angle in the codebase (including `Color.hueRotate`) is radians.
 - **All `Color` mutators route through `set(r, g, b, a?)`** which clamps and rounds. Compute new channel values into locals first, then call `set` — direct field writes mid-method cause aliasing bugs.
 - **`getElement<T>(selector)`** throws on miss instead of returning `null`. Use it as the default DOM lookup.
 
