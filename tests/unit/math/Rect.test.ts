@@ -290,19 +290,18 @@ describe("inflate", () => {
 		expect(result.h).toBe(30);
 	});
 
-	it("returns a new instance", () => {
+	it("returns this for chaining", () => {
 		const r = new Rect(10, 20, 30, 40);
-		const result = r.inflate(5);
-		expect(result).not.toBe(r);
+		expect(r.inflate(5)).toBe(r);
 	});
 
-	it("does not mutate original", () => {
+	it("mutates original", () => {
 		const r = new Rect(10, 20, 30, 40);
 		r.inflate(5);
-		expect(r.x).toBe(10);
-		expect(r.y).toBe(20);
-		expect(r.w).toBe(30);
-		expect(r.h).toBe(40);
+		expect(r.x).toBe(5);
+		expect(r.y).toBe(15);
+		expect(r.w).toBe(40);
+		expect(r.h).toBe(50);
 	});
 
 	it("handles zero delta", () => {

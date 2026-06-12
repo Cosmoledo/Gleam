@@ -114,6 +114,18 @@ export default class Rect {
 		this.set(x, y, w, h);
 	}
 
+	public inflate(delta: number): Rect {
+		this.x -= delta;
+		this.y -= delta;
+
+		this.w += 2 * delta;
+		this.h += 2 * delta;
+
+		this.sideIsDirty = true;
+
+		return this;
+	}
+
 	public set(
 		x: Vector4 | Vector2 | number = 0,
 		y: number = 0,
@@ -148,6 +160,8 @@ export default class Rect {
 	public round(): Rect {
 		this.x = Math.round(this.x);
 		this.y = Math.round(this.y);
+
+		this.sideIsDirty = true;
 
 		return this;
 	}
@@ -201,15 +215,6 @@ export default class Rect {
 		return collision;
 	}
 
-	public inflate(delta: number): Rect {
-		return new Rect(
-			this.x - delta,
-			this.y - delta,
-			this.w + 2 * delta,
-			this.h + 2 * delta,
-		);
-	}
-
 	public pos(): Vec2 {
 		return new Vec2(this.x, this.y);
 	}
@@ -226,11 +231,13 @@ export default class Rect {
 		return new Rect(this.x, this.y, this.w, this.h);
 	}
 
-	public equals(other: Rect, withSize: boolean): boolean {
+	public equals(other: Rect, withSize: boolean = true): boolean {
 		let output = this.x === other.x && this.y === other.y;
+
 		if (output && withSize) {
 			output = this.w === other.w && this.h === other.h;
 		}
+
 		return output;
 	}
 }
