@@ -233,11 +233,11 @@ export default class Polygon {
 	private _points: Vec2[] = [];
 	private edges: Vec2[] = [];
 
-	public get center(): Vec2 {
+	public get center(): Readonly<Vec2> {
 		return this._center;
 	}
 
-	public get points(): Vec2[] {
+	public get points(): Readonly<Vec2[]> {
 		return this._points;
 	}
 
@@ -295,7 +295,7 @@ export default class Polygon {
 		return this;
 	}
 
-	public rotate(angle: number, pos: Vec2 = this.center) {
+	public rotate(angle: number, pos: Readonly<Vec2> = this.center) {
 		if (!angle) {
 			return this;
 		}
