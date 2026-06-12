@@ -40,7 +40,7 @@ export function map(
 }
 
 /**
- * Zero out values with `|value| < cutoff`; pass the rest through unchanged. Inverse of `clamp`.
+ * Zero out values with `|value| < cutoff`; pass the rest through unchanged.
  */
 export function threshold(value: number, cutoff: number): number {
 	if (Math.abs(value) < cutoff) {
