@@ -1,4 +1,6 @@
 import { Color } from "./Color";
+import { wrapDegrees } from "@/utilities/Math";
+import { wrapValue } from "@/utilities/Number";
 import type { RGB } from "@/utilities/Color";
 
 /**
@@ -63,8 +65,8 @@ class Solver {
 			Math.abs(color.r - this.target.r) +
 			Math.abs(color.g - this.target.g) +
 			Math.abs(color.b - this.target.b) +
-			// h is in 0-360 (CSS), the other terms are 0-100 / 0-255 — scale to keep loss balance
-			Math.abs(colorHSL.h - this.targetHSL.h) / 3.6 +
+			// h is cyclic 0-360; wrap diff into ±180 then scale to 0-100 to keep loss balance with the other terms
+			Math.abs(wrapDegrees(colorHSL.h - this.targetHSL.h)) / 1.8 +
 			Math.abs(colorHSL.s - this.targetHSL.s) +
 			Math.abs(colorHSL.l - this.targetHSL.l)
 		);
@@ -149,11 +151,7 @@ class Solver {
 			}
 
 			if (idx === 3 /* hue-rotate */) {
-				if (value > max) {
-					value %= max;
-				} else if (value < 0) {
-					value = max + (value % max);
-				}
+				value = wrapValue(value, 0, max);
 			} else if (value < 0) {
 				value = 0;
 			} else if (value > max) {

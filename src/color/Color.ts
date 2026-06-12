@@ -1,5 +1,5 @@
 import { approxEqual } from "@/utilities/Math";
-import { clamp } from "@/utilities/Number";
+import { clamp, wrapValue } from "@/utilities/Number";
 import { hue2rgb } from "@/utilities/Color";
 
 export class Color {
@@ -31,7 +31,7 @@ export class Color {
 	}
 
 	public static fromHSL(h: number, s: number, l: number): Color {
-		const hNorm = h / 360;
+		const hNorm = wrapValue(h, 0, 360) / 360;
 		const sNorm = s / 100;
 		const lNorm = l / 100;
 
