@@ -404,31 +404,31 @@ describe("floor", () => {
 	});
 });
 
-// ==================== inv ====================
+// ==================== negate ====================
 
-describe("inv", () => {
-	it("inverts both components", () => {
+describe("negate", () => {
+	it("negates both components", () => {
 		const v = new Vec2(3, 4);
-		v.inv();
+		v.negate();
 		expect(v.x).toBe(-3);
 		expect(v.y).toBe(-4);
 	});
 
 	it("returns this for chaining", () => {
 		const v = new Vec2(3, 4);
-		expect(v.inv()).toBe(v);
+		expect(v.negate()).toBe(v);
 	});
 
 	it("handles zero", () => {
 		const v = new Vec2(0, 0);
-		v.inv();
+		v.negate();
 		expect(v.x).toBe(-0);
 		expect(v.y).toBe(-0);
 	});
 
 	it("handles negative values", () => {
 		const v = new Vec2(-3, -4);
-		v.inv();
+		v.negate();
 		expect(v.x).toBe(3);
 		expect(v.y).toBe(4);
 	});
@@ -794,19 +794,30 @@ describe("angle", () => {
 		expect(v.angle()).toBeCloseTo(0);
 	});
 
-	it("returns angle to another vector", () => {
+	it("returns angle from this to target", () => {
 		const v = new Vec2(0, 1);
 		const target = new Vec2(1, 0);
-		expect(v.angle(target)).toBeCloseTo(Math.PI * 0.75);
+		expect(v.angle(target)).toBeCloseTo(-Math.PI / 4);
 	});
 
-	it("handles multiple vectors (subtracts all)", () => {
+	it("returns 0 when target is east of this", () => {
+		const v = new Vec2(0, 0);
+		expect(v.angle(new Vec2(1, 0))).toBeCloseTo(0);
+	});
+
+	it("returns PI/2 when target is north of this", () => {
+		const v = new Vec2(0, 0);
+		expect(v.angle(new Vec2(0, 1))).toBeCloseTo(Math.PI / 2);
+	});
+
+	it("returns -PI/2 when target is south of this", () => {
 		const v = new Vec2(5, 5);
-		const a = new Vec2(1, 1);
-		const b = new Vec2(2, 2);
-		const result = v.angle(a, b);
-		const expected = Math.atan2(5 - 1 - 2, 5 - 1 - 2);
-		expect(result).toBeCloseTo(expected);
+		expect(v.angle(new Vec2(5, 0))).toBeCloseTo(-Math.PI / 2);
+	});
+
+	it("returns PI when target is west of this", () => {
+		const v = new Vec2(5, 5);
+		expect(v.angle(new Vec2(0, 5))).toBeCloseTo(Math.PI);
 	});
 
 	it("returns PI/2 for vector pointing up", () => {
@@ -1185,9 +1196,7 @@ describe("clone", () => {
 
 describe("warnings and invariants", () => {
 	it("traces a warning when normalize is called on a zero vector", () => {
-		const warnSpy = vi
-			.spyOn(console, "warn")
-			.mockImplementation(() => {});
+		const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 		const nowSpy = vi.spyOn(performance, "now").mockReturnValue(1e9);
 
 		new Vec2(0, 0).normalize();
@@ -1199,9 +1208,7 @@ describe("warnings and invariants", () => {
 	});
 
 	it("traces a warning when an operation produces a non-finite value", () => {
-		const warnSpy = vi
-			.spyOn(console, "warn")
-			.mockImplementation(() => {});
+		const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 		const nowSpy = vi.spyOn(performance, "now").mockReturnValue(1e9);
 
 		const v = new Vec2(1, 1).div(0, 0);

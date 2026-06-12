@@ -42,6 +42,11 @@ const warnNonFinite = throttle(
 	1000,
 );
 
+/**
+ * 2D vector. Scalar args to `set`/`add`/`sub`/`mult`/`div`/`rem`/`mod`/`equals`
+ * broadcast to both axes: `vec.add(5)` adds 5 to x and y, `vec.mult(-1)` negates
+ * both. Pass `(x, y)` or a `Vector2` for per-axis values.
+ */
 export default class Vec2 {
 	public static fromAngle(
 		rad: number,
@@ -78,7 +83,7 @@ export default class Vec2 {
 		return this.map(Math.ceil);
 	}
 
-	public clamp(x: number[], y: number[] = x): Vec2 {
+	public clamp(x: [number, number], y: [number, number] = x): Vec2 {
 		this.x = clamp(this.x, x[0], x[1]);
 		this.y = clamp(this.y, y[0], y[1]);
 
@@ -93,10 +98,6 @@ export default class Vec2 {
 
 	public floor(): Vec2 {
 		return this.map(Math.floor);
-	}
-
-	public inv(): Vec2 {
-		return this.mult(-1);
 	}
 
 	public map(callback: (value: number, index: number) => number): Vec2 {
@@ -115,6 +116,10 @@ export default class Vec2 {
 	public mult(x: number, y?: number): Vec2;
 	public mult(x: Vector2 | number, y?: number): Vec2 {
 		return this.calculate(Operation.Mult, x, y);
+	}
+
+	public negate(): Vec2 {
+		return this.mult(-1);
 	}
 
 	public normalize(): Vec2 {
@@ -156,12 +161,12 @@ export default class Vec2 {
 		return this.calculate(Operation.Sub, x, y);
 	}
 
-	public angle(...other: Vector2[]): number {
-		const out = this.clone();
+	public angle(other?: Vector2): number {
+		if (!other) {
+			return Math.atan2(this.y, this.x);
+		}
 
-		other.forEach(vec2 => out.sub(vec2));
-
-		return Math.atan2(out.y, out.x);
+		return Math.atan2(other.y - this.y, other.x - this.x);
 	}
 
 	public distance(other: Vector2): number {
@@ -202,10 +207,14 @@ export default class Vec2 {
 		return [this.x, this.y];
 	}
 
+	public toRectAddPos(v: Vector2): Rect;
+	public toRectAddPos(x: number, y?: number): Rect;
 	public toRectAddPos(x: Vector2 | number, y?: number): Rect {
 		return this.concat(true, x, y);
 	}
 
+	public toRectAddSize(v: Vector2): Rect;
+	public toRectAddSize(x: number, y?: number): Rect;
 	public toRectAddSize(width: Vector2 | number, height?: number): Rect {
 		return this.concat(false, width, height);
 	}

@@ -399,7 +399,7 @@ export default class Polygon {
 
 				const d = this.center.clone().sub(otherPolygon.center);
 				if (d.dotProduct(translationAxis) < 0) {
-					translationAxis.inv();
+					translationAxis.negate();
 				}
 			}
 		}
