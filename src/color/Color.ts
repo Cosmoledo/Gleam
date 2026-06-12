@@ -59,12 +59,7 @@ export class Color {
 			b = hue2rgb(p, q, hNorm - 1 / 3);
 		}
 
-		return new Color(
-			Math.round(r * 255),
-			Math.round(g * 255),
-			Math.round(b * 255),
-			a,
-		);
+		return new Color(r * 255, g * 255, b * 255, a);
 	}
 
 	private _r!: number;
@@ -93,9 +88,9 @@ export class Color {
 	}
 
 	public set(r: number, g: number, b: number, a?: number): this {
-		this._r = Math.round(clamp(r, 0, 255));
-		this._g = Math.round(clamp(g, 0, 255));
-		this._b = Math.round(clamp(b, 0, 255));
+		this._r = clamp(r, 0, 255);
+		this._g = clamp(g, 0, 255);
+		this._b = clamp(b, 0, 255);
 
 		if (a !== undefined) {
 			const clamped = clamp(a, 0, 1);
@@ -171,12 +166,21 @@ export class Color {
 
 	public mix(other: Color, amount: number): this {
 		const inv = 1 - amount;
+
 		return this.set(
 			this.r * inv + other.r * amount,
 			this.g * inv + other.g * amount,
 			this.b * inv + other.b * amount,
 			this.alpha * inv + other.alpha * amount,
 		);
+	}
+
+	public round(): this {
+		this._r = Math.round(this._r);
+		this._g = Math.round(this._g);
+		this._b = Math.round(this._b);
+
+		return this;
 	}
 
 	public saturate(value: number = 1): this {
@@ -218,6 +222,7 @@ export class Color {
 	public shade(percent: number): this {
 		const target = percent < 0 ? 0 : 255;
 		const p = Math.abs(percent);
+
 		return this.set(
 			this.r + (target - this.r) * p,
 			this.g + (target - this.g) * p,
@@ -261,12 +266,18 @@ export class Color {
 
 	public toCSS(): string {
 		const alpha = this.alpha.toFixed(2);
+		const r = Math.round(this.r);
+		const g = Math.round(this.g);
+		const b = Math.round(this.b);
 
-		return `rgba(${this.r}, ${this.g}, ${this.b}, ${alpha})`;
+		return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 	}
 
 	public toHex(): string {
-		const rgb = `#${this.r.toString(16).padStart(2, "0")}${this.g.toString(16).padStart(2, "0")}${this.b.toString(16).padStart(2, "0")}`;
+		const r = Math.round(this.r).toString(16).padStart(2, "0");
+		const g = Math.round(this.g).toString(16).padStart(2, "0");
+		const b = Math.round(this.b).toString(16).padStart(2, "0");
+		const rgb = `#${r}${g}${b}`;
 
 		if (this.alpha === 1) {
 			return rgb;

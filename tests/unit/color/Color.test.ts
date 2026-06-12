@@ -160,9 +160,9 @@ describe("Color.fromHSL", () => {
 
 	it("returns mid-gray for s=0, l=50", () => {
 		const c = Color.fromHSL(0, 0, 50);
-		expect(c.r).toBe(128);
-		expect(c.g).toBe(128);
-		expect(c.b).toBe(128);
+		expect(c.r).toBe(127.5);
+		expect(c.g).toBe(127.5);
+		expect(c.b).toBe(127.5);
 	});
 
 	it("returns same gray for any hue when s=0", () => {
@@ -175,17 +175,18 @@ describe("Color.fromHSL", () => {
 
 	it("returns yellow for h=60", () => {
 		const c = Color.fromHSL(60, 100, 50);
-		expect(c.r).toBe(255);
-		expect(c.g).toBe(255);
+		// the t = 1/2 branch of hue2rgb introduces sub-LSB drift on r/g
+		expect(c.r).toBeCloseTo(255, 5);
+		expect(c.g).toBeCloseTo(255, 5);
 		expect(c.b).toBe(0);
 	});
 
 	it("computes high-lightness branch (l > 0.5)", () => {
 		// covers the `lNorm >= 0.5` branch of the q calculation
 		const c = Color.fromHSL(0, 50, 75);
-		expect(c.r).toBe(223);
-		expect(c.g).toBe(159);
-		expect(c.b).toBe(159);
+		expect(c.r).toBeCloseTo(223.125, 3);
+		expect(c.g).toBeCloseTo(159.375, 3);
+		expect(c.b).toBeCloseTo(159.375, 3);
 	});
 
 	it("defaults alpha to 1 when omitted", () => {
@@ -219,11 +220,11 @@ describe("constructor", () => {
 		expect(c.alpha).toBe(0.5);
 	});
 
-	it("rounds non-integer channels", () => {
+	it("preserves non-integer channels", () => {
 		const c = new Color(10.4, 20.6, 30.5);
-		expect(c.r).toBe(10);
-		expect(c.g).toBe(21);
-		expect(c.b).toBe(31);
+		expect(c.r).toBe(10.4);
+		expect(c.g).toBe(20.6);
+		expect(c.b).toBe(30.5);
 	});
 
 	it("clamps channels above 255", () => {
@@ -323,20 +324,19 @@ describe("contrast", () => {
 	it("collapses to midtone with factor 0", () => {
 		const c = new Color(0, 128, 255);
 		c.contrast(0);
-		// midtone 127.5 rounds to 128
-		expect(c.r).toBe(128);
-		expect(c.g).toBe(128);
-		expect(c.b).toBe(128);
+		expect(c.r).toBe(127.5);
+		expect(c.g).toBe(127.5);
+		expect(c.b).toBe(127.5);
 	});
 
 	it("pushes channels away from midtone with factor > 1", () => {
 		const c = new Color(100, 128, 200);
 		c.contrast(2);
-		// 127.5 + (100-127.5)*2 = 72.5 → 73
-		// 127.5 + (128-127.5)*2 = 128.5 → 129
+		// 127.5 + (100-127.5)*2 = 72.5
+		// 127.5 + (128-127.5)*2 = 128.5
 		// 127.5 + (200-127.5)*2 = 272.5 → clamp to 255
-		expect(c.r).toBe(73);
-		expect(c.g).toBe(129);
+		expect(c.r).toBe(72.5);
+		expect(c.g).toBe(128.5);
 		expect(c.b).toBe(255);
 	});
 });
@@ -362,10 +362,10 @@ describe("grayscale", () => {
 	it("applies BT.709 luminance with value 1", () => {
 		const c = new Color(100, 150, 200);
 		c.grayscale(1);
-		// luminance = 0.2126*100 + 0.7152*150 + 0.0722*200 = 142.98 → 143
-		expect(c.r).toBe(143);
-		expect(c.g).toBe(143);
-		expect(c.b).toBe(143);
+		// luminance = 0.2126*100 + 0.7152*150 + 0.0722*200 = 142.98
+		expect(c.r).toBeCloseTo(142.98, 2);
+		expect(c.g).toBeCloseTo(142.98, 2);
+		expect(c.b).toBeCloseTo(142.98, 2);
 	});
 });
 
@@ -420,10 +420,10 @@ describe("invert", () => {
 	it("collapses to midtone with factor 0.5 for channel = 0", () => {
 		const c = new Color(0, 0, 0);
 		c.invert(0.5);
-		// 0 * 0.5 + 255 * 0.5 = 127.5 → 128
-		expect(c.r).toBe(128);
-		expect(c.g).toBe(128);
-		expect(c.b).toBe(128);
+		// 0 * 0.5 + 255 * 0.5 = 127.5
+		expect(c.r).toBe(127.5);
+		expect(c.g).toBe(127.5);
+		expect(c.b).toBe(127.5);
 	});
 });
 
@@ -466,6 +466,37 @@ describe("mix", () => {
 	});
 });
 
+// ==================== round ====================
+
+describe("round", () => {
+	it("rounds non-integer channels to nearest integer", () => {
+		const c = new Color(10.4, 20.6, 30.5);
+		c.round();
+		expect(c.r).toBe(10);
+		expect(c.g).toBe(21);
+		expect(c.b).toBe(31);
+	});
+
+	it("leaves integer channels unchanged", () => {
+		const c = new Color(50, 100, 150);
+		c.round();
+		expect(c.r).toBe(50);
+		expect(c.g).toBe(100);
+		expect(c.b).toBe(150);
+	});
+
+	it("leaves alpha untouched", () => {
+		const c = new Color(0, 0, 0, 0.5);
+		c.round();
+		expect(c.alpha).toBe(0.5);
+	});
+
+	it("returns this for chaining", () => {
+		const c = new Color(10.5, 20.5, 30.5);
+		expect(c.round()).toBe(c);
+	});
+});
+
 // ==================== saturate ====================
 
 describe("saturate", () => {
@@ -480,10 +511,11 @@ describe("saturate", () => {
 	it("desaturates to luminance with value 0", () => {
 		const c = new Color(100, 150, 200);
 		c.saturate(0);
-		// at value=0 the matrix collapses to the BT.709 luminance row
-		expect(c.r).toBe(143);
-		expect(c.g).toBe(143);
-		expect(c.b).toBe(143);
+		// at value=0 the matrix collapses to (0.213, 0.715, 0.072) — CSS-spec rounded
+		// BT.709 row: 100*0.213 + 150*0.715 + 200*0.072 = 142.95
+		expect(c.r).toBeCloseTo(142.95, 2);
+		expect(c.g).toBeCloseTo(142.95, 2);
+		expect(c.b).toBeCloseTo(142.95, 2);
 	});
 });
 
@@ -501,12 +533,12 @@ describe("sepia", () => {
 	it("applies sepia matrix with value 1 (default)", () => {
 		const c = new Color(100, 150, 200);
 		c.sepia();
-		// r = 0.393*100 + 0.769*150 + 0.189*200 = 39.3 + 115.35 + 37.8 = 192.45 → 192
-		// g = 0.349*100 + 0.686*150 + 0.168*200 = 34.9 + 102.9 + 33.6 = 171.4 → 171
-		// b = 0.272*100 + 0.534*150 + 0.131*200 = 27.2 + 80.1 + 26.2 = 133.5 → 134
-		expect(c.r).toBe(192);
-		expect(c.g).toBe(171);
-		expect(c.b).toBe(134);
+		// r = 0.393*100 + 0.769*150 + 0.189*200 = 39.3 + 115.35 + 37.8 = 192.45
+		// g = 0.349*100 + 0.686*150 + 0.168*200 = 34.9 + 102.9 + 33.6 = 171.4
+		// b = 0.272*100 + 0.534*150 + 0.131*200 = 27.2 + 80.1 + 26.2 = 133.5
+		expect(c.r).toBeCloseTo(192.45, 2);
+		expect(c.g).toBeCloseTo(171.4, 2);
+		expect(c.b).toBeCloseTo(133.5, 2);
 	});
 
 	it("tints white toward yellow (drops b below 255) with value 1", () => {
@@ -533,10 +565,10 @@ describe("shade", () => {
 	it("moves channels toward white with positive percent", () => {
 		const c = new Color(100, 150, 200);
 		c.shade(0.5);
-		// target = 255, p = 0.5: 100 + (255-100)*0.5 = 177.5 → 178
-		expect(c.r).toBe(178);
-		expect(c.g).toBe(203);
-		expect(c.b).toBe(228);
+		// target = 255, p = 0.5: 100 + (255-100)*0.5 = 177.5
+		expect(c.r).toBe(177.5);
+		expect(c.g).toBe(202.5);
+		expect(c.b).toBe(227.5);
 	});
 
 	it("moves channels toward black with negative percent", () => {
