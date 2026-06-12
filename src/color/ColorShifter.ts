@@ -140,6 +140,7 @@ class Solver {
 		values: FilterValues,
 		iters: number,
 	): SpsaResult {
+		values = values.slice() as FilterValues;
 		const alpha = 1;
 		const gamma = 0.16666666666666666;
 
