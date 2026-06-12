@@ -1,3 +1,4 @@
+import { approxEqual } from "@/utilities/Math";
 import { clamp } from "@/utilities/Number";
 import { hue2rgb } from "@/utilities/Color";
 
@@ -87,7 +88,12 @@ export class Color {
 		this._b = Math.round(clamp(b, 0, 255));
 
 		if (a !== undefined) {
-			this._alpha = clamp(a, 0, 1);
+			const clamped = clamp(a, 0, 1);
+			this._alpha = approxEqual(clamped, 0)
+				? 0
+				: approxEqual(clamped, 1)
+					? 1
+					: clamped;
 		}
 
 		return this;
