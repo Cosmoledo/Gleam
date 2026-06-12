@@ -1,5 +1,6 @@
 import Vec2 from "@/math/Vec2";
 import type Polygon from "@/math/Polygon";
+import { approxEqual } from "@/utilities/Math";
 import type { Vector2, Vector4 } from "@/math/Vec2";
 
 interface Sides {
@@ -232,10 +233,12 @@ export default class Rect {
 	}
 
 	public equals(other: Rect, withSize: boolean = true): boolean {
-		let output = this.x === other.x && this.y === other.y;
+		let output =
+			approxEqual(this.x, other.x) && approxEqual(this.y, other.y);
 
 		if (output && withSize) {
-			output = this.w === other.w && this.h === other.h;
+			output =
+				approxEqual(this.w, other.w) && approxEqual(this.h, other.h);
 		}
 
 		return output;

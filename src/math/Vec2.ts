@@ -1,4 +1,5 @@
 import Rect from "./Rect";
+import { approxEqual } from "@/utilities/Math";
 import { clamp } from "@/utilities/Number";
 import { throttle } from "@/utilities/Functions";
 
@@ -222,7 +223,7 @@ export default class Vec2 {
 	public equals(x: Vector2 | number, y?: number): boolean {
 		const [x2, y2]: number[] = this.getValues(x, y);
 
-		return this.x === x2 && this.y === y2;
+		return approxEqual(this.x, x2) && approxEqual(this.y, y2);
 	}
 
 	private calculate(

@@ -3,6 +3,13 @@ import { wrapValue } from "./Number";
 const NUMERIC_PATTERN = /^-?\d+(\.\d+)?$/;
 
 /**
+ * Compare two numbers with float tolerance. Default epsilon absorbs typical accumulated rounding error from normalize/rotate/divide chains.
+ */
+export function approxEqual(a: number, b: number, epsilon = 1e-9): boolean {
+	return Math.abs(a - b) <= epsilon;
+}
+
+/**
  * Check if a value is a finite number or a string holding one in plain decimal form.
  */
 export function isNumeric(value: unknown): boolean {
