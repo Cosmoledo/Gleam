@@ -118,18 +118,22 @@ export default class Vec2 {
 
 	public normalize(): Vec2 {
 		const length = this.length();
+
 		if (length === 0) {
 			warnZeroNormalize();
 			return this;
 		}
+
 		return this.map(value => value / length);
 	}
 
 	public normalizeManhattan(): Vec2 {
 		const length = this.lengthManhattan();
+
 		if (length === 0) {
 			return this;
 		}
+
 		return this.map(value => value / length);
 	}
 

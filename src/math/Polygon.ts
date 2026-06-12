@@ -2,7 +2,6 @@ import Vec2 from "@/math/Vec2";
 import type Rect from "@/math/Rect";
 import { throttle } from "@/utilities/Functions";
 import { wrapDegrees } from "@/utilities/Math";
-import type { Vector2 } from "@/math/Vec2";
 
 export interface PolygonCollisionResult {
 	intersect: boolean;
@@ -230,48 +229,41 @@ export default class Polygon {
 		);
 	}
 
-	public edges: Vec2[] = [];
-	public points: Vec2[] = [];
+	private _center: Vec2 = new Vec2();
+	private _points: Vec2[] = [];
+	private edges: Vec2[] = [];
 
 	public get center(): Vec2 {
-		let totalX = 0;
-		let totalY = 0;
+		return this._center;
+	}
 
-		for (const point of this.points) {
-			totalX += point.x;
-			totalY += point.y;
-		}
-
-		return new Vec2(
-			totalX / this.points.length,
-			totalY / this.points.length,
-		);
+	public get points(): Vec2[] {
+		return this._points;
 	}
 
 	constructor(...points: Vec2[]) {
-		points.forEach(point => this.points.push(point.clone()));
-		this.buildEdges();
+		this.addPoints(...points);
 	}
 
 	public draw(
 		context: CanvasRenderingContext2D,
 		offset: Vec2 = new Vec2(),
 	): void {
-		if (this.points.length === 0) {
+		if (this._points.length === 0) {
 			return;
 		}
 
 		context.beginPath();
 
 		context.moveTo(
-			(offset.x + this.points[0].x) | 0,
-			(offset.y + this.points[0].y) | 0,
+			(offset.x + this._points[0].x) | 0,
+			(offset.y + this._points[0].y) | 0,
 		);
 
-		for (let i = 1; i < this.points.length; i++) {
+		for (let i = 1; i < this._points.length; i++) {
 			context.lineTo(
-				(offset.x + this.points[i].x) | 0,
-				(offset.y + this.points[i].y) | 0,
+				(offset.x + this._points[i].x) | 0,
+				(offset.y + this._points[i].y) | 0,
 			);
 		}
 
@@ -279,36 +271,26 @@ export default class Polygon {
 		context.stroke();
 	}
 
-	public addPoint(x: Vector2 | number, y?: number): Polygon {
-		this.points.push(new Vec2(x, y));
+	public addPoint(x: number, y: number): Polygon {
+		this._points.push(new Vec2(x, y));
+		this.update();
 
 		return this;
 	}
 
-	public buildEdges(): void {
-		this.edges.length = 0;
-		let p1: Vec2;
-		let p2: Vec2;
+	public addPoints(...points: Vec2[]): Polygon {
+		points.forEach(point => this._points.push(point.clone()));
+		this.update();
 
-		for (let i = 0; i < this.points.length; i++) {
-			p1 = this.points[i];
-
-			if (i + 1 >= this.points.length) {
-				p2 = this.points[0];
-			} else {
-				p2 = this.points[i + 1];
-			}
-
-			this.edges.push(p2.clone().sub(p1));
-		}
+		return this;
 	}
 
 	public offset(x = 0, y = 0): Polygon {
-		for (const point of this.points) {
+		for (const point of this._points) {
 			point.add(x, y);
 		}
 
-		this.buildEdges();
+		this.update();
 
 		return this;
 	}
@@ -321,13 +303,13 @@ export default class Polygon {
 		const cos = Math.cos(angle);
 		const sin = Math.sin(angle);
 
-		this.points.forEach(point => {
+		this._points.forEach(point => {
 			const dx = point.x - pos.x;
 			const dy = point.y - pos.y;
 			point.set(dx * cos - dy * sin + pos.x, dx * sin + dy * cos + pos.y);
 		});
 
-		this.buildEdges();
+		this.update();
 
 		return this;
 	}
@@ -411,7 +393,7 @@ export default class Polygon {
 				minDistance = distance;
 				translationAxis = axis.clone();
 
-				const d: Vec2 = this.center.sub(otherPolygon.center);
+				const d = this.center.clone().sub(otherPolygon.center);
 				if (d.dotProduct(translationAxis) < 0) {
 					translationAxis.inv();
 				}
@@ -426,6 +408,45 @@ export default class Polygon {
 	}
 
 	public clone(): Polygon {
-		return new Polygon(...this.points);
+		return new Polygon(...this._points);
+	}
+
+	private update(): void {
+		if (this._points.length === 0) {
+			return;
+		}
+
+		// edges
+		let p1: Vec2;
+		let p2: Vec2;
+
+		// Allocates one Vec2 per edge per call; called every offset/rotate.
+		// Reuse via edges[i].set(...) if profiling shows GC pressure here.
+		this.edges.length = 0;
+		for (let i = 0; i < this._points.length; i++) {
+			p1 = this._points[i];
+
+			if (i + 1 >= this._points.length) {
+				p2 = this._points[0];
+			} else {
+				p2 = this._points[i + 1];
+			}
+
+			this.edges.push(p2.clone().sub(p1));
+		}
+
+		// center
+		let totalX = 0;
+		let totalY = 0;
+
+		this.points.forEach(point => {
+			totalX += point.x;
+			totalY += point.y;
+		});
+
+		this.center.set(
+			totalX / this._points.length,
+			totalY / this._points.length,
+		);
 	}
 }

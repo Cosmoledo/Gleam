@@ -107,31 +107,21 @@ describe("center", () => {
 		expect(c.x).toBe(5);
 		expect(c.y).toBe(5);
 	});
-});
 
-// ==================== buildEdges ====================
-
-describe("buildEdges", () => {
-	it("computes edges from vertices", () => {
-		const p = new Polygon(new Vec2(0, 0), new Vec2(10, 0), new Vec2(5, 10));
-		p.buildEdges();
-		expect(p.edges.length).toBe(3);
-		expect(p.edges[0].x).toBe(10);
-		expect(p.edges[0].y).toBe(0);
-		expect(p.edges[1].x).toBe(-5);
-		expect(p.edges[1].y).toBe(10);
-		expect(p.edges[2].x).toBe(-5);
-		expect(p.edges[2].y).toBe(-10);
+	it("updates after addPoint", () => {
+		const p = new Polygon(new Vec2(0, 0), new Vec2(10, 0));
+		expect(p.center.x).toBe(5);
+		expect(p.center.y).toBe(0);
+		p.addPoint(5, 12);
+		expect(p.center.x).toBe(5);
+		expect(p.center.y).toBe(4);
 	});
 
-	it("updates edges after adding a point", () => {
-		const p = new Polygon(new Vec2(0, 0), new Vec2(10, 0));
-		p.buildEdges();
-		expect(p.edges.length).toBe(2);
-		p.addPoint(5, 10);
-		expect(p.points.length).toBe(3);
-		p.buildEdges();
-		expect(p.edges.length).toBe(3);
+	it("updates after offset", () => {
+		const p = new Polygon(new Vec2(0, 0), new Vec2(10, 0), new Vec2(5, 12));
+		p.offset(2, 3);
+		expect(p.center.x).toBe(7);
+		expect(p.center.y).toBe(7);
 	});
 });
 
@@ -148,13 +138,20 @@ describe("addPoint", () => {
 		const p = new Polygon(new Vec2(0, 0));
 		expect(p.addPoint(1, 1)).toBe(p);
 	});
+});
 
-	it("updates edges after adding", () => {
-		const p = new Polygon(new Vec2(0, 0), new Vec2(10, 0));
-		expect(p.edges.length).toBe(2);
-		p.addPoint(5, 10);
-		p.buildEdges();
-		expect(p.edges.length).toBe(3);
+// ==================== addPoints ====================
+
+describe("addPoints", () => {
+	it("appends multiple vertices", () => {
+		const p = new Polygon(new Vec2(0, 0));
+		p.addPoints(new Vec2(10, 0), new Vec2(5, 10));
+		expect(p.points.length).toBe(3);
+	});
+
+	it("returns this for chaining", () => {
+		const p = new Polygon();
+		expect(p.addPoints(new Vec2(0, 0))).toBe(p);
 	});
 });
 
@@ -180,14 +177,6 @@ describe("offset", () => {
 	it("returns this for chaining", () => {
 		const p = new Polygon(new Vec2(0, 0));
 		expect(p.offset(1, 1)).toBe(p);
-	});
-
-	it("rebuilds edges", () => {
-		const p = new Polygon(new Vec2(0, 0), new Vec2(10, 0), new Vec2(5, 10));
-		const edgeBefore = p.edges[0].clone();
-		p.offset(1, 1);
-		expect(p.edges[0].x).toBe(edgeBefore.x);
-		expect(p.edges[0].y).toBe(edgeBefore.y);
 	});
 });
 
@@ -302,9 +291,7 @@ describe("collide", () => {
 	});
 
 	it("traces a warning when one polygon has no edges", () => {
-		const warnSpy = vi
-			.spyOn(console, "warn")
-			.mockImplementation(() => {});
+		const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 		const nowSpy = vi.spyOn(performance, "now").mockReturnValue(1e9);
 
 		const p1 = new Polygon();
