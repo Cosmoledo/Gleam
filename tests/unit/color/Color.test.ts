@@ -110,6 +110,14 @@ describe("Color.fromHex", () => {
 	it("throws on empty input", () => {
 		expect(() => Color.fromHex("")).toThrow(/Invalid hex color/);
 	});
+
+	it("throws on non-hex characters", () => {
+		expect(() => Color.fromHex("#GGGGGG")).toThrow(/Invalid hex color/);
+	});
+
+	it("throws on partial-hex with bad char in shorthand", () => {
+		expect(() => Color.fromHex("#fzz")).toThrow(/Invalid hex color/);
+	});
 });
 
 // ==================== Color.fromHSL ====================
@@ -178,6 +186,16 @@ describe("Color.fromHSL", () => {
 		expect(c.r).toBe(223);
 		expect(c.g).toBe(159);
 		expect(c.b).toBe(159);
+	});
+
+	it("defaults alpha to 1 when omitted", () => {
+		const c = Color.fromHSL(120, 100, 50);
+		expect(c.alpha).toBe(1);
+	});
+
+	it("accepts alpha argument", () => {
+		const c = Color.fromHSL(120, 100, 50, 0.4);
+		expect(c.alpha).toBeCloseTo(0.4);
 	});
 });
 
@@ -605,6 +623,17 @@ describe("hsl", () => {
 		expect(l).toBeGreaterThan(50);
 		expect(s).toBe(100);
 	});
+
+	it("returns alpha from the Color", () => {
+		const { a } = new Color(255, 0, 0, 0.3).hsl();
+		expect(a).toBeCloseTo(0.3);
+	});
+
+	it("round-trips alpha through fromHSL → hsl", () => {
+		const c = Color.fromHSL(180, 50, 50, 0.7);
+		const { a } = c.hsl();
+		expect(a).toBeCloseTo(0.7);
+	});
 });
 
 // ==================== toCSS ====================
@@ -696,5 +725,41 @@ describe("clone", () => {
 		expect(a.r).toBe(10);
 		expect(a.g).toBe(20);
 		expect(a.b).toBe(30);
+	});
+});
+
+// ==================== equals ====================
+
+describe("equals", () => {
+	it("returns true for identical channels and alpha", () => {
+		const a = new Color(10, 20, 30, 0.5);
+		const b = new Color(10, 20, 30, 0.5);
+		expect(a.equals(b)).toBe(true);
+	});
+
+	it("returns true for clone", () => {
+		const a = new Color(10, 20, 30, 0.7);
+		expect(a.equals(a.clone())).toBe(true);
+	});
+
+	it("returns false when r differs", () => {
+		expect(new Color(10, 20, 30).equals(new Color(11, 20, 30))).toBe(false);
+	});
+
+	it("returns false when alpha differs", () => {
+		expect(new Color(10, 20, 30, 0.5).equals(new Color(10, 20, 30, 0.6))).toBe(
+			false,
+		);
+	});
+
+	it("treats default alpha 1 and explicit 1 as equal", () => {
+		expect(new Color(10, 20, 30).equals(new Color(10, 20, 30, 1))).toBe(true);
+	});
+
+	it("skips alpha when compareAlpha=false", () => {
+		const a = new Color(10, 20, 30, 0.2);
+		const b = new Color(10, 20, 30, 0.9);
+		expect(a.equals(b)).toBe(false);
+		expect(a.equals(b, false)).toBe(true);
 	});
 });

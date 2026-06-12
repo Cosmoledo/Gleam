@@ -6,6 +6,10 @@ export class Color {
 	public static fromHex(hex: string): Color {
 		let cleanHex = hex.replace("#", "").toUpperCase();
 
+		if (!/^[0-9A-F]+$/.test(cleanHex)) {
+			throw new Error(`Invalid hex color: ${hex}`);
+		}
+
 		if (cleanHex.length === 3 || cleanHex.length === 4) {
 			cleanHex = cleanHex
 				.split("")
@@ -30,7 +34,12 @@ export class Color {
 		return new Color(r, g, b);
 	}
 
-	public static fromHSL(h: number, s: number, l: number): Color {
+	public static fromHSL(
+		h: number,
+		s: number,
+		l: number,
+		a: number = 1,
+	): Color {
 		const hNorm = wrapValue(h, 0, 360) / 360;
 		const sNorm = s / 100;
 		const lNorm = l / 100;
@@ -54,6 +63,7 @@ export class Color {
 			Math.round(r * 255),
 			Math.round(g * 255),
 			Math.round(b * 255),
+			a,
 		);
 	}
 
@@ -215,7 +225,7 @@ export class Color {
 		);
 	}
 
-	public hsl(): { h: number; s: number; l: number } {
+	public hsl(): { h: number; s: number; l: number; a: number } {
 		const r = this.r / 255;
 		const g = this.g / 255;
 		const b = this.b / 255;
@@ -246,7 +256,7 @@ export class Color {
 			h /= 6;
 		}
 
-		return { h: h * 360, s: s * 100, l: l * 100 };
+		return { h: h * 360, s: s * 100, l: l * 100, a: this.alpha };
 	}
 
 	public toCSS(): string {
@@ -279,5 +289,14 @@ export class Color {
 
 	public clone(): Color {
 		return new Color(this.r, this.g, this.b, this.alpha);
+	}
+
+	public equals(other: Color, compareAlpha: boolean = true): boolean {
+		return (
+			approxEqual(this.r, other.r) &&
+			approxEqual(this.g, other.g) &&
+			approxEqual(this.b, other.b) &&
+			(!compareAlpha || approxEqual(this.alpha, other.alpha))
+		);
 	}
 }
