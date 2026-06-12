@@ -18,21 +18,30 @@ export default class Settings {
 	public static enableResize = true;
 	public static font = "Arial";
 	public static fps = 1 / 60;
-	private static readonly _localStorage = {
-		language: "",
-	};
 	public static triedToClose?: () => void;
 	public static useClearRect = true;
 	public static warnBeforeClose = false;
+	private static initialized = false;
+	// Only mutated via `setLocalStorage` (typed) and via the localStorage
+	// round-trip in `init()` — since `setLocalStorage` is the sole writer of
+	// the persisted blob, the parsed payload is trusted to match the schema.
+	private static readonly _localStorage = {
+		language: "",
+	};
 
 	public static get localStorage(): Readonly<typeof Settings._localStorage> {
 		return this._localStorage;
 	}
 
 	public static init(overrides: SettingsOverrides, game: Game): void {
+		if (this.initialized) {
+			throw new Error("Settings.init called twice");
+		}
+
 		Object.assign(this, overrides);
 
-		if (this.fps <= 0) {
+		// fps from `overrides` can be NaN or Infinity; both pass `<= 0`.
+		if (!(Number.isFinite(this.fps) && this.fps > 0)) {
 			throw new Error(`Settings.fps must be > 0, got ${this.fps}`);
 		}
 
@@ -71,6 +80,8 @@ export default class Settings {
 				localStorage.removeItem(LOCAL_STORAGE_KEY);
 			}
 		}
+
+		this.initialized = true;
 	}
 
 	public static setLocalStorage<K extends keyof typeof this._localStorage>(

@@ -77,6 +77,7 @@ beforeEach(() => {
 
 afterEach(() => {
 	Settings.autoloop = savedAutoloop;
+	(Settings as unknown as { initialized: boolean }).initialized = false;
 	history.scrollRestoration = savedScrollRestoration;
 	document.body.innerHTML = "";
 	vi.unstubAllGlobals();

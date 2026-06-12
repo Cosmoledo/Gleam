@@ -75,6 +75,7 @@ beforeEach(() => {
 
 afterEach(() => {
 	restoreSettings(snapshot);
+	(Settings as unknown as { initialized: boolean }).initialized = false;
 	const ls = privateLocalStorage() as Record<string, unknown>;
 	Object.keys(ls).forEach(k => {
 		if (k !== "language") {
@@ -166,6 +167,29 @@ describe("Settings.init fps validation", () => {
 		expect(() =>
 			Settings.init({ fps: 1 / 30 }, createMockGame()),
 		).not.toThrow();
+	});
+
+	it("throws when fps is NaN", () => {
+		expect(() => Settings.init({ fps: NaN }, createMockGame())).toThrow(
+			/Settings\.fps must be > 0, got NaN/,
+		);
+	});
+
+	it("throws when fps is Infinity", () => {
+		expect(() =>
+			Settings.init({ fps: Infinity }, createMockGame()),
+		).toThrow(/Settings\.fps must be > 0, got Infinity/);
+	});
+});
+
+// ==================== init: idempotence ====================
+
+describe("Settings.init idempotence", () => {
+	it("throws when called a second time", () => {
+		Settings.init({}, createMockGame());
+		expect(() => Settings.init({}, createMockGame())).toThrow(
+			/Settings\.init called twice/,
+		);
 	});
 });
 
