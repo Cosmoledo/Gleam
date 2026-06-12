@@ -96,6 +96,13 @@ export function wrapRadians(angle: number): number {
 }
 
 /**
+ * Wrap an angle in degrees into `[-180, 180)`.
+ */
+export function wrapDegrees(angle: number): number {
+	return wrapValue(angle, -180, 180);
+}
+
+/**
  * Convert degrees to radians
  */
 export function toRadians(degrees: number): number {

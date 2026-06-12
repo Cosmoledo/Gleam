@@ -1,6 +1,7 @@
 import Vec2 from "@/math/Vec2";
 import type Rect from "@/math/Rect";
 import { throttle } from "@/utilities/Functions";
+import { wrapDegrees } from "@/utilities/Math";
 import type { Vector2 } from "@/math/Vec2";
 
 export interface PolygonCollisionResult {
@@ -72,7 +73,7 @@ export default class Polygon {
 
 		for (let tx = 0; tx < w; tx += detail) {
 			for (let ty = 0; ty < h; ty += 1) {
-				if (data[(ty * w + tx) * 4] !== 0) {
+				if (data[(ty * w + tx) * 4 + 3] !== 0) {
 					vertexX[numPoints] = tx;
 					vertexY[numPoints] = ty;
 					vertexK[numPoints] = 1;
@@ -89,7 +90,7 @@ export default class Polygon {
 
 		for (let ty = 0; ty < h; ty += detail) {
 			for (let tx = w - 1; tx >= 0; tx -= 1) {
-				if (data[(ty * w + tx) * 4] !== 0 && ty > ly) {
+				if (data[(ty * w + tx) * 4 + 3] !== 0 && ty > ly) {
 					vertexX[numPoints] = tx;
 					vertexY[numPoints] = ty;
 					vertexK[numPoints] = 1;
@@ -103,7 +104,7 @@ export default class Polygon {
 
 		for (let tx = w - 1; tx >= 0; tx -= detail) {
 			for (let ty = h - 1; ty >= 0; ty -= 1) {
-				if (data[(ty * w + tx) * 4] !== 0 && tx < lx) {
+				if (data[(ty * w + tx) * 4 + 3] !== 0 && tx < lx) {
 					vertexX[numPoints] = tx;
 					vertexY[numPoints] = ty;
 					vertexK[numPoints] = 1;
@@ -117,7 +118,7 @@ export default class Polygon {
 
 		for (let ty = h - 1; ty >= 0; ty -= detail) {
 			for (let tx = 0; tx < w; tx += 1) {
-				if (data[(ty * w + tx) * 4] !== 0 && ty < ly && ty > fy) {
+				if (data[(ty * w + tx) * 4 + 3] !== 0 && ty < ly && ty > fy) {
 					vertexX[numPoints] = tx;
 					vertexY[numPoints] = ty;
 					vertexK[numPoints] = 1;
@@ -152,7 +153,7 @@ export default class Polygon {
 				vertexY[i + 2],
 			);
 
-			if (Math.abs(ang1 - ang2) <= angle) {
+			if (Math.abs(wrapDegrees(ang1 - ang2)) <= angle) {
 				vertexK[i + 1] = 0;
 			}
 		}
@@ -170,7 +171,7 @@ export default class Polygon {
 			vertexY[0],
 		);
 
-		if (Math.abs(ang1 - ang2) <= angle) {
+		if (Math.abs(wrapDegrees(ang1 - ang2)) <= angle) {
 			vertexK[numPoints - 1] = 0;
 		}
 
@@ -182,7 +183,7 @@ export default class Polygon {
 		);
 		ang2 = pointDirection(vertexX[0], vertexY[0], vertexX[1], vertexY[1]);
 
-		if (Math.abs(ang1 - ang2) <= angle) {
+		if (Math.abs(wrapDegrees(ang1 - ang2)) <= angle) {
 			vertexK[0] = 0;
 		}
 
