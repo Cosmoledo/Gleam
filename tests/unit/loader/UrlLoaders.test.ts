@@ -65,6 +65,24 @@ describe("validateUrl", () => {
 	it("trims whitespace before validating", () => {
 		expect(() => validateUrl("  http://example.com  ")).not.toThrow();
 	});
+
+	it("accepts schemes regardless of case", () => {
+		expect(() => validateUrl("HTTP://example.com")).not.toThrow();
+		expect(() => validateUrl("HTTPS://example.com")).not.toThrow();
+		expect(() => validateUrl("Data:text/plain,hello")).not.toThrow();
+		expect(() =>
+			validateUrl("BLOB:https://example.com/uuid"),
+		).not.toThrow();
+	});
+
+	it("rejects disallowed schemes regardless of case", () => {
+		expect(() => validateUrl("JavaScript:alert(1)")).toThrow(
+			"Invalid URL protocol",
+		);
+		expect(() => validateUrl("FILE:///etc/passwd")).toThrow(
+			"Invalid URL protocol",
+		);
+	});
 });
 
 // ==================== safeLoad ====================

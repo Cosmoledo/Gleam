@@ -30,11 +30,10 @@ describe("loadImage", () => {
 		expect(image).toBeInstanceOf(HTMLImageElement);
 	});
 
-	it("sets src and id on the Image element", async () => {
+	it("sets src on the Image element", async () => {
 		const image = await loadImage(PNG_1x1_DATA_URL);
 
 		expect(image.src).toBe(PNG_1x1_DATA_URL);
-		expect(image.dataset.src).toBe(PNG_1x1_DATA_URL);
 	});
 
 	it("resolves only after the image has finished decoding", async () => {

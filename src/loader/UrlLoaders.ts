@@ -7,25 +7,31 @@ const DEFAULT_TIMEOUT_MS = 10_000;
  * Throws on invalid URLs or disallowed protocols.
  */
 export function validateUrl(url: string): void {
-	const trimmed = url.trim();
+	const schemeMatch = url.trim().match(/^([a-z][a-z0-9+.-]*):/i);
 
-	if (
-		["blob:", "data:", "http://", "https://"].some(start =>
-			trimmed.startsWith(start),
-		)
-	) {
+	if (!schemeMatch) {
+		// has no scheme -> relative url -> allow
 		return;
 	}
 
-	if (/^[a-z][a-z0-9+.-]*:/i.test(trimmed)) {
-		// no scheme and no relative path
-		throw new Error(`Invalid URL protocol: ${url}`);
+	const scheme = schemeMatch[1].toLowerCase();
+
+	if (["blob", "data", "http", "https"].includes(scheme)) {
+		// has known scheme -> allow
+		return;
 	}
+
+	// well, has unknown scheme -> oh oh
+	throw new Error(`Invalid URL protocol: ${url}`);
 }
 
 /**
  * Safe loading wrapper with global timeout and error handling.
  * Use this for any async loading operation that needs timeout protection.
+ * Timeout rejects the returned promise but does not cancel the underlying
+ * fetch/Image — the request continues until natural completion. Adding
+ * AbortSignal support would require a full rewrite (factory-based API).
+ * Maybe a future feature, though.
  */
 export function safeLoad<T>(
 	promise: Promise<T>,
@@ -75,8 +81,8 @@ export async function loadImage(url: string): Promise<HTMLImageElement> {
 			image.onerror = () =>
 				reject(new Error(`Image failed to load: ${url}`));
 
+			image.crossOrigin = "anonymous";
 			image.src = url;
-			image.dataset.src = url;
 		}),
 		url,
 		"image",
