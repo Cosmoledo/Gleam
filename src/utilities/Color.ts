@@ -77,6 +77,7 @@ export function hue2rgb(p: number, q: number, t: number): number {
  * Random `#rgb` short hex color.
  */
 export function randomHex(): string {
+	// Can in theory return <4 hex digits if Math.random() lands on a value with trailing zeros (probability ≈ 2^-40).
 	return "#" + Math.random().toString(16).slice(2, 6);
 }
 
