@@ -19,7 +19,6 @@ export default class Pointer {
 	public posScaled = new Vec2();
 	public posScaledLast = new Vec2();
 	public pressed: boolean[] = [];
-	public size = new Vec2(10, 10);
 	private game: Game;
 
 	constructor(game: Game) {
@@ -72,16 +71,12 @@ export default class Pointer {
 
 	private update(event: PointerEvent): void {
 		this.posRealLast = this.posReal.clone();
-		this.posReal.set(
-			event.clientX + this.size.x * 0.5,
-			event.clientY + this.size.y * 0.5,
-		);
+		this.posReal.set(event.clientX, event.clientY);
 
 		this.posScaledLast = this.posScaled.clone();
 		this.posScaled.set(
 			clamp(
-				(((event.clientX +
-					this.size.x * 0.5 -
+				(((event.clientX -
 					this.game.canman.canvasBoundingClientRect.left) /
 					this.game.canman.canvasBoundingClientRect.width) *
 					this.game.canman.width) |
@@ -90,8 +85,7 @@ export default class Pointer {
 				this.game.canman.width,
 			),
 			clamp(
-				(((event.clientY +
-					this.size.y * 0.5 -
+				(((event.clientY -
 					this.game.canman.canvasBoundingClientRect.top) /
 					this.game.canman.canvasBoundingClientRect.height) *
 					this.game.canman.height) |

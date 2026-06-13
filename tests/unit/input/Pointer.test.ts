@@ -83,7 +83,6 @@ describe("Pointer", () => {
 		expect(pointer.posRealLast).toBeInstanceOf(Vec2);
 		expect(pointer.posScaled).toBeInstanceOf(Vec2);
 		expect(pointer.posScaledLast).toBeInstanceOf(Vec2);
-		expect(pointer.size).toBeInstanceOf(Vec2);
 	});
 
 	it("initializes pressed array", async () => {
@@ -102,13 +101,6 @@ describe("Pointer", () => {
 		const { default: Pointer } = await import("@/input/Pointer");
 		const pointer = new Pointer(mockGame);
 		expect(pointer.lastEvent).toBeNull();
-	});
-
-	it("initializes size to Vec2(10, 10)", async () => {
-		const { default: Pointer } = await import("@/input/Pointer");
-		const pointer = new Pointer(mockGame);
-		expect(pointer.size.x).toBe(10);
-		expect(pointer.size.y).toBe(10);
 	});
 
 	// ==================== pointermove ====================
@@ -177,7 +169,7 @@ describe("Pointer", () => {
 			expect(dispatchSpy).toHaveBeenCalledWith("inputPointer", pointer);
 		});
 
-		it("updates posReal with client + size offset", async () => {
+		it("updates posReal to raw clientX/clientY", async () => {
 			const { default: Pointer } = await import("@/input/Pointer");
 			const pointer = new Pointer(mockGame);
 			pointermoveCb!({
@@ -186,8 +178,8 @@ describe("Pointer", () => {
 				target: mockGame.canman.canvas,
 				preventDefault: vi.fn(),
 			} as unknown as PointerEvent);
-			expect(pointer.posReal.x).toBe(105);
-			expect(pointer.posReal.y).toBe(205);
+			expect(pointer.posReal.x).toBe(100);
+			expect(pointer.posReal.y).toBe(200);
 		});
 
 		it("updates posScaled when canvas bounds are zero", async () => {
