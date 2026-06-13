@@ -132,9 +132,17 @@ describe("Music.enabled setter", () => {
 describe("Music.fade", () => {
 	it("returns early without scheduling anything when disabled", () => {
 		const m = new Music(false);
+		m.register(1, { name: "s", path: "/s.mp3" });
 		m.fade();
 		expect(internals(m).fadeCancel).toBe(null);
 		expect(pendingRaf.length).toBe(0);
+	});
+
+	it("throws on bad params even when disabled", () => {
+		const m = new Music(false);
+		m.register(1, { name: "a", path: "/a.mp3" });
+		expect(() => m.fade(null, 0)).toThrow(/fadeTime/);
+		expect(() => m.fade("unknown")).toThrow(/unknown/);
 	});
 
 	it("throws when fadeTime is 0", () => {
@@ -165,18 +173,14 @@ describe("Music.fade", () => {
 		expect(internals(m).next?.id).toBe("b");
 	});
 
-	it("logs error and falls back to random when name is not registered", () => {
+	it("throws when name is not registered", () => {
 		const m = new Music();
 		m.register(
 			1,
 			{ name: "a", path: "/a.mp3" },
 			{ name: "b", path: "/b.mp3" },
 		);
-		m.fade("unknown");
-		expect(console.error).toHaveBeenCalledWith(
-			expect.stringContaining("unknown"),
-		);
-		expect(["a", "b"]).toContain(internals(m).next?.id);
+		expect(() => m.fade("unknown")).toThrow(/unknown/);
 	});
 
 	it("picks a random song when name is null", () => {

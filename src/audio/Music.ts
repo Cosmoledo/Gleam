@@ -7,8 +7,8 @@ import { randomItem, remove } from "@/utilities/Array";
 
 type BezierPoints = readonly [number, number, number, number];
 
-const EASE_IN: BezierPoints = [0.42, 0, 1, 1];
-const EASE_OUT: BezierPoints = [0, 0, 0.58, 1];
+const FADE_OUT_CURVE: BezierPoints = [0.42, 0, 1, 1];
+const FADE_IN_CURVE: BezierPoints = [0, 0, 0.58, 1];
 
 export default class Music extends AudioBase {
 	private last: HTMLAudioElement | null = null;
@@ -42,20 +42,24 @@ export default class Music extends AudioBase {
 			cur: BezierPoints;
 			next: BezierPoints;
 		} = {
-			cur: EASE_IN,
-			next: EASE_OUT,
+			cur: FADE_OUT_CURVE,
+			next: FADE_IN_CURVE,
 		},
 	): void {
-		if (!this.enabled) {
-			return;
-		}
-
 		if (fadeTime <= 0) {
 			throw new Error(`fadeTime must be > 0, got ${fadeTime}`);
 		}
 
 		if (this.songs.size === 0) {
 			throw new Error("No music registered!");
+		}
+
+		if (name && !this.songs.has(name)) {
+			throw new Error(`Music "${name}" not registered!`);
+		}
+
+		if (!this.enabled) {
+			return;
 		}
 
 		if (this.fadeCancel) {
@@ -75,15 +79,9 @@ export default class Music extends AudioBase {
 			return;
 		}
 
-		if (name && this.songs.has(name)) {
+		if (name) {
 			this.next = this.songs.get(name)!;
 		} else {
-			if (name) {
-				console.error(
-					`Music "${name}" not registered! Playing random one.`,
-				);
-			}
-
 			this.next = this.getRandom();
 
 			if (!this.next) {
@@ -94,6 +92,9 @@ export default class Music extends AudioBase {
 			}
 		}
 
+		this.next.onended = (): void => {
+			this.fade();
+		};
 		this.next.volume = 0;
 		this.next.play();
 
@@ -131,9 +132,6 @@ export default class Music extends AudioBase {
 				}
 
 				this.next!.volume = this.next!.defaultVolume!;
-				this.next!.onended = (): void => {
-					this.fade();
-				};
 
 				this.last = this.current;
 				this.current = this.next;
