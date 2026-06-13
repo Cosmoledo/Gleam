@@ -214,6 +214,48 @@ describe("Pointer", () => {
 			expect(pointer.posScaledLast.y).toBe(0);
 		});
 
+		it("reuses posRealLast and posScaledLast instances across moves (no allocation)", async () => {
+			const { default: Pointer } = await import("@/input/Pointer");
+			const pointer = new Pointer(mockGame);
+			const realLastRef = pointer.posRealLast;
+			const scaledLastRef = pointer.posScaledLast;
+			pointermoveCb!({
+				clientX: 100,
+				clientY: 200,
+				target: mockGame.canman.canvas,
+				preventDefault: vi.fn(),
+			} as unknown as PointerEvent);
+			pointermoveCb!({
+				clientX: 300,
+				clientY: 400,
+				target: mockGame.canman.canvas,
+				preventDefault: vi.fn(),
+			} as unknown as PointerEvent);
+			expect(pointer.posRealLast).toBe(realLastRef);
+			expect(pointer.posScaledLast).toBe(scaledLastRef);
+		});
+
+		it("stores the previous posReal in posRealLast after a move", async () => {
+			const { default: Pointer } = await import("@/input/Pointer");
+			const pointer = new Pointer(mockGame);
+			pointermoveCb!({
+				clientX: 100,
+				clientY: 200,
+				target: mockGame.canman.canvas,
+				preventDefault: vi.fn(),
+			} as unknown as PointerEvent);
+			pointermoveCb!({
+				clientX: 300,
+				clientY: 400,
+				target: mockGame.canman.canvas,
+				preventDefault: vi.fn(),
+			} as unknown as PointerEvent);
+			expect(pointer.posReal.x).toBe(300);
+			expect(pointer.posReal.y).toBe(400);
+			expect(pointer.posRealLast.x).toBe(100);
+			expect(pointer.posRealLast.y).toBe(200);
+		});
+
 		it("clamps posScaled to canvas boundaries", async () => {
 			const { default: Pointer } = await import("@/input/Pointer");
 			mockGame.canman.canvasBoundingClientRect = {

@@ -70,10 +70,10 @@ export default class Pointer {
 	}
 
 	private update(event: PointerEvent): void {
-		this.posRealLast = this.posReal.clone();
+		this.posRealLast.set(this.posReal.x, this.posReal.y);
 		this.posReal.set(event.clientX, event.clientY);
 
-		this.posScaledLast = this.posScaled.clone();
+		this.posScaledLast.set(this.posScaled.x, this.posScaled.y);
 		this.posScaled.set(
 			clamp(
 				(((event.clientX -
