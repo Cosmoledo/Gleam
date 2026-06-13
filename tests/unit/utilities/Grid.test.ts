@@ -246,11 +246,14 @@ describe("generateGrid (default value)", () => {
 		]);
 	});
 
-	it("stores the default value by reference", () => {
-		const obj = { id: 1 };
-		const result = generateGrid(2, 3, obj);
-		expect(result[0][0]).toBe(obj);
-		expect(result[1][2]).toBe(obj);
+	it("rejects non-primitive defaults at the type level (use factory for objects)", () => {
+		// @ts-expect-error — object literal is not assignable to the primitive-only value overload
+		generateGrid(2, 3, { id: 1 });
+		// Intentional reference-sharing must go through the factory form:
+		const shared = { id: 1 };
+		const result = generateGrid(2, 3, () => shared);
+		expect(result[0][0]).toBe(shared);
+		expect(result[1][2]).toBe(shared);
 	});
 
 	it("creates empty grid for height 0", () => {

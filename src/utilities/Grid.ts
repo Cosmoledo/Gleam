@@ -29,16 +29,25 @@ export function convert2DTo1D(
 	return indexX + width * indexY;
 }
 
+type GridPrimitive =
+	| string
+	| number
+	| boolean
+	| bigint
+	| symbol
+	| null
+	| undefined;
+
 /**
- * Generate a `height × width` 2D grid; every cell holds `defaultValue` (stored by reference).
+ * Generate a `height × width` 2D grid; every cell holds `defaultValue`. Restricted to primitives at the type level — for object/array cells use the factory overload to avoid every cell sharing the same reference.
  */
-export function generateGrid<T>(
+export function generateGrid<T extends GridPrimitive>(
 	height: number,
 	width: number,
 	defaultValue: T,
 ): T[][];
 /**
- * Generate a `height × width` 2D grid by invoking `factory(x, y)` for each cell.
+ * Generate a `height × width` 2D grid by invoking `factory(x, y)` for each cell. Use this overload for object/array cells (and for any per-cell computation).
  */
 export function generateGrid<T>(
 	height: number,
