@@ -43,11 +43,18 @@ describe("Sound.play", () => {
 		expect(currentSounds(s).length).toBe(0);
 	});
 
-	it("logs an error and does nothing when name is not registered", () => {
-		s.play("missing");
-		expect(errSpy).toHaveBeenCalledTimes(1);
-		expect(playSpy).not.toHaveBeenCalled();
-		expect(currentSounds(s).length).toBe(0);
+	it("throws when no sounds are registered", () => {
+		const empty = new Sound();
+		expect(() => empty.play("anything")).toThrow(/No sounds/);
+	});
+
+	it("throws when name is not registered", () => {
+		expect(() => s.play("missing")).toThrow(/missing/);
+	});
+
+	it("throws on bad params even when disabled", () => {
+		s.enabled = false;
+		expect(() => s.play("missing")).toThrow(/missing/);
 	});
 
 	it("clones the registered audio and plays the clone", () => {
@@ -80,6 +87,21 @@ describe("Sound.play", () => {
 		first.onended!.call(first, new Event("ended"));
 		expect(currentSounds(s)).toEqual([second]);
 		second.onended!.call(second, new Event("ended"));
+		expect(currentSounds(s)).toEqual([]);
+	});
+
+	it("removes a clone and logs when onerror fires", () => {
+		s.play("blip");
+		const sound = currentSounds(s)[0];
+		sound.onerror!.call(sound, new Event("error"));
+		expect(currentSounds(s)).toEqual([]);
+		expect(errSpy).toHaveBeenCalledWith(expect.stringContaining("blip"));
+	});
+
+	it("removes a clone and rejects when play() rejects", async () => {
+		const err = new Error("autoplay blocked");
+		playSpy.mockImplementationOnce(() => Promise.reject(err));
+		await expect(s.play("blip")).rejects.toBe(err);
 		expect(currentSounds(s)).toEqual([]);
 	});
 });

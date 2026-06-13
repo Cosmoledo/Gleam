@@ -4,22 +4,35 @@ import { remove } from "@/utilities/Array";
 export default class Sound extends AudioBase {
 	private currentSounds: HTMLAudioElement[] = [];
 
-	public play(name: string): void {
-		if (!this.enabled) {
-			return;
+	public play(name: string): Promise<void> {
+		if (this.songs.size === 0) {
+			throw new Error("No sounds registered!");
 		}
 
 		if (!this.songs.has(name)) {
-			console.error(`Song "${name}" not registered!`);
-			return;
+			throw new Error(`Sound "${name}" not registered!`);
+		}
+
+		if (!this.enabled) {
+			return Promise.resolve();
 		}
 
 		const newSound = this.songs.get(name)!.clone();
 		this.currentSounds.push(newSound);
-		newSound.onended = (): void => {
-			remove(this.currentSounds, newSound);
+
+		const cleanup = (): void => remove(this.currentSounds, newSound);
+		newSound.onended = cleanup;
+		newSound.onerror = (): void => {
+			cleanup();
+			console.error(
+				`Playback failed for Sound "${name}", reason: ${newSound.error?.message ?? "unknown"}`,
+			);
 		};
-		newSound.play();
+
+		return newSound.play().catch((err): void => {
+			cleanup();
+			throw err;
+		});
 	}
 
 	public stop(): void {
