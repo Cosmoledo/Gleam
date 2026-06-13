@@ -67,7 +67,7 @@ declare global {
 				offsetY?: number,
 			) => void;
 		};
-		roundRect(
+		fillRoundRect(
 			x: number,
 			y: number,
 			w: number,
@@ -77,7 +77,7 @@ declare global {
 			radius?: number,
 			fill?: boolean,
 		): void;
-		roundRectObject(
+		fillRoundRectObject(
 			rect: Vector4,
 			color: string,
 			padding?: number,
@@ -359,7 +359,7 @@ CanvasRenderingContext2D.prototype.generateColor = function (
 /**
  * Draw a rounded rectangle. Pass `padding < 0` to auto-pad by `lineWidth`. Writes `lineWidth`, and `fillStyle` when `color` is supplied; values persist on the context — wrap in `save()`/`restore()` if you need to preserve prior state.
  */
-CanvasRenderingContext2D.prototype.roundRect = function (
+CanvasRenderingContext2D.prototype.fillRoundRect = function (
 	x: number,
 	y: number,
 	w: number,
@@ -408,15 +408,15 @@ CanvasRenderingContext2D.prototype.roundRect = function (
 };
 
 /**
- * `roundRect` variant accepting a `Vector4`; inherits the same state writes.
+ * `fillRoundRect` variant accepting a `Vector4`; inherits the same state writes.
  */
-CanvasRenderingContext2D.prototype.roundRectObject = function (
+CanvasRenderingContext2D.prototype.fillRoundRectObject = function (
 	rect: Vector4,
 	color: string,
 	padding?: number,
 	radius?: number,
 ): void {
-	this.roundRect(rect.x, rect.y, rect.w, rect.h, color, padding, radius);
+	this.fillRoundRect(rect.x, rect.y, rect.w, rect.h, color, padding, radius);
 };
 
 /**
