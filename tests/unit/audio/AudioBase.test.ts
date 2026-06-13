@@ -173,9 +173,36 @@ describe("AudioBase.register", () => {
 
 	it("throws when called a second time on the same instance", () => {
 		a.register(1, { name: "a", path: "/a.mp3" });
+		expect(() => a.register(1, { name: "b", path: "/b.mp3" })).toThrow(
+			/once/,
+		);
+	});
+
+	it("throws when defaultVolume is not finite", () => {
+		expect(() => a.register(NaN, { name: "s", path: "/s.mp3" })).toThrow(
+			/defaultVolume.*range/,
+		);
 		expect(() =>
-			a.register(1, { name: "b", path: "/b.mp3" }),
-		).toThrow(/once/);
+			a.register(Infinity, { name: "s", path: "/s.mp3" }),
+		).toThrow(/defaultVolume.*range/);
+	});
+
+	it("throws when defaultVolume is negative", () => {
+		expect(() => a.register(-0.1, { name: "s", path: "/s.mp3" })).toThrow(
+			/defaultVolume.*above 0/,
+		);
+	});
+
+	it("throws when defaultVolume exceeds 1", () => {
+		expect(() => a.register(2, { name: "s", path: "/s.mp3" })).toThrow(
+			/defaultVolume.*lower or equal/,
+		);
+	});
+
+	it("throws when a per-song volume override is out of [0, 1]", () => {
+		expect(() =>
+			a.register(1, { name: "s", path: "/s.mp3", volume: 2 }),
+		).toThrow(/Volume of "s"/);
 	});
 
 	it("logs an error when the audio element fails to load the source", () => {

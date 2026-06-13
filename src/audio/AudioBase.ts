@@ -41,6 +41,8 @@ export default abstract class AudioBase {
 		defaultVolume: number = 1,
 		...songs: (RegisterData | string)[]
 	): void {
+		this.throwOnBadVolume(defaultVolume, "defaultVolume");
+
 		if (this.registered) {
 			throw new Error("register() can only be called once per instance");
 		}
@@ -49,6 +51,8 @@ export default abstract class AudioBase {
 		songs.forEach(song => {
 			if (typeof song === "string") {
 				song = { name: urlBasename(song) ?? song, path: song };
+			} else if (song.volume !== undefined) {
+				this.throwOnBadVolume(song.volume, `Volume of "${song.name}"`);
 			}
 
 			const audio = new window.Audio();
@@ -75,5 +79,26 @@ export default abstract class AudioBase {
 
 	public stop(): void {
 		void 0;
+	}
+
+	private throwOnBadVolume(volume: number, name: string): void {
+		if (!Number.isFinite(volume)) {
+			throw new Error(
+				name + " is invalid, it has to be in range of 0 to 1",
+			);
+		}
+
+		if (volume < 0) {
+			throw new Error(
+				name + " has to be above 0. What's a negative volume anyway?",
+			);
+		}
+
+		if (volume > 1) {
+			throw new Error(
+				name +
+					" has to be lower or equal to 1! If you need a louder volume, you need to update the audio file itself.",
+			);
+		}
 	}
 }
