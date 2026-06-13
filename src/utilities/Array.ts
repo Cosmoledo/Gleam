@@ -1,7 +1,13 @@
 /**
- * Split an array into chunks of at most `maxLength` elements each.
+ * Split an array into chunks of at most `maxLength` elements each. Throws when `maxLength < 1`.
  */
 export function chunk<T>(array: ReadonlyArray<T>, maxLength: number): T[][] {
+	if (!Number.isFinite(maxLength) || maxLength < 1) {
+		throw new RangeError(
+			`chunk: maxLength must be a finite number >= 1 (got ${maxLength})`,
+		);
+	}
+
 	const result: T[][] = [];
 	let part: T[] = [];
 

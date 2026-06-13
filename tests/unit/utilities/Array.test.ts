@@ -37,6 +37,16 @@ describe("chunk", () => {
 		chunk(input, 2);
 		expect(input).toEqual([1, 2, 3, 4]);
 	});
+
+	it("throws on maxLength < 1", () => {
+		expect(() => chunk([1, 2, 3], 0)).toThrow(RangeError);
+		expect(() => chunk([1, 2, 3], -1)).toThrow(RangeError);
+		expect(() => chunk([1, 2, 3], -5)).toThrow(RangeError);
+	});
+
+	it("throws on NaN maxLength", () => {
+		expect(() => chunk([1, 2, 3], NaN)).toThrow(RangeError);
+	});
 });
 
 // ==================== randomItem ====================
