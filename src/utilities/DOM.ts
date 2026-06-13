@@ -119,15 +119,25 @@ export function doWhilePressed(
 }
 
 /**
- * Resolves the next time `type` fires on `element` (one-shot listener).
+ * Resolves the next time `type` fires on `element` (one-shot listener). Pass an `AbortSignal`
+ * to cancel — rejects with `signal.reason` and removes the listener.
  */
 export async function waitForEvent<K extends keyof HTMLElementEventMap>(
 	element: HTMLElement,
 	type: K,
+	signal?: AbortSignal,
 ): Promise<void> {
-	return new Promise(res =>
-		element.addEventListener(type, () => res(), {
+	if (signal?.aborted) {
+		throw signal.reason;
+	}
+
+	return new Promise((resolve, reject) => {
+		element.addEventListener(type, () => resolve(), {
 			once: true,
-		}),
-	);
+			signal,
+		});
+		signal?.addEventListener("abort", () => reject(signal.reason), {
+			once: true,
+		});
+	});
 }

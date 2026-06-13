@@ -183,7 +183,9 @@ describe("doWhilePressed", () => {
 	let button: HTMLButtonElement;
 
 	function down(id = 1): void {
-		button.dispatchEvent(new PointerEvent("pointerdown", { pointerId: id }));
+		button.dispatchEvent(
+			new PointerEvent("pointerdown", { pointerId: id }),
+		);
 	}
 
 	function up(id = 1): void {
@@ -191,7 +193,9 @@ describe("doWhilePressed", () => {
 	}
 
 	function cancel(id = 1): void {
-		button.dispatchEvent(new PointerEvent("pointercancel", { pointerId: id }));
+		button.dispatchEvent(
+			new PointerEvent("pointercancel", { pointerId: id }),
+		);
 	}
 
 	beforeEach(() => {
@@ -397,5 +401,40 @@ describe("waitForEvent", () => {
 		el.dispatchEvent(new MouseEvent("click"));
 		await promise;
 		expect(settled).toBe(true);
+	});
+
+	it("rejects with signal.reason when aborted before the event fires", async () => {
+		const el = document.createElement("div");
+		const controller = new AbortController();
+		const promise = waitForEvent(el, "click", controller.signal);
+		controller.abort(new Error("cancelled"));
+		await expect(promise).rejects.toThrow("cancelled");
+	});
+
+	it("rejects immediately when called with an already-aborted signal", async () => {
+		const el = document.createElement("div");
+		const controller = new AbortController();
+		controller.abort(new Error("pre-aborted"));
+		await expect(
+			waitForEvent(el, "click", controller.signal),
+		).rejects.toThrow("pre-aborted");
+	});
+
+	it("removes the listener when aborted (later event fire does nothing)", async () => {
+		const el = document.createElement("div");
+		const controller = new AbortController();
+		const promise = waitForEvent(el, "click", controller.signal);
+		controller.abort(new Error("stop"));
+		await expect(promise).rejects.toThrow("stop");
+		// Subsequent dispatch must not throw or invoke any internal handler — the listener is gone.
+		expect(() => el.dispatchEvent(new MouseEvent("click"))).not.toThrow();
+	});
+
+	it("resolves normally when a signal is passed but never aborts", async () => {
+		const el = document.createElement("div");
+		const controller = new AbortController();
+		const promise = waitForEvent(el, "click", controller.signal);
+		el.dispatchEvent(new MouseEvent("click"));
+		await expect(promise).resolves.toBeUndefined();
 	});
 });
