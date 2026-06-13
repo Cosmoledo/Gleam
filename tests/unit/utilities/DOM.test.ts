@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 // ==================== Imports ====================
 
 import {
-	doWhileClicked,
+	doWhilePressed,
 	getElement,
 	initCSSVariables,
 	setDisplay,
@@ -177,10 +177,22 @@ describe("initCSSVariables", () => {
 	});
 });
 
-// ==================== doWhileClicked ====================
+// ==================== doWhilePressed ====================
 
-describe("doWhileClicked", () => {
+describe("doWhilePressed", () => {
 	let button: HTMLButtonElement;
+
+	function down(id = 1): void {
+		button.dispatchEvent(new PointerEvent("pointerdown", { pointerId: id }));
+	}
+
+	function up(id = 1): void {
+		button.dispatchEvent(new PointerEvent("pointerup", { pointerId: id }));
+	}
+
+	function cancel(id = 1): void {
+		button.dispatchEvent(new PointerEvent("pointercancel", { pointerId: id }));
+	}
 
 	beforeEach(() => {
 		document.body.innerHTML = "";
@@ -195,22 +207,22 @@ describe("doWhileClicked", () => {
 	});
 
 	it("throws when no element matches the selector", () => {
-		expect(() => doWhileClicked("#missing", () => {})).toThrow(
+		expect(() => doWhilePressed("#missing", () => {})).toThrow(
 			"Element not found: #missing",
 		);
 	});
 
-	it("invokes the callback immediately on mousedown", () => {
+	it("invokes the callback immediately on pointerdown", () => {
 		const cb = vi.fn();
-		doWhileClicked("#btn", cb);
-		button.dispatchEvent(new MouseEvent("mousedown"));
+		doWhilePressed("#btn", cb);
+		down();
 		expect(cb).toHaveBeenCalledTimes(1);
 	});
 
 	it("keeps invoking the callback every delay ms while held", () => {
 		const cb = vi.fn();
-		doWhileClicked("#btn", cb, 100);
-		button.dispatchEvent(new MouseEvent("mousedown"));
+		doWhilePressed("#btn", cb, 100);
+		down();
 		expect(cb).toHaveBeenCalledTimes(1);
 		vi.advanceTimersByTime(100);
 		expect(cb).toHaveBeenCalledTimes(2);
@@ -218,32 +230,54 @@ describe("doWhileClicked", () => {
 		expect(cb).toHaveBeenCalledTimes(5);
 	});
 
-	it("stops invoking the callback after mouseup", () => {
+	it("stops invoking the callback after pointerup", () => {
 		const cb = vi.fn();
-		doWhileClicked("#btn", cb, 100);
-		button.dispatchEvent(new MouseEvent("mousedown"));
+		doWhilePressed("#btn", cb, 100);
+		down();
 		vi.advanceTimersByTime(100);
 		expect(cb).toHaveBeenCalledTimes(2);
-		button.dispatchEvent(new MouseEvent("mouseup"));
+		up();
 		vi.advanceTimersByTime(500);
 		expect(cb).toHaveBeenCalledTimes(2);
 	});
 
-	it("stops invoking the callback after mouseout", () => {
+	it("stops invoking the callback after pointercancel", () => {
 		const cb = vi.fn();
-		doWhileClicked("#btn", cb, 100);
-		button.dispatchEvent(new MouseEvent("mousedown"));
+		doWhilePressed("#btn", cb, 100);
+		down();
 		vi.advanceTimersByTime(100);
 		expect(cb).toHaveBeenCalledTimes(2);
-		button.dispatchEvent(new MouseEvent("mouseout"));
+		cancel();
 		vi.advanceTimersByTime(500);
+		expect(cb).toHaveBeenCalledTimes(2);
+	});
+
+	it("ignores a second pointerdown while one is active (capture in effect)", () => {
+		const cb = vi.fn();
+		doWhilePressed("#btn", cb, 100);
+		down(1);
+		vi.advanceTimersByTime(50);
+		down(2);
+		// Second pointer is ignored; first still drives the interval.
+		expect(cb).toHaveBeenCalledTimes(1);
+		vi.advanceTimersByTime(50);
+		expect(cb).toHaveBeenCalledTimes(2);
+	});
+
+	it("ignores pointerup from a different pointerId", () => {
+		const cb = vi.fn();
+		doWhilePressed("#btn", cb, 100);
+		down(1);
+		up(2);
+		vi.advanceTimersByTime(100);
+		// First pointer still active; interval still firing.
 		expect(cb).toHaveBeenCalledTimes(2);
 	});
 
 	it("defaults to a 200ms interval", () => {
 		const cb = vi.fn();
-		doWhileClicked("#btn", cb);
-		button.dispatchEvent(new MouseEvent("mousedown"));
+		doWhilePressed("#btn", cb);
+		down();
 		expect(cb).toHaveBeenCalledTimes(1);
 		vi.advanceTimersByTime(199);
 		expect(cb).toHaveBeenCalledTimes(1);
@@ -251,15 +285,70 @@ describe("doWhileClicked", () => {
 		expect(cb).toHaveBeenCalledTimes(2);
 	});
 
-	it("resets the interval if mousedown fires again", () => {
+	it("dispose removes listeners and stops any in-flight interval", () => {
 		const cb = vi.fn();
-		doWhileClicked("#btn", cb, 100);
-		button.dispatchEvent(new MouseEvent("mousedown"));
-		vi.advanceTimersByTime(50);
-		button.dispatchEvent(new MouseEvent("mousedown"));
-		expect(cb).toHaveBeenCalledTimes(2);
+		const dispose = doWhilePressed("#btn", cb, 100);
+		down();
 		vi.advanceTimersByTime(100);
+		expect(cb).toHaveBeenCalledTimes(2);
+		dispose();
+		vi.advanceTimersByTime(500);
+		expect(cb).toHaveBeenCalledTimes(2);
+		// Listener removed: a fresh pointerdown is a no-op.
+		down();
+		expect(cb).toHaveBeenCalledTimes(2);
+	});
+
+	it("dispose is a no-op when called without an active press", () => {
+		const cb = vi.fn();
+		const dispose = doWhilePressed("#btn", cb, 100);
+		expect(() => dispose()).not.toThrow();
+		expect(cb).toHaveBeenCalledTimes(0);
+	});
+
+	it("dispose is idempotent (safe to call twice)", () => {
+		const cb = vi.fn();
+		const dispose = doWhilePressed("#btn", cb, 100);
+		down();
+		dispose();
+		expect(() => dispose()).not.toThrow();
+	});
+
+	it("restarts cleanly on a fresh press after release", () => {
+		const cb = vi.fn();
+		doWhilePressed("#btn", cb, 100);
+		down();
+		vi.advanceTimersByTime(150);
+		expect(cb).toHaveBeenCalledTimes(2);
+		up();
+		// New press with a new pointerId fires immediately and resumes the interval.
+		down(2);
 		expect(cb).toHaveBeenCalledTimes(3);
+		vi.advanceTimersByTime(100);
+		expect(cb).toHaveBeenCalledTimes(4);
+	});
+
+	it("acquires and releases pointer capture with the active pointerId", () => {
+		const cb = vi.fn();
+		const captureSpy = vi.spyOn(button, "setPointerCapture");
+		const releaseSpy = vi.spyOn(button, "releasePointerCapture");
+		doWhilePressed("#btn", cb, 100);
+		down(7);
+		expect(captureSpy).toHaveBeenCalledWith(7);
+		up(7);
+		expect(releaseSpy).toHaveBeenCalledWith(7);
+		captureSpy.mockRestore();
+		releaseSpy.mockRestore();
+	});
+
+	it("releases captured pointer when disposed mid-press", () => {
+		const cb = vi.fn();
+		const releaseSpy = vi.spyOn(button, "releasePointerCapture");
+		const dispose = doWhilePressed("#btn", cb, 100);
+		down(4);
+		dispose();
+		expect(releaseSpy).toHaveBeenCalledWith(4);
+		releaseSpy.mockRestore();
 	});
 });
 

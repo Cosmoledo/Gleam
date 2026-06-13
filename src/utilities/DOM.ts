@@ -61,33 +61,61 @@ export function initCSSVariables(): CSSVariables {
 }
 
 /**
- * Call `callback` immediately on mousedown of the matched element, then keep
- * calling it every `delay` ms until mouseup or mouseout. Throws if no element matches.
+ * Calls `callback` on pointerdown of the matched element, then keeps calling it every `delay` ms
+ * until pointerup or pointercancel. Uses pointer capture so the action persists while the cursor
+ * drags off the element (and over descendants). Unifies mouse, touch, and pen. Throws if no element
+ * matches. Returns a dispose function that removes the listeners and stops any in-flight interval.
  */
-export function doWhileClicked(
+export function doWhilePressed(
 	querySelector: string,
 	callback: () => void,
 	delay = 200,
-): void {
+): () => void {
 	const element = getElement(querySelector);
 
 	let intervalId: ReturnType<typeof setInterval> | undefined;
+	let activePointerId: number | null = null;
 
-	element.addEventListener(
-		"mousedown",
-		() => {
-			clearInterval(intervalId);
-			callback();
-			intervalId = setInterval(() => callback(), delay);
-		},
-		false,
-	);
-	element.addEventListener("mouseup", () => clearInterval(intervalId), false);
-	element.addEventListener(
-		"mouseout",
-		() => clearInterval(intervalId),
-		false,
-	);
+	function start(event: PointerEvent): void {
+		if (activePointerId !== null) {
+			return;
+		}
+
+		activePointerId = event.pointerId;
+		element.setPointerCapture(activePointerId);
+
+		clearInterval(intervalId);
+		callback();
+		intervalId = setInterval(() => callback(), delay);
+	}
+
+	function stop(event: PointerEvent): void {
+		if (event.pointerId !== activePointerId) {
+			return;
+		}
+
+		clearInterval(intervalId);
+		element.releasePointerCapture(event.pointerId);
+		activePointerId = null;
+	}
+
+	element.addEventListener("pointerdown", start);
+	element.addEventListener("pointerup", stop);
+	element.addEventListener("pointercancel", stop);
+
+	function dispose(): void {
+		element.removeEventListener("pointerdown", start);
+		element.removeEventListener("pointerup", stop);
+		element.removeEventListener("pointercancel", stop);
+
+		clearInterval(intervalId);
+		if (activePointerId !== null) {
+			element.releasePointerCapture(activePointerId);
+			activePointerId = null;
+		}
+	}
+
+	return dispose;
 }
 
 /**
