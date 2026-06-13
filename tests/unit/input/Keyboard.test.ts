@@ -31,6 +31,7 @@ describe("Keyboard", () => {
 	let mockGame: Game;
 	let keydownCb: ((e: KeyboardEvent) => void) | null = null;
 	let keyupCb: ((e: KeyboardEvent) => void) | null = null;
+	let blurCb: (() => void) | null = null;
 
 	let dispatchSpy: ReturnType<typeof vi.spyOn>;
 
@@ -38,12 +39,16 @@ describe("Keyboard", () => {
 		mockGame = createMockGame();
 		keydownCb = null;
 		keyupCb = null;
+		blurCb = null;
 		vi.spyOn(window, "addEventListener").mockImplementation((type, cb) => {
 			if (type === "keydown") {
 				keydownCb = cb as (e: KeyboardEvent) => void;
 			}
 			if (type === "keyup") {
 				keyupCb = cb as (e: KeyboardEvent) => void;
+			}
+			if (type === "blur") {
+				blurCb = cb as () => void;
 			}
 		});
 		vi.spyOn(Settings, "debug", "get").mockReturnValue(false);
@@ -196,6 +201,15 @@ describe("Keyboard", () => {
 			keydownCb!({ code: "KeyW", type: "keydown" } as KeyboardEvent);
 			expect(kb.isPressed("KeyW")).toBe(true);
 			EventSystem.dispatchEvent("gameloopStopped");
+			expect(kb.isPressed("KeyW")).toBe(false);
+		});
+
+		it("is called when the window blur event fires", async () => {
+			const { default: Keyboard } = await import("@/input/Keyboard");
+			const kb = new Keyboard(mockGame);
+			keydownCb!({ code: "KeyW", type: "keydown" } as KeyboardEvent);
+			expect(kb.isPressed("KeyW")).toBe(true);
+			blurCb!();
 			expect(kb.isPressed("KeyW")).toBe(false);
 		});
 	});

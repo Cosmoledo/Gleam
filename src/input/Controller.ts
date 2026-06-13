@@ -67,6 +67,8 @@ export default class Controller {
 				}
 			},
 		);
+
+		window.addEventListener("blur", () => this.reset(), false);
 	}
 
 	public draw(context: CanvasRenderingContext2D): void {
@@ -104,6 +106,11 @@ export default class Controller {
 			this.buttons,
 			this.cursors,
 		);
+	}
+
+	public reset(): void {
+		this.buttons.length = 0;
+		this.axes.length = 0;
 	}
 
 	public vibrate(): boolean {

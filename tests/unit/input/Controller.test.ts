@@ -468,4 +468,40 @@ describe("Controller", () => {
 			expect(result.y).toBe(-1);
 		});
 	});
+
+	// ==================== reset ====================
+
+	describe("reset", () => {
+		it("clears buttons and axes", async () => {
+			const mockGp = createMockGamepad([true], [1, 1], 1000, 0);
+			defineGamepadSupport(mockGp);
+			const { default: Controller } = await import("@/input/Controller");
+			const controller = new Controller(mockGame);
+			controller.buttons = [true, false, true];
+			controller["axes"] = [new Vec2(1, 1)];
+			controller.reset();
+			expect(controller.buttons.length).toBe(0);
+			expect(controller["axes"].length).toBe(0);
+		});
+
+		it("is called when the window blur event fires", async () => {
+			const mockGp = createMockGamepad([true], [0, 0], 1000, 0);
+			defineGamepadSupport(mockGp);
+			let blurCb: (() => void) | null = null;
+			vi.spyOn(window, "addEventListener").mockImplementation(
+				(type, cb) => {
+					if (type === "blur") {
+						blurCb = cb as () => void;
+					}
+				},
+			);
+			const { default: Controller } = await import("@/input/Controller");
+			const controller = new Controller(mockGame);
+			controller.buttons = [true, true];
+			controller["axes"] = [new Vec2(0.5, 0.5)];
+			blurCb!();
+			expect(controller.buttons.length).toBe(0);
+			expect(controller["axes"].length).toBe(0);
+		});
+	});
 });

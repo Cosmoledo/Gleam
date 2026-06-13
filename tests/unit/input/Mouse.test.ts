@@ -25,6 +25,7 @@ describe("Mouse", () => {
 	let pointermoveCb: ((e: MouseEvent) => void) | null = null;
 	let mousedownCb: ((e: MouseEvent) => void) | null = null;
 	let mouseupCb: ((e: MouseEvent) => void) | null = null;
+	let blurCb: (() => void) | null = null;
 
 	let dispatchSpy: ReturnType<typeof vi.spyOn>;
 
@@ -33,6 +34,7 @@ describe("Mouse", () => {
 		pointermoveCb = null;
 		mousedownCb = null;
 		mouseupCb = null;
+		blurCb = null;
 		vi.spyOn(window, "addEventListener").mockImplementation((type, cb) => {
 			if (type === "pointermove") {
 				pointermoveCb = cb as (e: MouseEvent) => void;
@@ -42,6 +44,9 @@ describe("Mouse", () => {
 			}
 			if (type === "mouseup") {
 				mouseupCb = cb as (e: MouseEvent) => void;
+			}
+			if (type === "blur") {
+				blurCb = cb as () => void;
 			}
 		});
 		dispatchSpy = vi.spyOn(EventSystem, "dispatchEvent");
@@ -390,6 +395,43 @@ describe("Mouse", () => {
 				} as unknown as MouseEvent);
 				expect(mouse.pressed[btn]).toBe(false);
 			}
+		});
+	});
+
+	// ==================== reset ====================
+
+	describe("reset", () => {
+		it("clears all pressed buttons", async () => {
+			const { default: Mouse } = await import("@/input/Mouse");
+			const mouse = new Mouse(mockGame);
+			mousedownCb!({
+				type: "mousedown",
+				button: 0,
+				target: mockGame.canman.canvas,
+				preventDefault: vi.fn(),
+			} as unknown as MouseEvent);
+			mousedownCb!({
+				type: "mousedown",
+				button: 2,
+				target: mockGame.canman.canvas,
+				preventDefault: vi.fn(),
+			} as unknown as MouseEvent);
+			mouse.reset();
+			expect(mouse.pressed.length).toBe(0);
+		});
+
+		it("is called when the window blur event fires", async () => {
+			const { default: Mouse } = await import("@/input/Mouse");
+			const mouse = new Mouse(mockGame);
+			mousedownCb!({
+				type: "mousedown",
+				button: 0,
+				target: mockGame.canman.canvas,
+				preventDefault: vi.fn(),
+			} as unknown as MouseEvent);
+			expect(mouse.pressed[0]).toBe(true);
+			blurCb!();
+			expect(mouse.pressed.length).toBe(0);
 		});
 	});
 });

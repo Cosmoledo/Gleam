@@ -71,6 +71,7 @@ export default class Keyboard {
 
 		window.addEventListener("keydown", keyEvent, false);
 		window.addEventListener("keyup", keyEvent, false);
+		window.addEventListener("blur", () => this.reset(), false);
 
 		EventSystem.addEventListener("gameloopStopped", () => this.reset());
 	}

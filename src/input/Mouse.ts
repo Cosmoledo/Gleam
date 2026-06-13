@@ -53,6 +53,11 @@ export default class Mouse {
 		window.addEventListener("pointermove", mouseMoveEvent, false);
 		window.addEventListener("mousedown", mouseStateChangeEvent, false);
 		window.addEventListener("mouseup", mouseStateChangeEvent, false);
+		window.addEventListener("blur", () => this.reset(), false);
+	}
+
+	public reset(): void {
+		this.pressed.length = 0;
 	}
 
 	private update(event: MouseEvent): void {
