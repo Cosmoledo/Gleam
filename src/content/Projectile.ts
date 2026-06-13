@@ -17,7 +17,7 @@ export default class Projectile<T = unknown> {
 		return this.lifetime < this.maxLifetime;
 	}
 
-	public get rect(): Rect {
+	public get rect(): Readonly<Rect> {
 		return this._rect;
 	}
 
@@ -26,9 +26,9 @@ export default class Projectile<T = unknown> {
 		this.originalImage = image;
 		this.vel = vel.clone();
 
-		this.rebuildRotation();
+		this._rect = pos.toRectAddSize(image.width, image.height);
 
-		this._rect = pos.toRectAddSize(this.image.width, this.image.height);
+		this.rebuildRotation();
 	}
 
 	public draw(
@@ -51,9 +51,15 @@ export default class Projectile<T = unknown> {
 		this._rect.set(this.pos.x, this.pos.y);
 	}
 
+	/**
+	 * Allocates a fresh rotated canvas on each call — no internal cache.
+	 * Caching by quantized rotation could be a feature when projectiles need to re-aim every tick (homing/seeking).
+	 */
 	public rebuildRotation(): void {
 		this.rotation = Math.atan2(this.vel.y, this.vel.x);
 		this.image = this.originalImage.rotateBy(this.rotation);
+		this._rect.w = this.image.width;
+		this._rect.h = this.image.height;
 	}
 
 	public remove(): void {
