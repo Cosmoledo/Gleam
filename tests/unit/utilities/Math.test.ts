@@ -42,6 +42,28 @@ describe("isNumeric", () => {
 		expect(isNumeric("0.5")).toBe(true);
 	});
 
+	it("accepts leading sign on numeric strings", () => {
+		expect(isNumeric("+5")).toBe(true);
+		expect(isNumeric("+1.5")).toBe(true);
+		expect(isNumeric("-1.5")).toBe(true);
+	});
+
+	it("accepts leading and trailing dot forms", () => {
+		expect(isNumeric(".5")).toBe(true);
+		expect(isNumeric("-.5")).toBe(true);
+		expect(isNumeric("+.5")).toBe(true);
+		expect(isNumeric("5.")).toBe(true);
+	});
+
+	it("accepts scientific notation", () => {
+		expect(isNumeric("1e5")).toBe(true);
+		expect(isNumeric("1e+5")).toBe(true);
+		expect(isNumeric("1e-5")).toBe(true);
+		expect(isNumeric("1E10")).toBe(true);
+		expect(isNumeric("-3.14e-2")).toBe(true);
+		expect(isNumeric("5.5e2")).toBe(true);
+	});
+
 	it("trims whitespace from strings", () => {
 		expect(isNumeric(" 123 ")).toBe(true);
 		expect(isNumeric(" 3.14 ")).toBe(true);
@@ -52,8 +74,14 @@ describe("isNumeric", () => {
 		expect(isNumeric("abc")).toBe(false);
 		expect(isNumeric("12abc")).toBe(false);
 		expect(isNumeric("1.2.3")).toBe(false);
-		expect(isNumeric("1e5")).toBe(false);
 		expect(isNumeric("Infinity")).toBe(false);
+		expect(isNumeric(".")).toBe(false);
+		expect(isNumeric("+")).toBe(false);
+		expect(isNumeric("-")).toBe(false);
+		expect(isNumeric(".e5")).toBe(false);
+		expect(isNumeric("e5")).toBe(false);
+		expect(isNumeric("5e")).toBe(false);
+		expect(isNumeric("+-5")).toBe(false);
 	});
 
 	it("returns false for non-number types", () => {
@@ -312,9 +340,14 @@ describe("toHHMMSS", () => {
 		expect(toHHMMSS(59.9)).toBe("00:59");
 	});
 
-	it("handles negative input", () => {
-		expect(toHHMMSS(-1)).toBe("0-1:59:59");
-		expect(toHHMMSS(-60)).toBe("0-1:59:00");
+	it("returns \"00:00\" for invalid input (warns once per second)", () => {
+		const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+		expect(toHHMMSS(-1)).toBe("00:00");
+		expect(toHHMMSS(-60)).toBe("00:00");
+		expect(toHHMMSS(NaN)).toBe("00:00");
+		expect(toHHMMSS(Infinity)).toBe("00:00");
+		expect(toHHMMSS(-Infinity)).toBe("00:00");
+		warn.mockRestore();
 	});
 });
 

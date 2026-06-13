@@ -1,6 +1,7 @@
+import { throttle } from "./Functions";
 import { wrapValue } from "./Number";
 
-const NUMERIC_PATTERN = /^-?\d+(\.\d+)?$/;
+const NUMERIC_PATTERN = /^[+-]?(\d+\.?\d*|\.\d+)([eE][+-]?\d+)?$/;
 
 /**
  * Compare two numbers with float tolerance. Default epsilon absorbs typical accumulated rounding error from normalize/rotate/divide chains.
@@ -10,7 +11,7 @@ export function approxEqual(a: number, b: number, epsilon = 1e-9): boolean {
 }
 
 /**
- * Check if a value is a finite number or a string holding one in plain decimal form.
+ * Check if a value is a finite number or a string holding one. Accepts optional leading sign, decimal forms (`.5`, `5.`, `3.14`), and scientific notation (`1e5`, `-3.14e-2`).
  */
 export function isNumeric(value: unknown): boolean {
 	if (typeof value === "number") {
@@ -67,10 +68,21 @@ export function randomSign(): number {
 	return randomBoolean() ? 1 : -1;
 }
 
+const warnInvalidTime = throttle((count: number) => {
+	console.warn(
+		`toHHMMSS() received invalid input (NaN, Infinity, or negative) ${count}× since last warning; returning "00:00".`,
+	);
+}, 1000);
+
 /**
  * Format time in seconds as HH:MM:SS string
  */
 export function toHHMMSS(time: number): string {
+	if (!Number.isFinite(time) || time < 0) {
+		warnInvalidTime();
+		return "00:00";
+	}
+
 	time = Math.floor(time);
 
 	const h = Math.floor(time / 3600);
