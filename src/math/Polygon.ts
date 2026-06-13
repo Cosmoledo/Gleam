@@ -13,7 +13,7 @@ const warnZeroEdge = throttle((count: number) => {
 	console.warn(
 		`Polygon.collide: found a zero-edge polygon — no collision possible. (called ${count}x since last trace)`,
 	);
-}, 1000);
+});
 
 function pointDirection(
 	xfrom: number,

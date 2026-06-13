@@ -26,20 +26,16 @@ const Operation = {
 	Mod: 7,
 } as const;
 
-const warnZeroNormalize = throttle(
-	count =>
-		console.warn(
-			`Vec2.normalize() called on zero vector ${count}× since last warning; returning zero.`,
-		),
-	1000,
+const warnZeroNormalize = throttle(count =>
+	console.warn(
+		`Vec2.normalize() called on zero vector ${count}× since last warning; returning zero.`,
+	),
 );
 
-const warnNonFinite = throttle(
-	count =>
-		console.warn(
-			`Vec2 operation produced non-finite value ${count}× since last warning; check for zero divisor.`,
-		),
-	1000,
+const warnNonFinite = throttle(count =>
+	console.warn(
+		`Vec2 operation produced non-finite value ${count}× since last warning; check for zero divisor.`,
+	),
 );
 
 /**

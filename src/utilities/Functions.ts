@@ -65,7 +65,7 @@ export function rafLoop(tick: (dt: number) => void): () => void {
  */
 export function throttle(
 	callback: (callCount: number) => void,
-	delay: number,
+	delay: number = 1000,
 ): () => void {
 	let lastCalled = -Infinity;
 	let callCount = 0;
@@ -92,7 +92,7 @@ export function throttle(
  */
 export function throttleByKey<T extends unknown[]>(
 	callback: (callCount: number, ...args: T) => void,
-	delay: number,
+	delay: number = 1000,
 ): (key: string, ...args: T) => void {
 	const wrappers = new Map<string, (...args: T) => void>();
 

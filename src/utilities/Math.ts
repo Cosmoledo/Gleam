@@ -72,7 +72,7 @@ const warnInvalidTime = throttle((count: number) => {
 	console.warn(
 		`toHHMMSS() received invalid input (NaN, Infinity, or negative) ${count}× since last warning; returning "00:00".`,
 	);
-}, 1000);
+});
 
 /**
  * Format time in seconds as HH:MM:SS string

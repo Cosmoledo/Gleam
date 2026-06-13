@@ -35,7 +35,7 @@ export default class EventSystem {
 	// registered mid-dispatch (id > maxId) are deferred to the next dispatch.
 	private static nextId = 0;
 
-	private static logListenerError = throttleByKey(
+	private static logListenerError = throttleByKey<[string, unknown]>(
 		(count: number, eventName: string, err: unknown) => {
 			const suffix = count > 1 ? ` (x${count} since last log)` : "";
 
@@ -44,7 +44,6 @@ export default class EventSystem {
 				err,
 			);
 		},
-		1000,
 	);
 
 	public static addEventListener<K extends keyof GameEventMap>(
