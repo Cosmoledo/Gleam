@@ -12,7 +12,7 @@ A small TypeScript framework for 2D canvas games in the browser.
   - `Gameloop` — fixed-step `update(dt)` + `draw(ctx)` driver
   - `EventSystem` — engine-wide event dispatch (e.g. `resized`)
   - `Settings` — runtime config + persisted `localStorage` prefs
-  - input wired into the loop: `Keyboard`, `Mouse`, `Controller`, `ControllerCursor`
+  - input wired into the loop: `Keyboard`, `Pointer`, `Controller`, `ControllerCursor`
 - **E**ffects
   - `Screenshake` — camera shake
   - `ColorShifter` — animated color transitions

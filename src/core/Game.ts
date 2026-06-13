@@ -2,7 +2,7 @@ import CanvasManager from "@/core/CanvasManager";
 import EventSystem from "@/core/EventSystem";
 import Gameloop from "./Gameloop";
 import Keyboard from "@/input/Keyboard";
-import Mouse from "@/input/Mouse";
+import Pointer from "@/input/Pointer";
 import Settings, { type SettingsOverrides } from "@/core/Settings";
 import { debounce } from "@/utilities/Functions";
 
@@ -13,7 +13,7 @@ export default abstract class Game {
 	public canman = new CanvasManager();
 	public gameloop: Gameloop;
 	public keyboard: Keyboard;
-	public mouse: Mouse;
+	public pointer: Pointer;
 	private initialized = false;
 
 	constructor(settingOverrides: SettingsOverrides = {}) {
@@ -23,7 +23,7 @@ export default abstract class Game {
 
 		this.gameloop = new Gameloop(this);
 		this.keyboard = new Keyboard(this);
-		this.mouse = new Mouse(this);
+		this.pointer = new Pointer(this);
 	}
 
 	public draw(_context: CanvasRenderingContext2D): void {

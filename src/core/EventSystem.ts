@@ -1,4 +1,4 @@
-import type Mouse from "@/input/Mouse";
+import type Pointer from "@/input/Pointer";
 import { throttleByKey } from "@/utilities/Functions";
 
 export interface GameEventMap {
@@ -10,7 +10,7 @@ export interface GameEventMap {
 		code: string,
 		pressed: boolean,
 	];
-	inputMouse: [mouse: Mouse];
+	inputPointer: [pointer: Pointer];
 	resized: [];
 }
 

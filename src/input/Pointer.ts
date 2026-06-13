@@ -3,7 +3,7 @@ import Vec2 from "@/math/Vec2";
 import type Game from "@/core/Game";
 import { clamp } from "@/utilities/Number";
 
-export const MOUSE_KEYS = {
+export const POINTER_KEYS = {
 	LEFT: 0,
 	MIDDLE: 1,
 	RIGHT: 2,
@@ -11,7 +11,7 @@ export const MOUSE_KEYS = {
 	FORWARD: 4,
 } as const;
 
-export default class Mouse {
+export default class Pointer {
 	public lastEvent: PointerEvent | null = null;
 	public hasMoved = false;
 	public posReal = new Vec2();
@@ -35,7 +35,7 @@ export default class Mouse {
 
 			this.update(event);
 
-			EventSystem.dispatchEvent("inputMouse", this);
+			EventSystem.dispatchEvent("inputPointer", this);
 		};
 
 		const pointerStateChangeEvent = (event: PointerEvent): void => {
@@ -47,7 +47,7 @@ export default class Mouse {
 
 			this.pressed[event.button] = event.type === "pointerdown";
 
-			EventSystem.dispatchEvent("inputMouse", this);
+			EventSystem.dispatchEvent("inputPointer", this);
 		};
 
 		window.addEventListener("pointermove", pointerMoveEvent, false);
