@@ -56,12 +56,12 @@ describe("HTMLAudioElement.stop", () => {
 		expect(audio.currentTime).toBe(0);
 	});
 
-	it("restores volume to 1 when defaultVolume is undefined", () => {
+	it("preserves volume when defaultVolume is undefined", () => {
 		const audio = document.createElement("audio");
 		audio.pause = () => {};
 		audio.volume = 0.3;
 		audio.stop();
-		expect(audio.volume).toBe(1);
+		expect(audio.volume).toBeCloseTo(0.3);
 	});
 
 	it("restores volume to defaultVolume when set", () => {

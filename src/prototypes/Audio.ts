@@ -17,5 +17,8 @@ HTMLAudioElement.prototype.clone = function clone(): HTMLAudioElement {
 HTMLAudioElement.prototype.stop = function stop(): void {
 	this.pause();
 	this.currentTime = 0;
-	this.volume = this.defaultVolume === undefined ? 1 : this.defaultVolume;
+
+	if (this.defaultVolume !== undefined) {
+		this.volume = this.defaultVolume;
+	}
 };
