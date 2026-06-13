@@ -9,9 +9,9 @@ export interface PolygonCollisionResult {
 	willIntersect: boolean;
 }
 
-const warnZeroEdge = throttle((count: number) => {
+const warnZeroEdge = throttle(count => {
 	console.warn(
-		`Polygon.collide: found a zero-edge polygon — no collision possible. (called ${count}x since last trace)`,
+		`Polygon.collide: found a zero-edge polygon — no collision possible. (called x${count} since last trace)`,
 	);
 });
 

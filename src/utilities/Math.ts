@@ -68,9 +68,9 @@ export function randomSign(): number {
 	return randomBoolean() ? 1 : -1;
 }
 
-const warnInvalidTime = throttle((count: number) => {
+const warnInvalidTime = throttle(count => {
 	console.warn(
-		`toHHMMSS() received invalid input (NaN, Infinity, or negative) ${count}× since last warning; returning "00:00".`,
+		`toHHMMSS() received invalid input (NaN, Infinity, or negative) x${count} since last warning; returning "00:00".`,
 	);
 });
 

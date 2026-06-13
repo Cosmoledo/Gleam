@@ -28,13 +28,13 @@ const Operation = {
 
 const warnZeroNormalize = throttle(count =>
 	console.warn(
-		`Vec2.normalize() called on zero vector ${count}× since last warning; returning zero.`,
+		`Vec2.normalize() called on zero vector x${count} since last warning; returning zero.`,
 	),
 );
 
 const warnNonFinite = throttle(count =>
 	console.warn(
-		`Vec2 operation produced non-finite value ${count}× since last warning; check for zero divisor.`,
+		`Vec2 operation produced non-finite value x${count} since last warning; check for zero divisor.`,
 	),
 );
 

@@ -36,7 +36,7 @@ export default class EventSystem {
 	private static nextId = 0;
 
 	private static logListenerError = throttleByKey<[string, unknown]>(
-		(count: number, eventName: string, err: unknown) => {
+		(count, eventName, err) => {
 			const suffix = count > 1 ? ` (x${count} since last log)` : "";
 
 			console.error(
