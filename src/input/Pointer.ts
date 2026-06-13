@@ -54,6 +54,16 @@ export default class Pointer {
 		window.addEventListener("pointerdown", pointerStateChangeEvent, false);
 		window.addEventListener("pointerup", pointerStateChangeEvent, false);
 		window.addEventListener("blur", () => this.reset(), false);
+
+		// Attach to `document` (not `canvas`) so HTML UI overlays and any
+		// secondary canvases also get right-click suppressed.
+		document.addEventListener(
+			"contextmenu",
+			(event: Event) => {
+				event.preventDefault();
+			},
+			false,
+		);
 	}
 
 	public reset(): void {

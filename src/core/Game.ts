@@ -50,14 +50,6 @@ export default abstract class Game {
 
 		this.canman.finishSetup();
 
-		document.addEventListener(
-			"contextmenu",
-			(event: Event) => {
-				event.preventDefault();
-			},
-			false,
-		);
-
 		window.addEventListener(
 			"resize",
 			debounce(() => EventSystem.dispatchEvent("resized"), 250),

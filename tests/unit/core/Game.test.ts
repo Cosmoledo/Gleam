@@ -151,20 +151,6 @@ describe("Game.preInit", () => {
 		expect(spy).toHaveBeenCalledTimes(1);
 	});
 
-	it("registers a contextmenu listener that calls preventDefault", async () => {
-		setupMainCanvas();
-		const g = new TestGame();
-		g.canman.setupCanvas(CANVAS_TYPES.MAIN, "#main");
-		const addSpy = vi.spyOn(document, "addEventListener");
-		await g.callPreInit(false);
-		const entry = addSpy.mock.calls.find(c => c[0] === "contextmenu");
-		expect(entry).toBeDefined();
-		const handler = entry![1] as EventListener;
-		const event = { preventDefault: vi.fn() } as unknown as Event;
-		handler(event);
-		expect(event.preventDefault).toHaveBeenCalledTimes(1);
-	});
-
 	it("registers a resize listener on window", async () => {
 		setupMainCanvas();
 		const g = new TestGame();

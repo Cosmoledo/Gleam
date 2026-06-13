@@ -64,6 +64,18 @@ describe("Pointer", () => {
 		expect(pointerupCb).toBeInstanceOf(Function);
 	});
 
+	it("registers a contextmenu listener on document that calls preventDefault", async () => {
+		const addSpy = vi.spyOn(document, "addEventListener");
+		const { default: Pointer } = await import("@/input/Pointer");
+		new Pointer(mockGame);
+		const entry = addSpy.mock.calls.find(c => c[0] === "contextmenu");
+		expect(entry).toBeDefined();
+		const handler = entry![1] as EventListener;
+		const event = { preventDefault: vi.fn() } as unknown as Event;
+		handler(event);
+		expect(event.preventDefault).toHaveBeenCalledTimes(1);
+	});
+
 	it("initializes all Vec2 properties", async () => {
 		const { default: Pointer } = await import("@/input/Pointer");
 		const pointer = new Pointer(mockGame);
