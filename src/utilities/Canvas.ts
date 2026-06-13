@@ -56,6 +56,7 @@ export function applyFilterOnCanvas(
 
 	cc.context.filter = filter;
 	cc.context.drawImage(image, 0, 0);
+	cc.context.filter = "none";
 
 	return cc.canvas;
 }
@@ -79,7 +80,8 @@ export function rotateHue(
 
 /**
  * Recolor an opaque canvas in place using composite operations,
- * preserving the alpha mask of the source image.
+ * preserving the alpha mask of the source image. Wraps the body in `save`/`restore`
+ * so `fillStyle` / `globalCompositeOperation` writes don't leak to the caller's context.
  * https://stackoverflow.com/a/45201094
  */
 export function changeColor(
@@ -87,6 +89,8 @@ export function changeColor(
 	oriImg: HTMLCanvasElement,
 	newColor: string,
 ): void {
+	context.save();
+
 	context.clearRect(0, 0, oriImg.width, oriImg.height);
 	context.globalCompositeOperation = "source-over";
 	context.drawImage(oriImg, 0, 0, oriImg.width, oriImg.height);
@@ -98,7 +102,7 @@ export function changeColor(
 	context.globalCompositeOperation = "destination-in";
 	context.drawImage(oriImg, 0, 0, oriImg.width, oriImg.height);
 
-	context.globalCompositeOperation = "source-over";
+	context.restore();
 }
 
 /**

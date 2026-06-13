@@ -13,6 +13,21 @@ import {
 	splitSpriteSheet,
 } from "@/utilities/Canvas";
 
+// Capture `context.filter` at the moment `drawImage` is invoked. drawImage is
+// stubbed (no-op), so this only exercises the filter-set / draw / filter-reset
+// flow — not pixel output.
+function captureFilterOnDraw(run: () => unknown): string {
+	let captured = "";
+	const spy = vi
+		.spyOn(CanvasRenderingContext2D.prototype, "drawImage")
+		.mockImplementation(function (this: CanvasRenderingContext2D) {
+			captured = this.filter;
+		});
+	run();
+	spy.mockRestore();
+	return captured;
+}
+
 // ==================== createNewCanvas ====================
 
 describe("createNewCanvas", () => {
@@ -103,10 +118,17 @@ describe("applyFilterOnCanvas", () => {
 		expect(out.height).toBe(40);
 	});
 
-	it("sets the filter on the output context", () => {
+	it("applies the filter during the draw", () => {
+		const src = createNewCanvas(8, 8).canvas;
+		expect(
+			captureFilterOnDraw(() => applyFilterOnCanvas(src, "blur(3px)")),
+		).toBe("blur(3px)");
+	});
+
+	it("resets the filter on the output context so downstream draws are not affected", () => {
 		const src = createNewCanvas(8, 8).canvas;
 		const out = applyFilterOnCanvas(src, "blur(3px)");
-		expect(out.getContext("2d")!.filter).toBe("blur(3px)");
+		expect(out.getContext("2d")!.filter).toBe("none");
 	});
 
 	it("draws the source image onto the output", () => {
@@ -126,8 +148,9 @@ describe("applyFilterOnCanvas", () => {
 describe("rotateHue", () => {
 	it("delegates to applyFilterOnCanvas with a hue-rotate filter", () => {
 		const src = createNewCanvas(8, 8).canvas;
-		const out = rotateHue(src, 120);
-		expect(out.getContext("2d")!.filter).toBe("hue-rotate(120deg)");
+		expect(captureFilterOnDraw(() => rotateHue(src, 120))).toBe(
+			"hue-rotate(120deg)",
+		);
 	});
 
 	it("defaults to source dimensions", () => {
@@ -146,10 +169,10 @@ describe("rotateHue", () => {
 
 	it("handles negative and zero hue", () => {
 		const src = createNewCanvas(4, 4).canvas;
-		expect(rotateHue(src, 0).getContext("2d")!.filter).toBe(
+		expect(captureFilterOnDraw(() => rotateHue(src, 0))).toBe(
 			"hue-rotate(0deg)",
 		);
-		expect(rotateHue(src, -90).getContext("2d")!.filter).toBe(
+		expect(captureFilterOnDraw(() => rotateHue(src, -90))).toBe(
 			"hue-rotate(-90deg)",
 		);
 	});
@@ -158,18 +181,20 @@ describe("rotateHue", () => {
 // ==================== changeColor ====================
 
 describe("changeColor", () => {
-	it("sets globalCompositeOperation back to source-over at the end", () => {
+	it("preserves caller's globalCompositeOperation across the call", () => {
 		const ctx = createNewCanvas(8, 8).context;
 		const src = createNewCanvas(8, 8).canvas;
+		ctx.globalCompositeOperation = "multiply";
 		changeColor(ctx, src, "#ff0000");
-		expect(ctx.globalCompositeOperation).toBe("source-over");
+		expect(ctx.globalCompositeOperation).toBe("multiply");
 	});
 
-	it("sets fillStyle to the requested color", () => {
+	it("preserves caller's fillStyle across the call", () => {
 		const ctx = createNewCanvas(8, 8).context;
 		const src = createNewCanvas(8, 8).canvas;
+		ctx.fillStyle = "#123456";
 		changeColor(ctx, src, "#00ff00");
-		expect(ctx.fillStyle).toBe("#00ff00");
+		expect(ctx.fillStyle).toBe("#123456");
 	});
 
 	it("invokes the documented composite sequence", () => {
@@ -188,12 +213,7 @@ describe("changeColor", () => {
 			},
 		});
 		changeColor(ctx, src, "#ff0000");
-		expect(ops).toEqual([
-			"source-over",
-			"color",
-			"destination-in",
-			"source-over",
-		]);
+		expect(ops).toEqual(["source-over", "color", "destination-in"]);
 		Object.defineProperty(ctx, "globalCompositeOperation", original);
 	});
 
