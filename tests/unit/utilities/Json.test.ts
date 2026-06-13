@@ -45,6 +45,19 @@ describe("deepClone", () => {
 		expect(cloned.lastIndex).toBe(re.lastIndex);
 	});
 
+	it("returns DataView as a new copy with independent buffer", () => {
+		const buf = new ArrayBuffer(8);
+		const view = new DataView(buf);
+		view.setUint32(0, 42);
+		const cloned = deepClone(view);
+		expect(cloned).not.toBe(view);
+		expect(cloned instanceof DataView).toBe(true);
+		expect(cloned.getUint32(0)).toBe(42);
+		// Mutating the clone must not affect the source.
+		cloned.setUint32(0, 7);
+		expect(view.getUint32(0)).toBe(42);
+	});
+
 	it("returns ArrayBuffer as a new copy", () => {
 		const buf = new ArrayBuffer(8);
 		const view = new DataView(buf);
@@ -260,7 +273,7 @@ describe("deepClone", () => {
 		expect(cloned.normal).toBe(1);
 	});
 
-	it("clones accessor properties", () => {
+	it("snapshots accessor properties to data, severing closure binding to source", () => {
 		let _val = 10;
 		const obj = {
 			get val() {
@@ -274,6 +287,23 @@ describe("deepClone", () => {
 		expect(cloned.val).toBe(10);
 		cloned.val = 20;
 		expect(cloned.val).toBe(20);
+		// Original is unaffected by mutation through the clone (snapshot semantics).
+		expect(_val).toBe(10);
+		expect(obj.val).toBe(10);
+	});
+
+	it("snapshots own accessor that closes over the original instance via arrow", () => {
+		const original = { _val: 5 } as { _val: number; foo?: number };
+		Object.defineProperty(original, "foo", {
+			get: () => original._val,
+			enumerable: true,
+			configurable: true,
+		});
+		const cloned = deepClone(original);
+		expect(cloned.foo).toBe(5);
+		// Mutating the original must not reach through the clone.
+		original._val = 99;
+		expect(cloned.foo).toBe(5);
 	});
 
 	it("clones non-enumerable properties", () => {

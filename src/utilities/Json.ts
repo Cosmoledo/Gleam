@@ -1,20 +1,25 @@
 /**
  * Recursively clone a value. Returns primitives and functions as-is (no copy).
- * Cyclic references resolve via the `hash` WeakMap. Explicit branches preserve
- * `Date`, `RegExp`, `Map`, `Set`, `Array`, `ArrayBuffer`, and typed arrays.
+ * Cyclic references resolve via an internal `WeakMap`. Explicit branches preserve
+ * `Date`, `RegExp`, `Map`, `Set`, `Array`, `ArrayBuffer`, typed arrays, and `DataView`.
  * For plain objects / class instances the prototype is preserved via
  * `Object.create(...)` — the original constructor is *not* called, so no side
- * effects fire. Symbol keys and accessor properties are carried via descriptors.
+ * effects fire. Symbol keys and non-enumerable data properties are carried via descriptors.
+ * Own accessor properties (`get`/`set`) are snapshotted to a data property by invoking
+ * the getter on the source; this severs any closure binding to the original instance
+ * but also drops live computation on the clone.
  */
-export function deepClone<T>(obj: T, hash = new WeakMap<object, unknown>()): T {
-	// Primitives and functions pass through unchanged.
+export function deepClone<T>(obj: T): T {
+	return cloneInternal(obj, new WeakMap<object, unknown>());
+}
+
+function cloneInternal<T>(obj: T, hash: WeakMap<object, unknown>): T {
 	if (Object(obj) !== obj || obj instanceof Function) {
 		return obj;
 	}
 
 	const o = obj as object;
 
-	// Cyclic reference: return the in-progress clone.
 	if (hash.has(o)) {
 		return hash.get(o) as T;
 	}
@@ -36,7 +41,7 @@ export function deepClone<T>(obj: T, hash = new WeakMap<object, unknown>()): T {
 		const cloned = new Map<unknown, unknown>();
 		hash.set(o, cloned);
 		obj.forEach((v, k) => {
-			cloned.set(deepClone(k, hash), deepClone(v, hash));
+			cloned.set(cloneInternal(k, hash), cloneInternal(v, hash));
 		});
 		return cloned as T;
 	}
@@ -45,7 +50,7 @@ export function deepClone<T>(obj: T, hash = new WeakMap<object, unknown>()): T {
 		const cloned = new Set<unknown>();
 		hash.set(o, cloned);
 		obj.forEach(v => {
-			cloned.add(deepClone(v, hash));
+			cloned.add(cloneInternal(v, hash));
 		});
 		return cloned as T;
 	}
@@ -54,7 +59,7 @@ export function deepClone<T>(obj: T, hash = new WeakMap<object, unknown>()): T {
 		const cloned: unknown[] = [];
 		hash.set(o, cloned);
 		obj.forEach((item, i) => {
-			cloned[i] = deepClone(item, hash);
+			cloned[i] = cloneInternal(item, hash);
 		});
 		return cloned as T;
 	}
@@ -65,25 +70,46 @@ export function deepClone<T>(obj: T, hash = new WeakMap<object, unknown>()): T {
 		return cloned as T;
 	}
 
-	if (ArrayBuffer.isView(obj) && !(obj instanceof DataView)) {
+	if (obj instanceof DataView) {
+		const buf = obj.buffer.slice(
+			obj.byteOffset,
+			obj.byteOffset + obj.byteLength,
+		);
+		const cloned = new DataView(buf);
+		hash.set(o, cloned);
+		return cloned as T;
+	}
+
+	if (ArrayBuffer.isView(obj)) {
 		// Typed array (Uint8Array, Int32Array, etc.). `.slice()` preserves the subtype.
 		const cloned = (obj as unknown as Uint8Array).slice();
 		hash.set(o, cloned);
 		return cloned as T;
 	}
 
-	// Plain object or class instance — preserve prototype without running the constructor.
 	const result = Object.create(Object.getPrototypeOf(o));
 	hash.set(o, result);
 
-	// `Reflect.ownKeys` catches symbol keys; descriptor copy keeps accessor
-	// properties and non-enumerable flags intact.
 	Reflect.ownKeys(o).forEach(key => {
 		const descriptor = Object.getOwnPropertyDescriptor(o, key)!;
 		if ("value" in descriptor) {
-			descriptor.value = deepClone(descriptor.value, hash);
+			descriptor.value = cloneInternal(descriptor.value, hash);
+			Object.defineProperty(result, key, descriptor);
+			return;
 		}
-		Object.defineProperty(result, key, descriptor);
+		// Accessor (get/set) — snapshot by invoking the getter on the source to
+		// avoid closure-bound captures of the original instance. The clone gets
+		// a plain data property; live computation is lost.
+		const snapshot = cloneInternal(
+			(o as Record<PropertyKey, unknown>)[key as PropertyKey],
+			hash,
+		);
+		Object.defineProperty(result, key, {
+			value: snapshot,
+			writable: true,
+			enumerable: descriptor.enumerable,
+			configurable: descriptor.configurable,
+		});
 	});
 
 	return result as T;
