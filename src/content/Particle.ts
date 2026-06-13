@@ -15,12 +15,12 @@ export default class Particle {
 		return this.lifetime < this.maxLifeTime;
 	}
 
-	public get rect(): Rect {
+	public get rect(): Readonly<Rect> {
 		return this._rect;
 	}
 
 	constructor(pos: Vec2, color: string, size: number = 2) {
-		this.pos = pos;
+		this.pos = pos.clone();
 		this.color = color;
 		this.size = size;
 
@@ -30,7 +30,7 @@ export default class Particle {
 			random2Pi(),
 			randomBetweenInt(50, 150),
 			randomBetweenInt(50, 150),
-		).normalize();
+		);
 
 		this.maxLifeTime = 0.5 + Math.random();
 	}

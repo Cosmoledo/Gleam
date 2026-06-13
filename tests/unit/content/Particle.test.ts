@@ -58,10 +58,12 @@ describe("Particle constructor", () => {
 		expect(p.rect.h).toBe(5);
 	});
 
-	it("produces a normalized velocity vector", () => {
+	it("scales velocity components by random per-axis speeds in [50, 150]", () => {
+		// With Math.random=0: angle=0 → (cos, sin) = (1, 0); scales = (50, 50).
 		const p = new Particle(new Vec2(0, 0), "#ff0000");
 		const vel = readVel(p);
-		expect(vel.length()).toBeCloseTo(1, 5);
+		expect(vel.x).toBeCloseTo(50);
+		expect(vel.y).toBeCloseTo(0);
 	});
 
 	it("sets maxLifeTime in [0.5, 1.5)", () => {
@@ -69,6 +71,19 @@ describe("Particle constructor", () => {
 		const max = readMaxLifetime(p);
 		expect(max).toBeGreaterThanOrEqual(0.5);
 		expect(max).toBeLessThan(1.5);
+	});
+
+	it("does not alias the caller's pos vector", () => {
+		const callerPos = new Vec2(10, 20);
+		const p = new Particle(callerPos, "#ff0000", 3);
+		p.update(0.5);
+		// caller's vector must remain untouched after Particle moves
+		expect(callerPos.x).toBe(10);
+		expect(callerPos.y).toBe(20);
+		// and mutating the caller's vector must not retroactively shift the particle
+		callerPos.set(999, 999);
+		expect(p.rect.x).not.toBe(999);
+		expect(p.rect.y).not.toBe(999);
 	});
 });
 
