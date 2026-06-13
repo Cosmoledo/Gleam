@@ -18,14 +18,24 @@ A small TypeScript framework for 2D canvas games in the browser.
   - `ColorShifter` — animated color transitions
 - **A**udio
   - `Sound` — one-shot SFX
-  - `Music` — looped tracks
+  - `Music` — looped tracks, fading between songs
   - `AudioBase` — shared base class
   - `Audio` prototype extension
 - **M**ath
   - `Vec2`, `Rect`, `Polygon` (with collision) — geometry primitives
-  - numeric helpers in `utilities/Math`, `utilities/Number`, `utilities/Grid`
+  - numeric utility helpers
 
-Also bundled: asset loaders (`UrlLoaders`, `TiledMap`), `Translator` for localization, and pure utilities (`Array`, `DOM`, `Functions`, `Json`, `String`).
+Also bundled: asset loaders (`UrlLoaders`, `TiledMap`), `Translator` for localization, and many pure utilities: `Array`, `Canvas`, `Color`, `DOM`, `Functions`, `Grid`, `Json`, `Math`, `Number`, `String`).
+
+## Contents
+
+- [Install](#install)
+- [Quick start](#quick-start)
+- [Constraints](#constraints)
+- [How errors surface](#how-errors-surface)
+- [Build outputs](#build-outputs)
+- [Development](#development)
+- [License](#license)
 
 ## Install
 
@@ -81,34 +91,24 @@ class MyGame extends Game {
 new MyGame({ fps: 1 / 60, backgroundColor: "#222" });
 ```
 
-`preInit()` calls `canman.finishSetup()`, so at least one canvas must already be registered as `CANVAS_TYPES.MAIN` (with non-zero `width`/`height`). It then wires global listeners and the game loop — with the default `Settings.autoloop`, the loop starts as soon as `init()` resolves.
+`preInit()`:
 
-## What's inside
+- Calls `canman.finishSetup()` — at least one canvas must already be registered as `CANVAS_TYPES.MAIN` with non-zero `width`/`height`.
+- Wires global listeners and the game loop.
+- Starts the loop as soon as `init()` resolves (with the default `Settings.autoloop`).
 
-| Area | Module | Notable exports |
-|------|--------|-----------------|
-| Core | `src/core` | `Game`, `Gameloop`, `CanvasManager`, `EventSystem`, `Settings` |
-| Math | `src/math` | `Vec2`, `Rect`, `Polygon` |
-| Color | `src/color` | `Color`, `ColorShifter` (plus free fns in `utilities/Color`) |
-| Audio | `src/audio` | `Sound`, `Music`, `AudioBase` |
-| Input | `src/input` | `Keyboard`, `Mouse`, `Controller`, `ControllerCursor` |
-| Content | `src/content` | `Animator`, `Particle`, `Projectile` |
-| Effects | `src/effects` | `Screenshake` |
-| Loaders | `src/loader` | `UrlLoaders`, `TiledMap` |
-| Localization | `src/localization` | `Translator` |
-| Prototypes | `src/prototypes` | side-effect extensions to `HTMLCanvasElement`, `HTMLImageElement`, `CanvasRenderingContext2D`, `Audio` |
-| Utilities | `src/utilities` | `Array`, `Canvas`, `Color`, `DOM`, `Functions`, `Grid`, `Json`, `Math`, `Number`, `String` |
+## Constraints
 
-## Settings
+- **One `Game` per page.** The framework registers listeners on `window`/`document` and sets `history.scrollRestoration`; multiple instances will fight each other.
+- Targets evergreen browsers (`es2020`).
 
-`Settings` is a static-class singleton. Pass overrides to the `Game` constructor or read/write fields directly:
+## How errors surface
 
-```ts
-Settings.fps = 1 / 120;
-Settings.debug = true;
-```
+Two error sources, handled differently:
 
-Persisted user preferences live under the `gleam` `localStorage` key and are written via `Settings.setLocalStorage(key, value)`.
+**Caller errors — crash early.** The lib user uses a method wrong, forgets a required input, or trips an API with side effects. These reproduce every time with the same args, so the lib throws synchronously. A loud immediate crash surfaces the bug in dev where it can be fixed directly.
+
+**Runtime errors — harder to spot.** As the game loop runs, subtle things go wrong: a vector shrinks toward zero and `normalize` would divide by zero, audio playback gets blocked by autoplay policy, a DOM element disappears mid-frame. These don't always reveal themselves on the first frame. Recoverable cases get a throttled `console.warn` (once per unique case, not every frame) plus the safest fallback the lib can manage. Unrecoverable cases crash — when something fundamental is gone, there's nothing useful left to do.
 
 ## Build outputs
 
@@ -119,17 +119,12 @@ Persisted user preferences live under the `gleam` `localStorage` key and are wri
 - `gleam.min.js` — minified IIFE.
 - `gleam.d.ts` — bundled type definitions.
 
-## Constraints
-
-- **One `Game` per page.** The framework registers listeners on `window`/`document` and sets `history.scrollRestoration`; multiple instances will fight each other.
-- Targets evergreen browsers (`es2020`).
-
 ## Development
 
 ```sh
+npx playwright install  # one-time: installs chromium for test:browser
 npm run test            # full vitest run
 npm run test:unit       # unit tests (happy-dom)
-npx playwright install  # one-time: install chromium for test:browser
 npm run test:browser    # browser tests (playwright/chromium)
 npm run lint            # eslint over src/ and tests/
 npm run build           # esbuild bundles + dts-bundle-generator
