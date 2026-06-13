@@ -31,12 +31,13 @@ export function isTouchPrimary(): boolean {
 
 /**
  * Run `tick(dt)` on every animation frame; `dt` is seconds since the previous
- * frame (0 on the first call). Returns a cancel function that ends the loop
- * after the current tick.
+ * frame (0 on the first call). Returns a cancel function that stops the loop —
+ * no further ticks fire after it's called, even if one was already queued.
  */
 export function rafLoop(tick: (dt: number) => void): () => void {
 	let lastTime = 0;
 	let running = true;
+	let handle = 0;
 
 	const wrapped = (now: number): void => {
 		const dt = lastTime === 0 ? 0 : (now - lastTime) / 1000;
@@ -44,15 +45,17 @@ export function rafLoop(tick: (dt: number) => void): () => void {
 
 		tick(dt);
 
+		// `running` covers stop-from-inside-tick: after tick returns, skip the requeue.
 		if (running) {
-			requestAnimationFrame(wrapped);
+			handle = requestAnimationFrame(wrapped);
 		}
 	};
 
-	requestAnimationFrame(wrapped);
+	handle = requestAnimationFrame(wrapped);
 
 	return () => {
 		running = false;
+		cancelAnimationFrame(handle);
 	};
 }
 

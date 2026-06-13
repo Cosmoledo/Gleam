@@ -205,22 +205,13 @@ describe("rafLoop", () => {
 		expect(fn).toHaveBeenCalledTimes(1);
 	});
 
-	it("calls tick once after cancel (else branch of if(running))", () => {
+	it("cancels the pending rAF so no further tick fires", () => {
 		allowCalls = 0;
 		const fn = vi.fn();
 		const cancel = rafLoop(fn);
 		cancel();
-		pendingCbs[0]();
-		expect(fn).toHaveBeenCalledTimes(1);
-	});
-
-	it("calls tick once after cancel (covers else branch of if(running))", () => {
-		allowCalls = 0;
-		const fn = vi.fn();
-		const cancel = rafLoop(fn);
-		cancel();
-		pendingCbs[0]();
-		expect(fn).toHaveBeenCalledTimes(1);
+		expect(pendingCbs.length).toBe(0);
+		expect(fn).not.toHaveBeenCalled();
 	});
 });
 
