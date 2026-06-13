@@ -82,7 +82,7 @@ describe("Keyboard", () => {
 		expect(kb.isPressed("KeyA")).toBe(false);
 	});
 
-	it("dispatches KEY event on keydown", async () => {
+	it("dispatches KEY event on keydown with pressed=true", async () => {
 		const { default: Keyboard } = await import("@/input/Keyboard");
 		const kb = new Keyboard(mockGame);
 		keydownCb!({ code: "KeyB", type: "keydown" } as KeyboardEvent);
@@ -90,10 +90,11 @@ describe("Keyboard", () => {
 			"inputKeyboard",
 			kb.keys,
 			"KeyB",
+			true,
 		);
 	});
 
-	it("dispatches KEY event on keyup", async () => {
+	it("dispatches KEY event on keyup with pressed=false", async () => {
 		const { default: Keyboard } = await import("@/input/Keyboard");
 		const kb = new Keyboard(mockGame);
 		keyupCb!({ code: "KeyC", type: "keyup" } as KeyboardEvent);
@@ -101,6 +102,7 @@ describe("Keyboard", () => {
 			"inputKeyboard",
 			kb.keys,
 			"KeyC",
+			false,
 		);
 	});
 

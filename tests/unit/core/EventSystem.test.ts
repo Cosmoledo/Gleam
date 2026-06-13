@@ -77,8 +77,8 @@ describe("EventSystem.dispatchEvent invokes callbacks", () => {
 		const cb = vi.fn();
 		EventSystem.addEventListener("inputKeyboard", cb);
 		const keys = { KeyA: true };
-		EventSystem.dispatchEvent("inputKeyboard", keys, "KeyA");
-		expect(cb).toHaveBeenCalledWith(keys, "KeyA");
+		EventSystem.dispatchEvent("inputKeyboard", keys, "KeyA", true);
+		expect(cb).toHaveBeenCalledWith(keys, "KeyA", true);
 	});
 
 	it("invokes listeners in registration order (FIFO)", () => {
@@ -402,7 +402,7 @@ describe("EventSystem.addEventListener signal", () => {
 		});
 		controller.abort();
 		EventSystem.dispatchEvent("resized");
-		EventSystem.dispatchEvent("inputKeyboard", {}, "KeyA");
+		EventSystem.dispatchEvent("inputKeyboard", {}, "KeyA", true);
 		expect(onResize).not.toHaveBeenCalled();
 		expect(onKey).not.toHaveBeenCalled();
 	});

@@ -5,7 +5,11 @@ export interface GameEventMap {
 	gameloopStopped: [];
 	inputControllerConnected: [event: Gamepad];
 	inputControllerDisconnected: [];
-	inputKeyboard: [keys: Record<string, boolean>, code: string];
+	inputKeyboard: [
+		keys: Record<string, boolean>,
+		code: string,
+		pressed: boolean,
+	];
 	inputMouse: [mouse: Mouse];
 	resized: [];
 }

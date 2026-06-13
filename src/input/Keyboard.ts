@@ -56,17 +56,23 @@ export default class Keyboard {
 		const keyEvent = (event: KeyboardEvent): void => {
 			const code = event.code;
 
-			this.keys[code] = event.type === "keydown";
+			const pressed = event.type === "keydown";
+			this.keys[code] = pressed;
 
 			if (
 				Settings.debug &&
 				code === KEYBOARD_KEYS.KEY_ESCAPE &&
-				event.type === "keydown"
+				pressed
 			) {
 				game.gameloop.stopLoop();
 			}
 
-			EventSystem.dispatchEvent("inputKeyboard", this.keys, code);
+			EventSystem.dispatchEvent(
+				"inputKeyboard",
+				this.keys,
+				code,
+				pressed,
+			);
 		};
 
 		window.addEventListener("keydown", keyEvent, false);
