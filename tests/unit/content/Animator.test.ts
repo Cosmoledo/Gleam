@@ -98,9 +98,11 @@ describe("Animator.add", () => {
 		expect(err).toHaveBeenCalledTimes(1);
 	});
 
-	it("becomes inactive when the default animation has only one sprite", () => {
+	it("starts active for a single-sprite default animation and deactivates after one cycle", () => {
 		const a = new Animator(makeEntity(), uniqueNamespace());
 		a.add("still", makeSprites(1), 0.1, true);
+		expect(a.active).toBe(true);
+		a.update(0.2);
 		expect(a.active).toBe(false);
 	});
 
@@ -173,11 +175,24 @@ describe("Animator.play", () => {
 		expect(onEnd).toHaveBeenCalledTimes(1);
 	});
 
-	it("sets active=false when the new animation has only one sprite", () => {
+	it("stays active for one cycle when switching to a single-sprite animation, then deactivates", () => {
 		const a = new Animator(makeEntity(), uniqueNamespace());
 		a.add("walk", makeSprites(3), 0.1, true);
 		a.add("still", makeSprites(1), 0.1);
 		a.play("still");
+		expect(a.active).toBe(true);
+		a.update(0.2);
+		expect(a.active).toBe(false);
+	});
+
+	it("invokes onEnd for a single-sprite animation after one timer cycle", () => {
+		const a = new Animator(makeEntity(), uniqueNamespace());
+		a.add("flash", makeSprites(1), 0.1, true);
+		const onEnd = vi.fn();
+		a.play("flash", onEnd);
+		expect(onEnd).not.toHaveBeenCalled();
+		a.update(0.2);
+		expect(onEnd).toHaveBeenCalledTimes(1);
 		expect(a.active).toBe(false);
 	});
 
@@ -485,6 +500,14 @@ describe("Animator.setImage", () => {
 		const a = new Animator(entity, uniqueNamespace());
 		a.add("idle", makeSprites(2, 12, 8), 0.1, true);
 		expect(entity.flipX).toBe(99);
+	});
+
+	it("preserves entity.flipX when it was explicitly set to 0", () => {
+		const entity = makeEntity();
+		entity.flipX = 0;
+		const a = new Animator(entity, uniqueNamespace());
+		a.add("idle", makeSprites(2, 12, 8), 0.1, true);
+		expect(entity.flipX).toBe(0);
 	});
 
 	it("caches rendered sprites keyed by (namespace, animation, frame)", () => {

@@ -59,6 +59,14 @@ export default class Animator {
 		return this.animations[this.currentAnimation];
 	}
 
+	/**
+	 * We store rendered images in a cache.
+	 * So if you have the same entity multiple times, the images get computed once and then shared.
+	 * This reduces overhead and frees time up for other important computations.
+	 *
+	 * `namespace` is the cache key prefix for these rendered images.
+	 * So pass a different key for different Animators; otherwise, you will see wrong images.
+	 */
 	constructor(entity: BaseEntity, namespace: string) {
 		this.entity = entity;
 		this.namespace = namespace;
@@ -86,9 +94,10 @@ export default class Animator {
 			return;
 		}
 
-		this.timer = 0;
+		this.timer -= this.current.timing;
 		this.imageId++;
 
+		// on animation end / no more sprites
 		if (this.imageId >= this.current.sprites.length) {
 			const onEnd = this.onEnd;
 			this.onEnd = undefined;
@@ -104,6 +113,11 @@ export default class Animator {
 			if (this.lastPlayed) {
 				this.play(this.lastPlayed);
 				this.lastPlayed = undefined;
+				return;
+			}
+
+			if (this.current.sprites.length === 1) {
+				this.active = false;
 				return;
 			}
 		}
@@ -205,7 +219,7 @@ export default class Animator {
 			return;
 		}
 
-		this.active = this.current.sprites.length > 1;
+		this.active = true;
 	}
 
 	public playIfNot(
@@ -217,6 +231,7 @@ export default class Animator {
 			this.play(name, onEnd, onFrame);
 			return true;
 		}
+
 		return false;
 	}
 
@@ -273,7 +288,7 @@ export default class Animator {
 		const sprite = animation.sprites[this.imageId];
 		this.size.set(sprite.width, sprite.height);
 
-		if (!this.entity.flipX) {
+		if (this.entity.flipX === undefined) {
 			this.entity.flipX = this.size.x;
 		}
 
