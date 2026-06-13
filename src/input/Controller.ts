@@ -29,7 +29,7 @@ const AXIS_THRESHOLD = 0.3;
 export default class Controller {
 	public buttons: boolean[] = [];
 	public cursors: ControllerCursor[] = [];
-	private gamepad: Gamepad | null = null;
+	private index = -1;
 	private axes: Vec2[] = [];
 	private lastTime = 0;
 
@@ -44,19 +44,16 @@ export default class Controller {
 		}
 
 		window.addEventListener("gamepadconnected", (event: GamepadEvent) => {
-			this.gamepad = event.gamepad;
-			console.log("Gamepad connected:", this.gamepad.id);
+			this.index = event.gamepad.index;
+			console.log("Gamepad connected:", event.gamepad.id);
 			this.vibrate();
 		});
 
 		window.addEventListener(
 			"gamepaddisconnected",
 			(event: GamepadEvent) => {
-				if (
-					this.gamepad &&
-					this.gamepad.index === event.gamepad.index
-				) {
-					this.gamepad = null;
+				if (this.index === event.gamepad.index) {
+					this.index = -1;
 					console.log(
 						"Our Gamepad was disconnected:",
 						event.gamepad.index,
@@ -73,7 +70,7 @@ export default class Controller {
 	}
 
 	public draw(context: CanvasRenderingContext2D): void {
-		if (!this.gamepad) {
+		if (this.index < 0) {
 			return;
 		}
 
@@ -83,18 +80,20 @@ export default class Controller {
 	public update(dt: number): void {
 		this.cursors.forEach(cursor => cursor.update(dt));
 
-		if (!this.gamepad || this.lastTime === this.gamepad.timestamp) {
+		const gp = this.getGamepad();
+
+		if (!gp || this.lastTime === gp.timestamp) {
 			return;
 		}
 
-		this.lastTime = this.gamepad.timestamp;
+		this.lastTime = gp.timestamp;
 
-		this.buttons = this.gamepad.buttons.map(
+		this.buttons = gp.buttons.map(
 			(button: GamepadButton) => button.pressed,
 		);
 
 		this.axes.length = 0;
-		const axes = this.gamepad.axes;
+		const axes = gp.axes;
 
 		for (let i = 0; i + 1 < axes.length; i += 2) {
 			this.axes.push(new Vec2(axes[i], axes[i + 1]));
@@ -108,11 +107,13 @@ export default class Controller {
 	}
 
 	public vibrate(): boolean {
-		if (!this.gamepad) {
+		const gp = this.getGamepad();
+
+		if (!gp) {
 			return false;
 		}
 
-		const vibrator = this.gamepad.vibrationActuator;
+		const vibrator = gp.vibrationActuator;
 
 		if (vibrator) {
 			vibrator.playEffect("dual-rumble", {
@@ -127,7 +128,7 @@ export default class Controller {
 	}
 
 	public stick(index: number): Vec2 {
-		if (!this.gamepad || index >= this.axes.length) {
+		if (this.index < 0 || index >= this.axes.length) {
 			return new Vec2();
 		}
 
@@ -139,5 +140,11 @@ export default class Controller {
 					Math.sign(value) *
 					map(Math.abs(value), AXIS_THRESHOLD, 1, 0, 1),
 			);
+	}
+
+	private getGamepad(): Gamepad | null {
+		return this.index < 0
+			? null
+			: (navigator.getGamepads()[this.index] ?? null);
 	}
 }
