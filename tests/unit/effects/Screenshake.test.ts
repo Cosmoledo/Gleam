@@ -31,12 +31,21 @@ function makeElement(): HTMLElement {
 	return document.createElement("div");
 }
 
+function styleSetter(el: HTMLElement) {
+	return (key: string, value: string) => {
+		el.style[key] = value;
+	};
+}
+
 beforeEach(() => {
 	pendingCbs = [];
 	rafTime = 0;
 	vi.stubGlobal("requestAnimationFrame", (cb: (t: number) => void) => {
 		pendingCbs.push(cb);
 		return pendingCbs.length;
+	});
+	vi.stubGlobal("cancelAnimationFrame", () => {
+		pendingCbs = [];
 	});
 });
 
@@ -49,7 +58,7 @@ afterEach(() => {
 describe("SHAKE_TYPES.NORMAL.update", () => {
 	it("sets transform, webkitTransform, and filter on the style", () => {
 		const el = makeElement();
-		SHAKE_TYPES.NORMAL.update(el.style, 1);
+		SHAKE_TYPES.NORMAL.update(styleSetter(el), 1);
 		expect(el.style.transform).toMatch(/^rotate\(-?\d+(\.\d+)?deg\)$/);
 		expect(el.style.webkitTransform).toBe(el.style.transform);
 		expect(el.style.filter).toBe("blur(5px)");
@@ -57,7 +66,7 @@ describe("SHAKE_TYPES.NORMAL.update", () => {
 
 	it("scales blur with the time argument", () => {
 		const el = makeElement();
-		SHAKE_TYPES.NORMAL.update(el.style, 0.5);
+		SHAKE_TYPES.NORMAL.update(styleSetter(el), 0.5);
 		expect(el.style.filter).toBe("blur(2.5px)");
 	});
 
@@ -71,14 +80,14 @@ describe("SHAKE_TYPES.NORMAL.update", () => {
 describe("SHAKE_TYPES.FAST.update", () => {
 	it("sets only filter (no transform)", () => {
 		const el = makeElement();
-		SHAKE_TYPES.FAST.update(el.style, 1);
+		SHAKE_TYPES.FAST.update(styleSetter(el), 1);
 		expect(el.style.filter).toBe("blur(3px)");
 		expect(el.style.transform).toBe("");
 	});
 
 	it("scales blur with the time argument", () => {
 		const el = makeElement();
-		SHAKE_TYPES.FAST.update(el.style, 0.25);
+		SHAKE_TYPES.FAST.update(styleSetter(el), 0.25);
 		expect(el.style.filter).toBe("blur(0.75px)");
 	});
 
@@ -106,22 +115,22 @@ describe("Screenshake constructor", () => {
 // ==================== shake — return value ====================
 
 describe("Screenshake.shake return value", () => {
-	it("returns true when starting fresh", () => {
+	it("returns a dispose function when starting fresh", () => {
 		const s = new Screenshake(makeElement());
-		expect(s.shake()).toBe(true);
+		expect(typeof s.shake()).toBe("function");
 	});
 
-	it("returns false when already shaking", () => {
+	it("returns null when already shaking", () => {
 		const s = new Screenshake(makeElement());
 		s.shake();
-		expect(s.shake()).toBe(false);
+		expect(s.shake()).toBe(null);
 	});
 
-	it("returns true again after the previous shake completes", () => {
+	it("returns a dispose function again after the previous shake completes", () => {
 		const s = new Screenshake(makeElement());
 		s.shake();
 		runToCompletion();
-		expect(s.shake()).toBe(true);
+		expect(typeof s.shake()).toBe("function");
 	});
 });
 
@@ -151,11 +160,21 @@ describe("Screenshake.shake style effects", () => {
 		expect(el.style.transform).toMatch(/^rotate\(.*deg\)$/);
 	});
 
-	it("resets transform and filter when the shake completes", () => {
+	it("restores prior inline style values when the shake completes", () => {
+		const el = makeElement();
+		el.style.transform = "scale(2)";
+		el.style.filter = "brightness(0.5)";
+		new Screenshake(el).shake();
+		runToCompletion();
+		expect(el.style.transform).toBe("scale(2)");
+		expect(el.style.filter).toBe("brightness(0.5)");
+	});
+
+	it("leaves the style empty when there was no prior inline value", () => {
 		const el = makeElement();
 		new Screenshake(el).shake();
 		runToCompletion();
-		expect(el.style.transform).toBe("none");
+		expect(el.style.transform).toBe("");
 		expect(el.style.filter).toBe("");
 	});
 });
@@ -187,10 +206,72 @@ describe("Screenshake.shake lifecycle", () => {
 		const s = new Screenshake(makeElement());
 		s.shake();
 		stepFrame();
-		expect(s.shake()).toBe(false);
+		expect(s.shake()).toBe(null);
 		stepFrame();
-		expect(s.shake()).toBe(false);
+		expect(s.shake()).toBe(null);
 		runToCompletion();
-		expect(s.shake()).toBe(true);
+		expect(typeof s.shake()).toBe("function");
+	});
+});
+
+// ==================== shake — dispose ====================
+
+describe("Screenshake.shake dispose", () => {
+	it("cancels a running shake and restores prior style", () => {
+		const el = makeElement();
+		el.style.transform = "scale(2)";
+		const dispose = new Screenshake(el).shake();
+		stepFrame();
+		expect(el.style.transform).toMatch(/^rotate\(.*deg\)$/);
+		dispose!();
+		expect(el.style.transform).toBe("scale(2)");
+	});
+
+	it("unblocks the instance for a new shake", () => {
+		const s = new Screenshake(makeElement());
+		const dispose = s.shake();
+		stepFrame();
+		dispose!();
+		expect(typeof s.shake()).toBe("function");
+	});
+
+	it("second call does not re-apply the snapshot over caller writes", () => {
+		const el = makeElement();
+		el.style.transform = "scale(2)";
+		const dispose = new Screenshake(el).shake();
+		stepFrame();
+		dispose!();
+		el.style.transform = "rotate(45deg)";
+		dispose!();
+		expect(el.style.transform).toBe("rotate(45deg)");
+	});
+
+	it("caller call after natural completion is a no-op", () => {
+		const el = makeElement();
+		el.style.transform = "scale(2)";
+		const dispose = new Screenshake(el).shake();
+		runToCompletion();
+		expect(el.style.transform).toBe("scale(2)");
+		el.style.transform = "rotate(45deg)";
+		dispose!();
+		expect(el.style.transform).toBe("rotate(45deg)");
+	});
+
+	it("stale dispose from a prior shake does not corrupt a later shake", () => {
+		const el = makeElement();
+		const s = new Screenshake(el);
+		const dispose1 = s.shake();
+		runToCompletion();
+
+		const dispose2 = s.shake();
+		stepFrame();
+		const midShakeTransform = el.style.transform;
+
+		dispose1!();
+		expect(el.style.transform).toBe(midShakeTransform);
+
+		dispose2!();
+		expect(el.style.transform).toBe("");
+		expect(typeof s.shake()).toBe("function");
 	});
 });
