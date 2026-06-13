@@ -50,10 +50,10 @@ export default class Rect {
 		return new Rect(minX, minY, maxX - minX, maxY - minY);
 	}
 
-	public _h = 0;
-	public _w = 0;
-	public _x = 0;
-	public _y = 0;
+	private _h = 0;
+	private _w = 0;
+	private _x = 0;
+	private _y = 0;
 	private _sides!: Sides;
 	private sideIsDirty: boolean = true;
 
