@@ -12,7 +12,7 @@ export const MOUSE_KEYS = {
 } as const;
 
 export default class Mouse {
-	public lastEvent: MouseEvent | null = null;
+	public lastEvent: PointerEvent | null = null;
 	public hasMoved = false;
 	public posReal = new Vec2();
 	public posRealLast = new Vec2();
@@ -25,7 +25,7 @@ export default class Mouse {
 	constructor(game: Game) {
 		this.game = game;
 
-		const mouseMoveEvent = (event: MouseEvent): void => {
+		const pointerMoveEvent = (event: PointerEvent): void => {
 			if (event.target === this.game.canman.canvas) {
 				event.preventDefault();
 			}
@@ -38,21 +38,21 @@ export default class Mouse {
 			EventSystem.dispatchEvent("inputMouse", this);
 		};
 
-		const mouseStateChangeEvent = (event: MouseEvent): void => {
+		const pointerStateChangeEvent = (event: PointerEvent): void => {
 			if (event.target === this.game.canman.canvas) {
 				event.preventDefault();
 			}
 
 			this.lastEvent = event;
 
-			this.pressed[event.button] = event.type === "mousedown";
+			this.pressed[event.button] = event.type === "pointerdown";
 
 			EventSystem.dispatchEvent("inputMouse", this);
 		};
 
-		window.addEventListener("pointermove", mouseMoveEvent, false);
-		window.addEventListener("mousedown", mouseStateChangeEvent, false);
-		window.addEventListener("mouseup", mouseStateChangeEvent, false);
+		window.addEventListener("pointermove", pointerMoveEvent, false);
+		window.addEventListener("pointerdown", pointerStateChangeEvent, false);
+		window.addEventListener("pointerup", pointerStateChangeEvent, false);
 		window.addEventListener("blur", () => this.reset(), false);
 	}
 
@@ -60,7 +60,7 @@ export default class Mouse {
 		this.pressed.length = 0;
 	}
 
-	private update(event: MouseEvent): void {
+	private update(event: PointerEvent): void {
 		this.posRealLast = this.posReal.clone();
 		this.posReal.set(
 			event.clientX + this.size.x * 0.5,

@@ -22,9 +22,9 @@ describe("MOUSE_KEYS", () => {
 
 describe("Mouse", () => {
 	let mockGame: Game;
-	let pointermoveCb: ((e: MouseEvent) => void) | null = null;
-	let mousedownCb: ((e: MouseEvent) => void) | null = null;
-	let mouseupCb: ((e: MouseEvent) => void) | null = null;
+	let pointermoveCb: ((e: PointerEvent) => void) | null = null;
+	let pointerdownCb: ((e: PointerEvent) => void) | null = null;
+	let pointerupCb: ((e: PointerEvent) => void) | null = null;
 	let blurCb: (() => void) | null = null;
 
 	let dispatchSpy: ReturnType<typeof vi.spyOn>;
@@ -32,18 +32,18 @@ describe("Mouse", () => {
 	beforeEach(() => {
 		mockGame = createMockGame();
 		pointermoveCb = null;
-		mousedownCb = null;
-		mouseupCb = null;
+		pointerdownCb = null;
+		pointerupCb = null;
 		blurCb = null;
 		vi.spyOn(window, "addEventListener").mockImplementation((type, cb) => {
 			if (type === "pointermove") {
-				pointermoveCb = cb as (e: MouseEvent) => void;
+				pointermoveCb = cb as (e: PointerEvent) => void;
 			}
-			if (type === "mousedown") {
-				mousedownCb = cb as (e: MouseEvent) => void;
+			if (type === "pointerdown") {
+				pointerdownCb = cb as (e: PointerEvent) => void;
 			}
-			if (type === "mouseup") {
-				mouseupCb = cb as (e: MouseEvent) => void;
+			if (type === "pointerup") {
+				pointerupCb = cb as (e: PointerEvent) => void;
 			}
 			if (type === "blur") {
 				blurCb = cb as () => void;
@@ -56,12 +56,12 @@ describe("Mouse", () => {
 		vi.restoreAllMocks();
 	});
 
-	it("registers pointermove, mousedown, and mouseup event listeners", async () => {
+	it("registers pointermove, pointerdown, and pointerup event listeners", async () => {
 		const { default: Mouse } = await import("@/input/Mouse");
 		new Mouse(mockGame);
 		expect(pointermoveCb).toBeInstanceOf(Function);
-		expect(mousedownCb).toBeInstanceOf(Function);
-		expect(mouseupCb).toBeInstanceOf(Function);
+		expect(pointerdownCb).toBeInstanceOf(Function);
+		expect(pointerupCb).toBeInstanceOf(Function);
 	});
 
 	it("initializes all Vec2 properties", async () => {
@@ -110,7 +110,7 @@ describe("Mouse", () => {
 				clientY: 200,
 				target: mockGame.canman.canvas,
 				preventDefault: vi.fn(),
-			} as unknown as MouseEvent);
+			} as unknown as PointerEvent);
 			expect(mouse.hasMoved).toBe(true);
 		});
 
@@ -123,7 +123,7 @@ describe("Mouse", () => {
 				clientY: 200,
 				target: mockGame.canman.canvas,
 				preventDefault,
-			} as unknown as MouseEvent);
+			} as unknown as PointerEvent);
 			expect(preventDefault).toHaveBeenCalled();
 		});
 
@@ -136,7 +136,7 @@ describe("Mouse", () => {
 				clientY: 200,
 				target: null,
 				preventDefault,
-			} as unknown as MouseEvent);
+			} as unknown as PointerEvent);
 			expect(preventDefault).not.toHaveBeenCalled();
 		});
 
@@ -148,7 +148,7 @@ describe("Mouse", () => {
 				clientY: 75,
 				target: mockGame.canman.canvas,
 				preventDefault: vi.fn(),
-			} as unknown as MouseEvent;
+			} as unknown as PointerEvent;
 			pointermoveCb!(event);
 			expect(mouse.lastEvent).toBe(event);
 		});
@@ -161,7 +161,7 @@ describe("Mouse", () => {
 				clientY: 200,
 				target: mockGame.canman.canvas,
 				preventDefault: vi.fn(),
-			} as unknown as MouseEvent);
+			} as unknown as PointerEvent);
 			expect(dispatchSpy).toHaveBeenCalledWith("inputMouse", mouse);
 		});
 
@@ -173,7 +173,7 @@ describe("Mouse", () => {
 				clientY: 200,
 				target: mockGame.canman.canvas,
 				preventDefault: vi.fn(),
-			} as unknown as MouseEvent);
+			} as unknown as PointerEvent);
 			expect(mouse.posReal.x).toBe(105);
 			expect(mouse.posReal.y).toBe(205);
 		});
@@ -192,7 +192,7 @@ describe("Mouse", () => {
 				clientY: 200,
 				target: mockGame.canman.canvas,
 				preventDefault: vi.fn(),
-			} as unknown as MouseEvent);
+			} as unknown as PointerEvent);
 			expect(mouse.posScaled.x).toBe(0);
 			expect(mouse.posScaled.y).toBe(0);
 		});
@@ -205,7 +205,7 @@ describe("Mouse", () => {
 				clientY: 200,
 				target: mockGame.canman.canvas,
 				preventDefault: vi.fn(),
-			} as unknown as MouseEvent);
+			} as unknown as PointerEvent);
 			expect(mouse.posScaledLast.x).toBe(0);
 			expect(mouse.posScaledLast.y).toBe(0);
 		});
@@ -224,7 +224,7 @@ describe("Mouse", () => {
 				clientY: -1000,
 				target: mockGame.canman.canvas,
 				preventDefault: vi.fn(),
-			} as unknown as MouseEvent);
+			} as unknown as PointerEvent);
 			expect(mouse.posScaled.x).toBe(0);
 			expect(mouse.posScaled.y).toBe(0);
 			pointermoveCb!({
@@ -232,119 +232,119 @@ describe("Mouse", () => {
 				clientY: 2000,
 				target: mockGame.canman.canvas,
 				preventDefault: vi.fn(),
-			} as unknown as MouseEvent);
+			} as unknown as PointerEvent);
 			expect(mouse.posScaled.x).toBe(800);
 			expect(mouse.posScaled.y).toBe(600);
 		});
 	});
 
-	// ==================== mousedown / mouseup ====================
+	// ==================== pointerdown / pointerup ====================
 
-	describe("mousedown / mouseup", () => {
-		it("sets pressed[button] to true on mousedown", async () => {
+	describe("pointerdown / pointerup", () => {
+		it("sets pressed[button] to true on pointerdown", async () => {
 			const { default: Mouse } = await import("@/input/Mouse");
 			const mouse = new Mouse(mockGame);
-			mousedownCb!({
-				type: "mousedown",
+			pointerdownCb!({
+				type: "pointerdown",
 				button: 0,
 				target: mockGame.canman.canvas,
 				preventDefault: vi.fn(),
-			} as unknown as MouseEvent);
+			} as unknown as PointerEvent);
 			expect(mouse.pressed[0]).toBe(true);
 		});
 
-		it("sets pressed[button] to false on mouseup", async () => {
+		it("sets pressed[button] to false on pointerup", async () => {
 			const { default: Mouse } = await import("@/input/Mouse");
 			const mouse = new Mouse(mockGame);
-			mousedownCb!({
-				type: "mousedown",
+			pointerdownCb!({
+				type: "pointerdown",
 				button: 1,
 				target: mockGame.canman.canvas,
 				preventDefault: vi.fn(),
-			} as unknown as MouseEvent);
+			} as unknown as PointerEvent);
 			expect(mouse.pressed[1]).toBe(true);
-			mouseupCb!({
-				type: "mouseup",
+			pointerupCb!({
+				type: "pointerup",
 				button: 1,
 				target: mockGame.canman.canvas,
 				preventDefault: vi.fn(),
-			} as unknown as MouseEvent);
+			} as unknown as PointerEvent);
 			expect(mouse.pressed[1]).toBe(false);
 		});
 
-		it("sets lastEvent to the event on mousedown", async () => {
+		it("sets lastEvent to the event on pointerdown", async () => {
 			const { default: Mouse } = await import("@/input/Mouse");
 			const mouse = new Mouse(mockGame);
 			const event = {
-				type: "mousedown",
+				type: "pointerdown",
 				button: 0,
 				target: mockGame.canman.canvas,
 				preventDefault: vi.fn(),
-			} as unknown as MouseEvent;
-			mousedownCb!(event);
+			} as unknown as PointerEvent;
+			pointerdownCb!(event);
 			expect(mouse.lastEvent).toBe(event);
 		});
 
-		it("sets lastEvent to the event on mouseup", async () => {
+		it("sets lastEvent to the event on pointerup", async () => {
 			const { default: Mouse } = await import("@/input/Mouse");
 			const mouse = new Mouse(mockGame);
 			const event = {
-				type: "mouseup",
+				type: "pointerup",
 				button: 2,
 				target: mockGame.canman.canvas,
 				preventDefault: vi.fn(),
-			} as unknown as MouseEvent;
-			mouseupCb!(event);
+			} as unknown as PointerEvent;
+			pointerupCb!(event);
 			expect(mouse.lastEvent).toBe(event);
 		});
 
-		it("dispatches MOUSE event on mousedown", async () => {
+		it("dispatches MOUSE event on pointerdown", async () => {
 			const { default: Mouse } = await import("@/input/Mouse");
 			const mouse = new Mouse(mockGame);
-			mousedownCb!({
-				type: "mousedown",
+			pointerdownCb!({
+				type: "pointerdown",
 				button: 0,
 				target: mockGame.canman.canvas,
 				preventDefault: vi.fn(),
-			} as unknown as MouseEvent);
+			} as unknown as PointerEvent);
 			expect(dispatchSpy).toHaveBeenCalledWith("inputMouse", mouse);
 		});
 
-		it("dispatches MOUSE event on mouseup", async () => {
+		it("dispatches MOUSE event on pointerup", async () => {
 			const { default: Mouse } = await import("@/input/Mouse");
 			const mouse = new Mouse(mockGame);
-			mouseupCb!({
-				type: "mouseup",
+			pointerupCb!({
+				type: "pointerup",
 				button: 0,
 				target: mockGame.canman.canvas,
 				preventDefault: vi.fn(),
-			} as unknown as MouseEvent);
+			} as unknown as PointerEvent);
 			expect(dispatchSpy).toHaveBeenCalledWith("inputMouse", mouse);
 		});
 
-		it("prevents default when target is canvas on mousedown", async () => {
+		it("prevents default when target is canvas on pointerdown", async () => {
 			const { default: Mouse } = await import("@/input/Mouse");
 			const preventDefault = vi.fn();
 			new Mouse(mockGame);
-			mousedownCb!({
-				type: "mousedown",
+			pointerdownCb!({
+				type: "pointerdown",
 				button: 0,
 				target: mockGame.canman.canvas,
 				preventDefault,
-			} as unknown as MouseEvent);
+			} as unknown as PointerEvent);
 			expect(preventDefault).toHaveBeenCalled();
 		});
 
-		it("prevents default when target is canvas on mouseup", async () => {
+		it("prevents default when target is canvas on pointerup", async () => {
 			const { default: Mouse } = await import("@/input/Mouse");
 			const preventDefault = vi.fn();
 			new Mouse(mockGame);
-			mouseupCb!({
-				type: "mouseup",
+			pointerupCb!({
+				type: "pointerup",
 				button: 0,
 				target: mockGame.canman.canvas,
 				preventDefault,
-			} as unknown as MouseEvent);
+			} as unknown as PointerEvent);
 			expect(preventDefault).toHaveBeenCalled();
 		});
 
@@ -352,47 +352,47 @@ describe("Mouse", () => {
 			const { default: Mouse } = await import("@/input/Mouse");
 			new Mouse(mockGame);
 			const preventDefault = vi.fn();
-			mousedownCb!({
-				type: "mousedown",
+			pointerdownCb!({
+				type: "pointerdown",
 				button: 0,
 				target: null,
 				preventDefault,
-			} as unknown as MouseEvent);
+			} as unknown as PointerEvent);
 			expect(preventDefault).not.toHaveBeenCalled();
 		});
 
-		it("handles all mouse buttons on mousedown", async () => {
+		it("handles all mouse buttons on pointerdown", async () => {
 			const { default: Mouse } = await import("@/input/Mouse");
 			const mouse = new Mouse(mockGame);
 			for (let btn = 0; btn <= 4; btn++) {
-				mousedownCb!({
-					type: "mousedown",
+				pointerdownCb!({
+					type: "pointerdown",
 					button: btn,
 					target: mockGame.canman.canvas,
 					preventDefault: vi.fn(),
-				} as unknown as MouseEvent);
+				} as unknown as PointerEvent);
 				expect(mouse.pressed[btn]).toBe(true);
 			}
 		});
 
-		it("handles all mouse buttons on mouseup", async () => {
+		it("handles all mouse buttons on pointerup", async () => {
 			const { default: Mouse } = await import("@/input/Mouse");
 			const mouse = new Mouse(mockGame);
 			for (let btn = 0; btn <= 4; btn++) {
-				mousedownCb!({
-					type: "mousedown",
+				pointerdownCb!({
+					type: "pointerdown",
 					button: btn,
 					target: mockGame.canman.canvas,
 					preventDefault: vi.fn(),
-				} as unknown as MouseEvent);
+				} as unknown as PointerEvent);
 			}
 			for (let btn = 0; btn <= 4; btn++) {
-				mouseupCb!({
-					type: "mouseup",
+				pointerupCb!({
+					type: "pointerup",
 					button: btn,
 					target: mockGame.canman.canvas,
 					preventDefault: vi.fn(),
-				} as unknown as MouseEvent);
+				} as unknown as PointerEvent);
 				expect(mouse.pressed[btn]).toBe(false);
 			}
 		});
@@ -404,18 +404,18 @@ describe("Mouse", () => {
 		it("clears all pressed buttons", async () => {
 			const { default: Mouse } = await import("@/input/Mouse");
 			const mouse = new Mouse(mockGame);
-			mousedownCb!({
-				type: "mousedown",
+			pointerdownCb!({
+				type: "pointerdown",
 				button: 0,
 				target: mockGame.canman.canvas,
 				preventDefault: vi.fn(),
-			} as unknown as MouseEvent);
-			mousedownCb!({
-				type: "mousedown",
+			} as unknown as PointerEvent);
+			pointerdownCb!({
+				type: "pointerdown",
 				button: 2,
 				target: mockGame.canman.canvas,
 				preventDefault: vi.fn(),
-			} as unknown as MouseEvent);
+			} as unknown as PointerEvent);
 			mouse.reset();
 			expect(mouse.pressed.length).toBe(0);
 		});
@@ -423,12 +423,12 @@ describe("Mouse", () => {
 		it("is called when the window blur event fires", async () => {
 			const { default: Mouse } = await import("@/input/Mouse");
 			const mouse = new Mouse(mockGame);
-			mousedownCb!({
-				type: "mousedown",
+			pointerdownCb!({
+				type: "pointerdown",
 				button: 0,
 				target: mockGame.canman.canvas,
 				preventDefault: vi.fn(),
-			} as unknown as MouseEvent);
+			} as unknown as PointerEvent);
 			expect(mouse.pressed[0]).toBe(true);
 			blurCb!();
 			expect(mouse.pressed.length).toBe(0);
