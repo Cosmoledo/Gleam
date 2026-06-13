@@ -214,8 +214,23 @@ describe("toDotted", () => {
 		expect(toDotted(999)).toBe("999");
 	});
 
-	it("handles decimal numbers (only integer part dotted)", () => {
-		expect(toDotted(1234.56)).toBe("1.234.56");
+	it("rounds floats to the nearest integer", () => {
+		expect(toDotted(1234.4)).toBe("1.234");
+		expect(toDotted(1234.5)).toBe("1.235");
+		expect(toDotted(1234.6)).toBe("1.235");
+		expect(toDotted(0.4)).toBe("0");
+		expect(toDotted(0.5)).toBe("1");
+	});
+
+	it("rounds .5 toward +Infinity (JS Math.round semantics)", () => {
+		expect(toDotted(-1234.5)).toBe("-1.234");
+		expect(toDotted(-0.5)).toBe("0");
+	});
+
+	it("passes NaN and Infinity through their toString form", () => {
+		expect(toDotted(NaN)).toBe("NaN");
+		expect(toDotted(Infinity)).toBe("Infinity");
+		expect(toDotted(-Infinity)).toBe("-Infinity");
 	});
 });
 
@@ -254,12 +269,19 @@ describe("wrapValue", () => {
 		expect(wrapValue(10, 0, 10)).toBe(0);
 	});
 
-	it("handles equal min and max (range = 0, produces NaN)", () => {
-		expect(wrapValue(5, 3, 3)).toBe(NaN);
+	it("throws when min equals max (degenerate range)", () => {
+		expect(() => wrapValue(5, 3, 3)).toThrow(RangeError);
+		expect(() => wrapValue(0, 0, 0)).toThrow(RangeError);
 	});
 
 	it("works with negative min", () => {
 		expect(wrapValue(5, -10, 0)).toBe(-5);
 		expect(wrapValue(15, -10, 0)).toBe(-5);
+	});
+
+	it("accepts inverted bounds (max < min) by swapping", () => {
+		expect(wrapValue(15, 10, 0)).toBe(5);
+		expect(wrapValue(5, 10, 0)).toBe(5);
+		expect(wrapValue(-5, 10, 0)).toBe(5);
 	});
 });

@@ -1,3 +1,5 @@
+import { approxEqual } from "./Math";
+
 /**
  * Clamp values between two values
  */
@@ -51,17 +53,28 @@ export function threshold(value: number, cutoff: number): number {
 }
 
 /**
- * Format number with dot separators (e.g., 1.000.000)
+ * Format number with dot separators (e.g., 1.000.000). Rounds to the nearest integer via `Math.round`; non-finite values pass through as their `toString()` form.
  */
 export function toDotted(value: number): string {
-	return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+	return Math.round(value)
+		.toString()
+		.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 }
 
 /**
  * Wrap `value` into `[min, max)` modulo the range size. Useful for cyclic ranges like angles.
  * Caller steps via `value + n`; this function handles the wrap-around.
+ * Bounds are swapped if passed in reverse order. Throws when `min ≈ max` (degenerate range, via `approxEqual`).
  */
 export function wrapValue(value: number, min: number, max: number): number {
+	if (approxEqual(min, max)) {
+		throw new RangeError(`wrapValue: min and max must differ (got ${min})`);
+	}
+
+	if (min > max) {
+		[min, max] = [max, min];
+	}
+
 	const range = max - min;
 	return ((((value - min) % range) + range) % range) + min;
 }
