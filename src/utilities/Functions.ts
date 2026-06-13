@@ -115,7 +115,7 @@ export function throttleByKey<T extends unknown[]>(
 
 /**
  * Filename component of a URL/path, without directory, extension, or query string.
- * Returns `null` when no usable name can be derived (e.g. a path ending in `/`).
+ * Returns `null` when no usable name can be derived: a path ending in `/`, or a stem containing a malformed percent-escape that `decodeURIComponent` rejects.
  */
 export function urlBasename(path: string): string | null {
 	const url = new URL(path, "http://_/");
@@ -127,5 +127,9 @@ export function urlBasename(path: string): string | null {
 		return null;
 	}
 
-	return decodeURIComponent(stem);
+	try {
+		return decodeURIComponent(stem);
+	} catch {
+		return null;
+	}
 }

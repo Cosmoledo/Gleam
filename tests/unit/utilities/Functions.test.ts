@@ -430,4 +430,9 @@ describe("urlBasename", () => {
 	it("returns null for the root path", () => {
 		expect(urlBasename("/")).toBe(null);
 	});
+
+	it("returns null when the stem contains a malformed percent-escape", () => {
+		expect(urlBasename("/sounds/track%2.mp3")).toBe(null);
+		expect(urlBasename("/audio/bad%XY.wav")).toBe(null);
+	});
 });
