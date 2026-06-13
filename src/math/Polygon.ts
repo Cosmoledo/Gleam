@@ -9,7 +9,7 @@ export interface PolygonCollisionResult {
 	willIntersect: boolean;
 }
 
-const throttledTrace = throttle((count: number) => {
+const warnZeroEdge = throttle((count: number) => {
 	console.warn(
 		`Polygon.collide: found a zero-edge polygon — no collision possible. (called ${count}x since last trace)`,
 	);
@@ -332,7 +332,7 @@ export default class Polygon {
 		const edgeCountB = otherPolygon.edges.length;
 
 		if (edgeCountA === 0 || edgeCountB === 0) {
-			throttledTrace();
+			warnZeroEdge();
 
 			return {
 				intersect: false,
