@@ -119,4 +119,27 @@ describe("replaceCharAt", () => {
 	it("handles replacing with number-like string character", () => {
 		expect(replaceCharAt("abc", 1, "2")).toBe("a2c");
 	});
+
+	it("indexes by code point, not UTF-16 code unit", () => {
+		expect(replaceCharAt("a😀b", 0, "X")).toBe("X😀b");
+		expect(replaceCharAt("a😀b", 1, "X")).toBe("aXb");
+		expect(replaceCharAt("a😀b", 2, "X")).toBe("a😀X");
+	});
+
+	it("accepts a supplementary-plane char as replacement", () => {
+		expect(replaceCharAt("abc", 1, "😀")).toBe("a😀c");
+		expect(replaceCharAt("a😀b", 1, "🎉")).toBe("a🎉b");
+	});
+
+	it("rejects multi-code-point replacement (e.g. two emoji)", () => {
+		expect(() => replaceCharAt("abc", 1, "😀😀")).toThrow(
+			"replaceCharAt requires a single character, got length 2",
+		);
+	});
+
+	it("throws on index past code-point length (emoji shrinks effective length)", () => {
+		expect(() => replaceCharAt("a😀b", 3, "X")).toThrow(
+			"replaceCharAt index out of range: 3 (length 3)",
+		);
+	});
 });
