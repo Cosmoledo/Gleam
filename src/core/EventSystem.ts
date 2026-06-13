@@ -1,10 +1,9 @@
-import type ControllerCursor from "@/input/ControllerCursor";
 import type Mouse from "@/input/Mouse";
 import { throttleByKey } from "@/utilities/Functions";
 
 export interface GameEventMap {
 	gameloopStopped: [];
-	inputControllerConnected: [buttons: boolean[], cursors: ControllerCursor[]];
+	inputControllerConnected: [event: Gamepad];
 	inputControllerDisconnected: [];
 	inputKeyboard: [keys: Record<string, boolean>, code: string];
 	inputMouse: [mouse: Mouse];

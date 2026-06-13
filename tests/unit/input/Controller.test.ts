@@ -108,7 +108,7 @@ describe("Controller", () => {
 			expect(controller.cursors[1]).toBeInstanceOf(ControllerCursor);
 		});
 
-		it("calls vibrate on gamepad connected", async () => {
+		it("calls vibrate and dispatches inputControllerConnected on gamepad connect", async () => {
 			const mockGp = createMockGamepad([false], [0, 0, 0, 0], 0, 0);
 			defineGamepadSupport(mockGp);
 			const { default: Controller } = await import("@/input/Controller");
@@ -128,6 +128,10 @@ describe("Controller", () => {
 			}
 			expect(controller["index"]).toBe(mockGp.index);
 			expect(mockGp.vibrationActuator.playEffect).toHaveBeenCalled();
+			expect(dispatchSpy).toHaveBeenCalledWith(
+				"inputControllerConnected",
+				mockGp,
+			);
 		});
 
 		it("dispatches INPUT_CONTROLLER_DISCONNECTED when own gamepad disconnects", async () => {
@@ -265,19 +269,16 @@ describe("Controller", () => {
 			expect(controller["axes"][0]).toBeInstanceOf(Vec2);
 		});
 
-		it("dispatches CONTROLLER event with buttons and cursors", async () => {
+		it("does not dispatch inputControllerConnected from per-frame updates", async () => {
 			const mockGp = createMockGamepad([true], [0, 0, 0, 0], 1000, 0);
 			defineGamepadSupport(mockGp);
 			const { default: Controller } = await import("@/input/Controller");
 			const controller = new Controller(mockGame);
 			controller["index"] = mockGp.index;
 			controller["lastTime"] = 0;
+			dispatchSpy.mockClear();
 			controller.update(16);
-			expect(dispatchSpy).toHaveBeenCalledWith(
-				"inputControllerConnected",
-				controller.buttons,
-				controller.cursors,
-			);
+			expect(dispatchSpy).not.toHaveBeenCalled();
 		});
 
 		it("updates lastTime to gamepad timestamp", async () => {

@@ -46,6 +46,10 @@ export default class Controller {
 		window.addEventListener("gamepadconnected", (event: GamepadEvent) => {
 			this.index = event.gamepad.index;
 			console.log("Gamepad connected:", event.gamepad.id);
+			EventSystem.dispatchEvent(
+				"inputControllerConnected",
+				event.gamepad,
+			);
 			this.vibrate();
 		});
 
@@ -100,12 +104,6 @@ export default class Controller {
 		for (let i = 0; i + 1 < axes.length; i += 2) {
 			this.axes.push(new Vec2(axes[i], axes[i + 1]));
 		}
-
-		EventSystem.dispatchEvent(
-			"inputControllerConnected",
-			this.buttons,
-			this.cursors,
-		);
 	}
 
 	public reset(): void {
