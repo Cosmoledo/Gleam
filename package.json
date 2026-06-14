@@ -1,7 +1,11 @@
 {
 	"name": "@cosmoledo/gleam",
 	"version": "1.0.0",
-	"description": "A TypeScript game development framework with canvas rendering, audio support, and utility functions",
+	"description": "Small TypeScript framework for 2D canvas games in the browser — graphics, loop, effects, audio, math.",
+	"homepage": "https://github.com/Cosmoledo/Gleam#readme",
+	"bugs": {
+		"url": "https://github.com/Cosmoledo/Gleam/issues"
+	},
 	"type": "module",
 	"main": "dist/gleam.esm.js",
 	"types": "dist/gleam.d.ts",
@@ -24,9 +28,16 @@
 	"scripts": {
 		"build": "node scripts/build.mjs",
 		"lint": "eslint src tests --ext .ts",
+		"prepublishOnly": "bash scripts/verify.sh",
 		"test": "vitest run",
 		"test:unit": "vitest run --project unit",
 		"test:browser": "vitest run --project browser"
+	},
+	"engines": {
+		"node": ">=18"
+	},
+	"publishConfig": {
+		"access": "public"
 	},
 	"keywords": [
 		"game",
@@ -55,6 +66,6 @@
 	},
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/game-lib/game-lib.git"
+		"url": "git+https://github.com/Cosmoledo/Gleam.git"
 	}
 }
