@@ -1,15 +1,18 @@
 import Settings from "@/core/Settings";
+import { defineMethod } from "@/utilities/Prototype";
 import { throttleByKey } from "@/utilities/Functions";
 
 declare global {
 	interface Window {
+		/** Translate `key` for the active language. Throws until `prepareLanguage` has run. */
 		t(key: string): string;
 	}
 }
 
-window.t = function fallbackTranslate() {
+// non-enumerable own property on the instance.
+defineMethod(window, "t", function (): string {
 	throw new Error("Call 'prepareLanguage' first!");
-};
+});
 
 const logMissingKey = throttleByKey<[string]>((count, key) => {
 	const suffix = count > 1 ? ` (x${count} since last log)` : "";
@@ -57,7 +60,7 @@ export function prepareLanguage(
 		});
 	}
 
-	window.t = function translate(key: string): string {
+	defineMethod(window, "t", function (key): string {
 		const currentLang = Settings.localStorage.language;
 
 		let language = languages[currentLang];
@@ -72,5 +75,5 @@ export function prepareLanguage(
 		}
 
 		return language[key];
-	};
+	});
 }
