@@ -478,11 +478,11 @@ defineMethod(
 
 		const colors: [number, number][] = [];
 
-		for (let i = 0; i < allColors.length; i++) {
-			if (allColors[i][0] > size * 0.5) {
-				colors.push(allColors[i]);
+		allColors.forEach(c => {
+			if (c[0] > size * 0.5) {
+				colors.push(c);
 			}
-		}
+		});
 
 		for (let i = allColors.length - 1; i >= 0; i--) {
 			if (allColors[i][0] <= size * 0.5) {
