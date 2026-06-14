@@ -12,7 +12,7 @@ export interface DrawRoundRectOptions {
 
 declare global {
 	interface CanvasRenderingContext2D {
-		drawBar(rect: Vector4, amount: number, c1?: string, c2?: string): void;
+		fillBar(rect: Vector4, amount: number, c1?: string, c2?: string): void;
 		drawCircleV2(
 			vecPos: Vector2,
 			rad: number,
@@ -101,9 +101,9 @@ declare global {
 /**
  * Fill a two-color bar (`c1` background, `c2` foreground, sized by `amount`). Writes `fillStyle`; the value persists on the context — wrap in `save()`/`restore()` if you need to preserve prior state.
  */
-CanvasRenderingContext2D.prototype.drawBar = function (
-	rect: Vector4,
-	amount: number,
+CanvasRenderingContext2D.prototype.fillBar = function (
+	rect,
+	amount,
 	c1 = "white",
 	c2 = "black",
 ): void {

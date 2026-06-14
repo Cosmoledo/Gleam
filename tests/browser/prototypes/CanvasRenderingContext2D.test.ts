@@ -21,7 +21,7 @@ describe("CanvasRenderingContext2D.drawBar", () => {
 		const { ctx } = makeCtx();
 		const fillSpy = vi.spyOn(ctx, "fillRect");
 		const rect = new Rect(10, 20, 100, 8);
-		ctx.drawBar(rect, 0.5);
+		ctx.fillBar(rect, 0.5);
 		expect(fillSpy).toHaveBeenCalledTimes(2);
 		expect(fillSpy).toHaveBeenNthCalledWith(1, 10, 20, 100, 8);
 		expect(fillSpy).toHaveBeenNthCalledWith(2, 10, 20, 50, 8);
@@ -37,21 +37,21 @@ describe("CanvasRenderingContext2D.drawBar", () => {
 				values.push(v);
 			},
 		});
-		ctx.drawBar(new Rect(0, 0, 10, 4), 0.3, "#f00", "#0f0");
+		ctx.fillBar(new Rect(0, 0, 10, 4), 0.3, "#f00", "#0f0");
 		expect(values).toEqual(["#f00", "#0f0"]);
 	});
 
 	it("foreground width scales with amount=1 (full bar)", () => {
 		const { ctx } = makeCtx();
 		const fillSpy = vi.spyOn(ctx, "fillRect");
-		ctx.drawBar(new Rect(0, 0, 40, 4), 1);
+		ctx.fillBar(new Rect(0, 0, 40, 4), 1);
 		expect(fillSpy).toHaveBeenNthCalledWith(2, 0, 0, 40, 4);
 	});
 
 	it("foreground width is 0 when amount=0", () => {
 		const { ctx } = makeCtx();
 		const fillSpy = vi.spyOn(ctx, "fillRect");
-		ctx.drawBar(new Rect(0, 0, 40, 4), 0);
+		ctx.fillBar(new Rect(0, 0, 40, 4), 0);
 		expect(fillSpy).toHaveBeenNthCalledWith(2, 0, 0, 0, 4);
 	});
 });
@@ -230,7 +230,11 @@ describe("CanvasRenderingContext2D.drawRoundRect", () => {
 		const { ctx } = makeCtx();
 		const fill = vi.spyOn(ctx, "fill");
 		const stroke = vi.spyOn(ctx, "stroke");
-		ctx.drawRoundRect(0, 0, 30, 30, { padding: 0, radius: 5, mode: "stroke" });
+		ctx.drawRoundRect(0, 0, 30, 30, {
+			padding: 0,
+			radius: 5,
+			mode: "stroke",
+		});
 		expect(fill).not.toHaveBeenCalled();
 		expect(stroke).toHaveBeenCalled();
 	});
