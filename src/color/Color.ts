@@ -128,11 +128,7 @@ export class Color {
 		const m8 = 0.7152 - 0.7152 * (1 - value);
 		const m9 = 0.0722 + 0.9278 * (1 - value);
 
-		return this.set(
-			this.r * m1 + this.g * m2 + this.b * m3,
-			this.r * m4 + this.g * m5 + this.b * m6,
-			this.r * m7 + this.g * m8 + this.b * m9,
-		);
+		return this.applyMatrix(m1, m2, m3, m4, m5, m6, m7, m8, m9);
 	}
 
 	public hueRotate(radians: number): this {
@@ -149,11 +145,7 @@ export class Color {
 		const m8 = 0.715 - cos * 0.715 + sin * 0.715;
 		const m9 = 0.072 + cos * 0.928 + sin * 0.072;
 
-		return this.set(
-			this.r * m1 + this.g * m2 + this.b * m3,
-			this.r * m4 + this.g * m5 + this.b * m6,
-			this.r * m7 + this.g * m8 + this.b * m9,
-		);
+		return this.applyMatrix(m1, m2, m3, m4, m5, m6, m7, m8, m9);
 	}
 
 	public invert(factor: number = 1): this {
@@ -194,11 +186,7 @@ export class Color {
 		const m8 = 0.715 - 0.715 * value;
 		const m9 = 0.072 + 0.928 * value;
 
-		return this.set(
-			this.r * m1 + this.g * m2 + this.b * m3,
-			this.r * m4 + this.g * m5 + this.b * m6,
-			this.r * m7 + this.g * m8 + this.b * m9,
-		);
+		return this.applyMatrix(m1, m2, m3, m4, m5, m6, m7, m8, m9);
 	}
 
 	public sepia(value: number = 1): this {
@@ -212,11 +200,7 @@ export class Color {
 		const m8 = 0.534 - 0.534 * (1 - value);
 		const m9 = 0.131 + 0.869 * (1 - value);
 
-		return this.set(
-			this.r * m1 + this.g * m2 + this.b * m3,
-			this.r * m4 + this.g * m5 + this.b * m6,
-			this.r * m7 + this.g * m8 + this.b * m9,
-		);
+		return this.applyMatrix(m1, m2, m3, m4, m5, m6, m7, m8, m9);
 	}
 
 	public shade(percent: number): this {
@@ -227,6 +211,24 @@ export class Color {
 			this.r + (target - this.r) * p,
 			this.g + (target - this.g) * p,
 			this.b + (target - this.b) * p,
+		);
+	}
+
+	public applyMatrix(
+		m1: number,
+		m2: number,
+		m3: number,
+		m4: number,
+		m5: number,
+		m6: number,
+		m7: number,
+		m8: number,
+		m9: number,
+	): this {
+		return this.set(
+			this.r * m1 + this.g * m2 + this.b * m3,
+			this.r * m4 + this.g * m5 + this.b * m6,
+			this.r * m7 + this.g * m8 + this.b * m9,
 		);
 	}
 
