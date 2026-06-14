@@ -380,41 +380,21 @@ defineMethod(
 		let attempts = 0;
 
 		while (words.length > 0 && attempts < maxAttempts) {
-			for (let i = 0; i < words.length; i++) {
-				let textWidth = this.measureText(
+			let count = words.length;
+			for (let i = 1; i <= words.length; i++) {
+				const textWidth = this.measureText(
 					words.slice(0, i).join(" "),
 				).width;
 
 				if (textWidth > width) {
-					const count = Math.max(1, i - 1);
-					this.writeText(words.slice(0, count).join(" "), x, y, 0);
-					words.splice(0, count);
-					y += lineOffset;
+					count = Math.max(1, i - 1);
 					break;
-				}
-
-				if (i === words.length - 1) {
-					textWidth = this.measureText(words.join(" ")).width;
-
-					if (textWidth > width) {
-						const count = Math.max(1, i);
-						this.writeText(
-							words.slice(0, count).join(" "),
-							x,
-							y,
-							0,
-						);
-						words.splice(0, count);
-						y += lineOffset;
-						break;
-					} else {
-						this.writeText(words.join(" "), x, y, 0);
-						words.length = 0;
-						break;
-					}
 				}
 			}
 
+			this.writeText(words.slice(0, count).join(" "), x, y, 0);
+			words.splice(0, count);
+			y += lineOffset;
 			attempts++;
 		}
 
