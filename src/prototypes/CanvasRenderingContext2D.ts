@@ -12,7 +12,7 @@ export interface DrawRoundRectOptions {
 
 declare global {
 	interface CanvasRenderingContext2D {
-		drawBar(rect: Rect, amount: number, c1?: string, c2?: string): void;
+		drawBar(rect: Vector4, amount: number, c1?: string, c2?: string): void;
 		drawCircleV2(
 			vecPos: Vector2,
 			rad: number,
@@ -28,14 +28,11 @@ declare global {
 			amount?: number,
 		): void;
 		drawDottedRect(rect: Rect): void;
-		drawHpBar(
-			pos: Vector2,
-			filled?: number,
-			offset?: Vector2,
-			width?: number,
-			height?: number,
-			border?: number,
-			colors?: string[],
+		fillFramedBar(
+			rect: Vector4,
+			amount?: number,
+			padding?: number,
+			colors?: [string, string, string],
 		): void;
 		drawLine(x1: number, y1: number, x2: number, y2: number): void;
 		drawPolygon(
@@ -105,7 +102,7 @@ declare global {
  * Fill a two-color bar (`c1` background, `c2` foreground, sized by `amount`). Writes `fillStyle`; the value persists on the context — wrap in `save()`/`restore()` if you need to preserve prior state.
  */
 CanvasRenderingContext2D.prototype.drawBar = function (
-	rect: Rect,
+	rect: Vector4,
 	amount: number,
 	c1 = "white",
 	c2 = "black",
@@ -118,38 +115,32 @@ CanvasRenderingContext2D.prototype.drawBar = function (
 };
 
 /**
- * Draw a three-layer HP bar (outer, frame, fill). Writes `fillStyle`; the value persists on the context — wrap in `save()`/`restore()` if you need to preserve prior state.
+ * Fill a three-layer framed bar (outer band, frame, fill scaled by `amount`). Writes `fillStyle`; the value persists on the context — wrap in `save()`/`restore()` if you need to preserve prior state.
  */
-CanvasRenderingContext2D.prototype.drawHpBar = function (
-	pos: Vector2,
-	filled = 0.8,
-	offset: Vector2 = {
-		x: 0,
-		y: 0,
-	},
-	width = 50,
-	height = 12,
-	border = 4,
-	colors: string[] = ["white", "black", "red"],
+CanvasRenderingContext2D.prototype.fillFramedBar = function (
+	rect,
+	amount = 0.8,
+	padding = 4,
+	colors = ["white", "black", "red"],
 ): void {
 	this.fillStyle = colors[0];
-	this.fillRect(offset.x + pos.x, offset.y + pos.y, width, height);
+	this.fillRect(rect.x, rect.y, rect.w, rect.h);
 
 	this.fillStyle = colors[1];
 	this.fillRect(
-		offset.x + pos.x + border,
-		offset.y + pos.y + border,
-		width - border * 2,
-		height - border * 2,
+		rect.x + padding,
+		rect.y + padding,
+		rect.w - padding * 2,
+		rect.h - padding * 2,
 	);
 
-	if (filled > 0) {
+	if (amount > 0) {
 		this.fillStyle = colors[2];
 		this.fillRect(
-			offset.x + pos.x + border,
-			offset.y + pos.y + border,
-			filled * (width - border * 2),
-			height - border * 2,
+			rect.x + padding,
+			rect.y + padding,
+			amount * (rect.w - padding * 2),
+			rect.h - padding * 2,
 		);
 	}
 };

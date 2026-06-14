@@ -56,36 +56,36 @@ describe("CanvasRenderingContext2D.drawBar", () => {
 	});
 });
 
-// ==================== drawHpBar ====================
+// ==================== fillFramedBar ====================
 
-describe("CanvasRenderingContext2D.drawHpBar", () => {
+describe("CanvasRenderingContext2D.fillFramedBar", () => {
 	it("draws outer, frame, and fill (3 fillRects) with defaults", () => {
 		const { ctx } = makeCtx();
 		const spy = vi.spyOn(ctx, "fillRect");
-		ctx.drawHpBar({ x: 0, y: 0 });
+		ctx.fillFramedBar({ x: 0, y: 0, w: 50, h: 12 });
 		expect(spy).toHaveBeenCalledTimes(3);
 		expect(spy).toHaveBeenNthCalledWith(1, 0, 0, 50, 12);
 		expect(spy).toHaveBeenNthCalledWith(2, 4, 4, 42, 4);
 	});
 
-	it("skips fill when filled <= 0", () => {
+	it("skips fill when amount <= 0", () => {
 		const { ctx } = makeCtx();
 		const spy = vi.spyOn(ctx, "fillRect");
-		ctx.drawHpBar({ x: 0, y: 0 }, 0);
+		ctx.fillFramedBar({ x: 0, y: 0, w: 50, h: 12 }, 0);
 		expect(spy).toHaveBeenCalledTimes(2);
 	});
 
-	it("scales fill width by filled", () => {
+	it("scales fill width by amount", () => {
 		const { ctx } = makeCtx();
 		const spy = vi.spyOn(ctx, "fillRect");
-		ctx.drawHpBar({ x: 0, y: 0 }, 0.5);
+		ctx.fillFramedBar({ x: 0, y: 0, w: 50, h: 12 }, 0.5);
 		expect(spy).toHaveBeenNthCalledWith(3, 4, 4, 21, 4);
 	});
 
-	it("respects offset and explicit dimensions", () => {
+	it("respects explicit padding", () => {
 		const { ctx } = makeCtx();
 		const spy = vi.spyOn(ctx, "fillRect");
-		ctx.drawHpBar({ x: 10, y: 20 }, 1, { x: 5, y: 7 }, 100, 20, 2);
+		ctx.fillFramedBar({ x: 15, y: 27, w: 100, h: 20 }, 1, 2);
 		expect(spy).toHaveBeenNthCalledWith(1, 15, 27, 100, 20);
 		expect(spy).toHaveBeenNthCalledWith(2, 17, 29, 96, 16);
 		expect(spy).toHaveBeenNthCalledWith(3, 17, 29, 96, 16);
