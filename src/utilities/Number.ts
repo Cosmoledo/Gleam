@@ -1,4 +1,9 @@
-import { approxEqual } from "./Math";
+/**
+ * Compare two numbers with float tolerance. Default epsilon absorbs typical accumulated rounding error from normalize/rotate/divide chains.
+ */
+export function approxEqual(a: number, b: number, epsilon = 1e-9): boolean {
+	return Math.abs(a - b) <= epsilon;
+}
 
 /**
  * Clamp values between two values

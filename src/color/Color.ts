@@ -1,5 +1,4 @@
-import { approxEqual } from "@/utilities/Math";
-import { clamp, wrapValue } from "@/utilities/Number";
+import { approxEqual, clamp, wrapValue } from "@/utilities/Number";
 import { hue2rgb } from "@/utilities/Color";
 
 export class Color {

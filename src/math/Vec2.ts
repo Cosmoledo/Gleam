@@ -1,6 +1,5 @@
 import Rect from "./Rect";
-import { approxEqual } from "@/utilities/Math";
-import { clamp } from "@/utilities/Number";
+import { approxEqual, clamp } from "@/utilities/Number";
 import { throttle } from "@/utilities/Functions";
 
 export interface Vector2 {
