@@ -441,25 +441,25 @@ describe("CanvasRenderingContext2D.drawRotated", () => {
 // ==================== drawPolygon ====================
 
 describe("CanvasRenderingContext2D.drawPolygon", () => {
-	it("draws polygonCount vertices", () => {
+	it("draws sides vertices", () => {
 		const { ctx } = makeCtx();
 		const lineTo = vi.spyOn(ctx, "lineTo");
-		ctx.drawPolygon(6, { x: 100, y: 100 });
+		ctx.drawPolygon(6, { x: 0, y: 0, w: 100, h: 100 });
 		expect(lineTo).toHaveBeenCalledTimes(6);
 	});
 
 	it("sets strokeStyle to provided value (default white)", () => {
 		const { ctx } = makeCtx();
-		ctx.drawPolygon(3, { x: 50, y: 50 });
+		ctx.drawPolygon(3, { x: 0, y: 0, w: 50, h: 50 });
 		expect(ctx.strokeStyle).toBe("#ffffff");
-		ctx.drawPolygon(3, { x: 50, y: 50 }, "#ff0000");
+		ctx.drawPolygon(3, { x: 0, y: 0, w: 50, h: 50 }, "#ff0000");
 		expect(ctx.strokeStyle).toBe("#ff0000");
 	});
 
 	it("starts at the right side of the polygon", () => {
 		const { ctx } = makeCtx();
 		const moveTo = vi.spyOn(ctx, "moveTo");
-		ctx.drawPolygon(4, { x: 40, y: 60 });
+		ctx.drawPolygon(4, { x: 0, y: 0, w: 40, h: 60 });
 		// rad = min(40, 60)/2 = 20; Xcenter = 20, Ycenter = 30 → (20+20, 30)
 		expect(moveTo).toHaveBeenCalledWith(40, 30);
 	});

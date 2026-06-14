@@ -373,41 +373,34 @@ CanvasRenderingContext2D.prototype.drawLine = function (x1, y1, x2, y2): void {
 declare global {
 	interface CanvasRenderingContext2D {
 		/**
-		 * Stroke a regular polygon. Note: `pos` is used as a bounding *size* — vertices fit within a circle of radius `min(pos.x, pos.y) * 0.5` centered at `(pos.x * 0.5, pos.y * 0.5)`. Writes `strokeStyle`; persists on the context — wrap in `save()`/`restore()` to preserve prior state.
+		 * Stroke a regular polygon centered in `rect`, with vertices on a circle of radius `min(rect.w, rect.h) * 0.5`. Writes `strokeStyle`; persists on the context — wrap in `save()`/`restore()` to preserve prior state.
 		 * @param strokeStyle default `"white"`.
 		 */
-		drawPolygon(
-			polygonCount: number,
-			pos: Vector2,
-			strokeStyle?: string,
-		): void;
+		drawPolygon(sides: number, rect: Vector4, strokeStyle?: string): void;
 	}
 }
 
 CanvasRenderingContext2D.prototype.drawPolygon = function (
-	polygonCount,
-	pos,
+	sides,
+	rect,
 	strokeStyle = "white",
 ): void {
-	const rad = Math.min(pos.x, pos.y) * 0.5;
-	const Xcenter = pos.x * 0.5;
-	const Ycenter = pos.y * 0.5;
+	const rad = Math.min(rect.w, rect.h) * 0.5;
+	const Xcenter = rect.x + rect.w * 0.5;
+	const Ycenter = rect.y + rect.h * 0.5;
 
 	this.strokeStyle = strokeStyle;
 	this.beginPath();
 	this.moveTo(Xcenter + rad, Ycenter);
 
-	for (let i = 1; i <= polygonCount; i++) {
+	for (let i = 1; i <= sides; i++) {
 		this.lineTo(
-			Math.round(
-				Xcenter + rad * Math.cos((i * 2 * Math.PI) / polygonCount),
-			),
-			Math.round(
-				Ycenter + rad * Math.sin((i * 2 * Math.PI) / polygonCount),
-			),
+			Math.round(Xcenter + rad * Math.cos((i * 2 * Math.PI) / sides)),
+			Math.round(Ycenter + rad * Math.sin((i * 2 * Math.PI) / sides)),
 		);
 	}
 
+	this.closePath();
 	this.stroke();
 };
 // #endregion
@@ -666,7 +659,7 @@ CanvasRenderingContext2D.prototype.generateColor = function (size, color) {
 	const colors: [number, number][] = [];
 
 	for (let i = 0; i < allColors.length; i++) {
-		if (allColors[i][0] >= size * 0.5) {
+		if (allColors[i][0] > size * 0.5) {
 			colors.push(allColors[i]);
 		}
 	}
