@@ -40,9 +40,9 @@ export const SHAKE_TYPES = {
  * Letting callers define their own could be a possible feature — impact pulses, slow rumble, directional jolts.
  */
 export default class Screenshake {
+	private isShaking: boolean = false;
 	private shakeType: ShakeType = SHAKE_TYPES.NORMAL;
 	private style: CSSStyleDeclaration;
-	private isShaking: boolean = false;
 
 	constructor(element: HTMLElement) {
 		this.style = element.style;

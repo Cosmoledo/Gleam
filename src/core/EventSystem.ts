@@ -30,11 +30,6 @@ export default class EventSystem {
 		[K in keyof GameEventMap]?: Map<number, GameEventListener<K>>;
 	} = {};
 
-	// Monotonic counter — each listener gets an id assigned at registration.
-	// `dispatchEvent` captures the value at start as a boundary so listeners
-	// registered mid-dispatch (id > maxId) are deferred to the next dispatch.
-	private static nextId = 0;
-
 	private static logListenerError = throttleByKey<[string, unknown]>(
 		(count, eventName, err) => {
 			const suffix = count > 1 ? ` (x${count} since last log)` : "";
@@ -45,6 +40,11 @@ export default class EventSystem {
 			);
 		},
 	);
+
+	// Monotonic counter — each listener gets an id assigned at registration.
+	// `dispatchEvent` captures the value at start as a boundary so listeners
+	// registered mid-dispatch (id > maxId) are deferred to the next dispatch.
+	private static nextId = 0;
 
 	public static addEventListener<K extends keyof GameEventMap>(
 		eventName: K,

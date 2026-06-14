@@ -29,8 +29,8 @@ const AXIS_THRESHOLD = 0.3;
 export default class Controller {
 	public buttons: boolean[] = [];
 	public cursors: ControllerCursor[] = [];
-	private index = -1;
 	private axes: Vec2[] = [];
+	private index = -1;
 	private lastTime = 0;
 
 	constructor(game: Game) {

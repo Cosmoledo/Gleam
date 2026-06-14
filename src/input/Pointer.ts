@@ -12,8 +12,8 @@ export const POINTER_KEYS = {
 } as const;
 
 export default class Pointer {
-	public lastEvent: PointerEvent | null = null;
 	public hasMoved = false;
+	public lastEvent: PointerEvent | null = null;
 	public posReal = new Vec2();
 	public posRealLast = new Vec2();
 	public posScaled = new Vec2();

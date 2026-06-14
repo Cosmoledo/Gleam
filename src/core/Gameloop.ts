@@ -36,6 +36,29 @@ export default class Gameloop {
 		this.stop = true;
 	}
 
+	private draw(context: CanvasRenderingContext2D): void {
+		if (!Settings.doNotClear) {
+			if (Settings.useClearRect) {
+				context.clearRect(
+					0,
+					0,
+					this.game.canman.canvas.width,
+					this.game.canman.canvas.height,
+				);
+			} else {
+				context.fillStyle = Settings.backgroundColor;
+				context.fillRect(
+					0,
+					0,
+					this.game.canman.canvas.width,
+					this.game.canman.canvas.height,
+				);
+			}
+		}
+
+		this.game.draw(context);
+	}
+
 	private looper(): void {
 		if (this._isLooping) {
 			return;
@@ -72,28 +95,5 @@ export default class Gameloop {
 		});
 
 		console.log("Simulation started.");
-	}
-
-	private draw(context: CanvasRenderingContext2D): void {
-		if (!Settings.doNotClear) {
-			if (Settings.useClearRect) {
-				context.clearRect(
-					0,
-					0,
-					this.game.canman.canvas.width,
-					this.game.canman.canvas.height,
-				);
-			} else {
-				context.fillStyle = Settings.backgroundColor;
-				context.fillRect(
-					0,
-					0,
-					this.game.canman.canvas.width,
-					this.game.canman.canvas.height,
-				);
-			}
-		}
-
-		this.game.draw(context);
 	}
 }

@@ -127,6 +127,15 @@ export default class Rect {
 		return this;
 	}
 
+	public round(): Rect {
+		this.x = Math.round(this.x);
+		this.y = Math.round(this.y);
+
+		this.sideIsDirty = true;
+
+		return this;
+	}
+
 	public set(
 		x: Vector4 | Vector2 | number = 0,
 		y: number = 0,
@@ -155,15 +164,6 @@ export default class Rect {
 		}
 
 		this.sideIsDirty = true;
-		return this;
-	}
-
-	public round(): Rect {
-		this.x = Math.round(this.x);
-		this.y = Math.round(this.y);
-
-		this.sideIsDirty = true;
-
 		return this;
 	}
 
