@@ -15,22 +15,26 @@ export function deepClone<T>(obj: T): T {
 
 function cloneInternal<T>(obj: T, hash: WeakMap<object, unknown>): T {
 	if (Object(obj) !== obj || obj instanceof Function) {
+		// primitive or function -> return as-is
 		return obj;
 	}
 
 	const o = obj as object;
 
 	if (hash.has(o)) {
+		// cycle / already cloned -> return cached
 		return hash.get(o) as T;
 	}
 
 	if (obj instanceof Date) {
+		// date -> clone via getTime
 		const cloned = new Date(obj.getTime());
 		hash.set(o, cloned);
 		return cloned as T;
 	}
 
 	if (obj instanceof RegExp) {
+		// regex -> clone source + flags + lastIndex
 		const cloned = new RegExp(obj.source, obj.flags);
 		cloned.lastIndex = obj.lastIndex;
 		hash.set(o, cloned);
@@ -38,6 +42,7 @@ function cloneInternal<T>(obj: T, hash: WeakMap<object, unknown>): T {
 	}
 
 	if (obj instanceof Map) {
+		// map -> recurse into entries
 		const cloned = new Map<unknown, unknown>();
 		hash.set(o, cloned);
 		obj.forEach((v, k) => {
@@ -47,6 +52,7 @@ function cloneInternal<T>(obj: T, hash: WeakMap<object, unknown>): T {
 	}
 
 	if (obj instanceof Set) {
+		// set -> recurse into items
 		const cloned = new Set<unknown>();
 		hash.set(o, cloned);
 		obj.forEach(v => {
@@ -56,6 +62,7 @@ function cloneInternal<T>(obj: T, hash: WeakMap<object, unknown>): T {
 	}
 
 	if (Array.isArray(obj)) {
+		// array -> recurse into items
 		const cloned: unknown[] = [];
 		hash.set(o, cloned);
 		obj.forEach((item, i) => {
@@ -65,12 +72,14 @@ function cloneInternal<T>(obj: T, hash: WeakMap<object, unknown>): T {
 	}
 
 	if (obj instanceof ArrayBuffer) {
+		// arraybuffer -> slice
 		const cloned = obj.slice(0);
 		hash.set(o, cloned);
 		return cloned as T;
 	}
 
 	if (obj instanceof DataView) {
+		// dataview -> reslice underlying buffer
 		const buf = obj.buffer.slice(
 			obj.byteOffset,
 			obj.byteOffset + obj.byteLength,
@@ -81,7 +90,7 @@ function cloneInternal<T>(obj: T, hash: WeakMap<object, unknown>): T {
 	}
 
 	if (ArrayBuffer.isView(obj)) {
-		// Typed array (Uint8Array, Int32Array, etc.). `.slice()` preserves the subtype.
+		// typed array -> slice (preserves subtype)
 		const cloned = (obj as unknown as Uint8Array).slice();
 		hash.set(o, cloned);
 		return cloned as T;
