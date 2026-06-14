@@ -18,18 +18,18 @@ export default class ControllerCursor {
 	private game: Game;
 	private pos: Vec2;
 
+	public get centerPos(): Vec2 {
+		return this.pos
+			.clone()
+			.add(CROSSHAIR.width * 0.5, CROSSHAIR.height * 0.5);
+	}
+
 	constructor(controller: Controller, game: Game, axisId: number) {
 		this.controller = controller;
 		this.game = game;
 		this.axisId = axisId;
 
 		this.pos = game.canman.size.mult(0.5);
-	}
-
-	public get centerPos(): Vec2 {
-		return this.pos
-			.clone()
-			.add(CROSSHAIR.width * 0.5, CROSSHAIR.height * 0.5);
 	}
 
 	public draw(context: CanvasRenderingContext2D): void {
