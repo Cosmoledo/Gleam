@@ -17,15 +17,26 @@ const EXCLUDE_FILES = new Set(["index.ts"]);
 
 function walk(dir) {
 	const out = [];
+
 	for (const name of readdirSync(dir).sort()) {
 		const full = join(dir, name);
 		const rel = relative(SRC, full);
+
 		if (statSync(full).isDirectory()) {
-			if (EXCLUDE_DIRS.has(name)) continue;
+			if (EXCLUDE_DIRS.has(name)) {
+				continue;
+			}
+
 			out.push(...walk(full));
 		} else {
-			if (EXCLUDE_FILES.has(rel)) continue;
-			if (!name.endsWith(".ts") || name.endsWith(".d.ts")) continue;
+			if (EXCLUDE_FILES.has(rel)) {
+				continue;
+			}
+
+			if (!name.endsWith(".ts") || name.endsWith(".d.ts")) {
+				continue;
+			}
+
 			out.push(rel);
 		}
 	}
@@ -44,6 +55,7 @@ function inspect(filePath) {
 		/\bexport\s+(?:\*|\{|const|let|var|function|class|interface|type|enum|namespace|abstract|async)\b/.test(
 			stripped,
 		);
+
 	return { hasDefault, hasNamed };
 }
 
@@ -54,17 +66,22 @@ let lastDir = "";
 for (const rel of files) {
 	const dir = rel.includes("/") ? rel.split("/")[0] : ".";
 	if (dir !== lastDir) {
-		if (lastDir) lines.push("");
+		if (lastDir) {
+			lines.push("");
+		}
 		lines.push(`// ${dir}`);
 		lastDir = dir;
 	}
+
 	const base = rel.replace(/\.ts$/, "");
 	const name = base.split("/").pop();
 	const importPath = `./${base}`;
 	const { hasDefault, hasNamed } = inspect(join(SRC, rel));
+
 	if (hasDefault) {
 		lines.push(`export { default as ${name} } from "${importPath}";`);
 	}
+
 	if (hasNamed) {
 		lines.push(`export * from "${importPath}";`);
 	}
