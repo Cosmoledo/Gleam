@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 
 import "@/prototypes/index";
 
@@ -198,6 +198,14 @@ describe("HTMLCanvasElement.autoCrop", () => {
 		expect(cropped.width).toBe(1);
 		expect(cropped.height).toBe(1);
 	});
+
+	it("returns a same-size new canvas for a fully-transparent source", () => {
+		const canvas = makeCanvas(16, 16);
+		const cropped = canvas.autoCrop();
+		expect(cropped).not.toBe(canvas);
+		expect(cropped.width).toBe(16);
+		expect(cropped.height).toBe(16);
+	});
 });
 
 // ==================== scaleBy ====================
@@ -217,14 +225,20 @@ describe("HTMLCanvasElement.scaleBy", () => {
 		expect(out.height).toBe(18);
 	});
 
-	it("returns the same canvas when both scales are 1", () => {
+	it("returns a new same-size canvas when both scales are 1", () => {
 		const canvas = makeCanvas(10, 6);
-		expect(canvas.scaleBy(1, 1)).toBe(canvas);
+		const out = canvas.scaleBy(1, 1);
+		expect(out).not.toBe(canvas);
+		expect(out.width).toBe(10);
+		expect(out.height).toBe(6);
 	});
 
 	it("defaults to 1 for scaleX when called with no args", () => {
 		const canvas = makeCanvas(10, 6);
-		expect(canvas.scaleBy()).toBe(canvas);
+		const out = canvas.scaleBy();
+		expect(out).not.toBe(canvas);
+		expect(out.width).toBe(10);
+		expect(out.height).toBe(6);
 	});
 
 	it("throws on zero scale", () => {
@@ -384,20 +398,21 @@ describe("HTMLCanvasElement.clone", () => {
 // ==================== toImage ====================
 
 describe("HTMLCanvasElement.toImage", () => {
-	it("returns an HTMLImageElement", () => {
+	it("resolves to an HTMLImageElement that is complete", async () => {
 		const canvas = makeCanvas(4, 4);
-		const img = canvas.toImage();
+		const img = await canvas.toImage();
 		expect(img).toBeInstanceOf(HTMLImageElement);
+		expect(img.complete).toBe(true);
 	});
 
-	it("sets src to a data URL produced by the canvas", () => {
-		const canvas = makeCanvas(4, 4);
-		const spy = vi
-			.spyOn(canvas, "toDataURL")
-			.mockReturnValue("data:image/png;base64,FAKE");
-		const img = canvas.toImage();
-		expect(img.src).toBe("data:image/png;base64,FAKE");
-		spy.mockRestore();
+	it("resolves with src set to the canvas's data URL", async () => {
+		const canvas = makeCanvas(4, 4, ctx => {
+			ctx.fillStyle = "#ff0000";
+			ctx.fillRect(0, 0, 4, 4);
+		});
+		const dataUrl = canvas.toDataURL();
+		const img = await canvas.toImage();
+		expect(img.src).toBe(dataUrl);
 	});
 });
 

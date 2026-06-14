@@ -2,6 +2,7 @@ import { convert2DTo1D } from "@/utilities/Grid";
 import { createNewCanvas } from "@/utilities/Canvas";
 import { defineMethod } from "@/utilities/Prototype";
 import { hex2rgb, type RGB, rgb2Int } from "@/utilities/Color";
+import { loadImage } from "@/loader/UrlLoaders";
 
 export {};
 
@@ -213,8 +214,8 @@ defineMethod(
 
 		const imageData = context.getImageData(0, 0, this.width, this.height);
 
-		Array.from({ length: this.height }).forEach((_, y) => {
-			Array.from({ length: this.width }).forEach((_, x) => {
+		for (let y = 0; y < this.height; y++) {
+			for (let x = 0; x < this.width; x++) {
 				const alpha =
 					imageData.data[convert2DTo1D(x * 4, y * 4, this.width) + 3];
 
@@ -222,8 +223,13 @@ defineMethod(
 					topLeft.update(x, y);
 					bottomRight.update(x, y);
 				}
-			});
-		});
+			}
+		}
+
+		// fully-transparent canvas -> nothing to crop to
+		if (topLeft.x > bottomRight.x) {
+			return this.clone();
+		}
 
 		const width = bottomRight.x - topLeft.x + 1;
 		const height = bottomRight.y - topLeft.y + 1;
@@ -248,22 +254,16 @@ declare global {
 defineMethod(
 	HTMLCanvasElement.prototype,
 	"scaleBy",
-	function (scaleX = 1, scaleY): HTMLCanvasElement {
-		const sy = scaleY === undefined ? scaleX : scaleY;
-
-		if (scaleX <= 0 || sy <= 0) {
+	function (scaleX = 1, scaleY = scaleX): HTMLCanvasElement {
+		if (scaleX <= 0 || scaleY <= 0) {
 			throw new Error(
-				`scaleBy requires positive scale factors, got (${scaleX}, ${sy})`,
+				`scaleBy requires positive scale factors, got: ${scaleX} x ${scaleY}`,
 			);
 		}
 
-		if (scaleX === 1 && sy === 1) {
-			return this;
-		}
+		const cc = createNewCanvas(this.width * scaleX, this.height * scaleY);
 
-		const cc = createNewCanvas(this.width * scaleX, this.height * sy);
-
-		cc.context.scale(scaleX, sy);
+		cc.context.scale(scaleX, scaleY);
 		cc.context.drawImage(this, 0, 0);
 
 		return cc.canvas;
@@ -414,18 +414,16 @@ defineMethod(
 // #region toImage
 declare global {
 	interface HTMLCanvasElement {
-		/** Wrap this canvas as an `HTMLImageElement` via `toDataURL`. */
-		toImage(): HTMLImageElement;
+		/** Convert image canvas to `Promise<HTMLImageElement>` via `toDataURL`. */
+		toImage(): Promise<HTMLImageElement>;
 	}
 }
 
 defineMethod(
 	HTMLCanvasElement.prototype,
 	"toImage",
-	function (): HTMLImageElement {
-		const img = document.createElement("img");
-		img.src = this.toDataURL();
-		return img;
+	function (): Promise<HTMLImageElement> {
+		return loadImage(this.toDataURL());
 	},
 );
 // #endregion
