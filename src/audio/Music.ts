@@ -1,14 +1,8 @@
-import BezierEasing from "bezier-easing";
-
 import AudioBase from "./AudioBase";
 import { clamp } from "@/utilities/Number";
+import { type EasingName, EASINGS } from "@/utilities/Easing";
 import { rafLoop } from "@/utilities/Functions";
 import { randomItem, remove } from "@/utilities/Array";
-
-type BezierPoints = readonly [number, number, number, number];
-
-const FADE_OUT_CURVE: BezierPoints = [0.42, 0, 1, 1];
-const FADE_IN_CURVE: BezierPoints = [0, 0, 0.58, 1];
 
 export default class Music extends AudioBase {
 	private last: HTMLAudioElement | null = null;
@@ -38,12 +32,12 @@ export default class Music extends AudioBase {
 	public fade(
 		name: string | null = null,
 		fadeTime: number = 1000,
-		timingFunctions: {
-			cur: BezierPoints;
-			next: BezierPoints;
+		easing: {
+			cur: EasingName;
+			next: EasingName;
 		} = {
-			cur: FADE_OUT_CURVE,
-			next: FADE_IN_CURVE,
+			cur: "ease-in",
+			next: "ease-out",
 		},
 	): void {
 		if (fadeTime <= 0) {
@@ -104,9 +98,8 @@ export default class Music extends AudioBase {
 			this.current.onended = (): void => void 0;
 		}
 
-		// Using BezierEasing for smooth volume transitions
-		const curBez = BezierEasing(...timingFunctions.cur);
-		const nextBez = BezierEasing(...timingFunctions.next);
+		const curEase = EASINGS[easing.cur];
+		const nextEase = EASINGS[easing.next];
 		const fadeTimeSeconds = fadeTime / 1000;
 
 		let time = 0;
@@ -116,11 +109,11 @@ export default class Music extends AudioBase {
 
 			if (this.current) {
 				this.current.volume =
-					curStartVolume * (1 - clamp(curBez(time), 0, 1));
+					curStartVolume * (1 - clamp(curEase(time), 0, 1));
 			}
 
 			this.next!.volume =
-				this.next!.defaultVolume! * clamp(nextBez(time), 0, 1);
+				this.next!.defaultVolume! * clamp(nextEase(time), 0, 1);
 
 			if (time >= 1) {
 				this.fadeCancel?.();
