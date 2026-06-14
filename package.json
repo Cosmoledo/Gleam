@@ -50,7 +50,7 @@
 	"author": "Cosmoledo",
 	"license": "MIT",
 	"devDependencies": {
-		"@types/node": "^20.19.43",
+		"@types/node": "^25.9.3",
 		"@typescript-eslint/eslint-plugin": "^8.61.0",
 		"@typescript-eslint/parser": "^8.61.0",
 		"@vitest/browser": "^4.1.8",
