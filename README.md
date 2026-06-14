@@ -1,3 +1,11 @@
+<div align="center">
+
+[![npm](https://img.shields.io/npm/v/@cosmoledo/gleam.svg)](https://www.npmjs.com/package/@cosmoledo/gleam)
+[![Integration Action](https://github.com/Cosmoledo/Gleam/actions/workflows/ci.yml/badge.svg)](https://github.com/Cosmoledo/Gleam/actions/workflows/ci.yml)
+[![license](https://img.shields.io/npm/l/@cosmoledo/gleam.svg)](https://github.com/Cosmoledo/Gleam/blob/main/LICENSE.txt)
+
+</div>
+
 # Gleam
 
 A TypeScript framework for 2D canvas games in the browser.
