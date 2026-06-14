@@ -480,65 +480,18 @@ defineMethod(
 	CanvasRenderingContext2D.prototype,
 	"generateColor",
 	function (size, color) {
-		function roundRect(
-			context: CanvasRenderingContext2D,
-			rect: Rect,
-			radius: number,
-		): void {
-			const rectClone = rect.clone().inflate(-context.lineWidth);
-
-			/* c8 ignore start -- generateColor always passes a square rect at fixed size, so the w-clamp's else-branch and the entire h-clamp are dead under current usage; kept for future callers that may pass non-square or larger rects. */
-			if (rectClone.w < 2 * radius) {
-				radius = rectClone.w * 0.5;
-			}
-			if (rectClone.h < 2 * radius) {
-				radius = rectClone.h * 0.5;
-			}
-			/* c8 ignore stop */
-
-			context.beginPath();
-			context.moveTo(rectClone.x + radius, rectClone.y);
-			context.arcTo(
-				rectClone.sides.right,
-				rectClone.y,
-				rectClone.sides.right,
-				rectClone.sides.bottom,
-				radius,
-			);
-			context.arcTo(
-				rectClone.sides.right,
-				rectClone.sides.bottom,
-				rectClone.x,
-				rectClone.sides.bottom,
-				radius,
-			);
-			context.arcTo(
-				rectClone.x,
-				rectClone.sides.bottom,
-				rectClone.x,
-				rectClone.y,
-				radius,
-			);
-			context.arcTo(
-				rectClone.x,
-				rectClone.y,
-				rectClone.sides.right,
-				rectClone.y,
-				radius,
-			);
-			context.closePath();
-			context.stroke();
-		}
-
 		const cc = createNewCanvas(size, size);
 		cc.context.strokeStyle = color;
 		cc.context.lineWidth = 6;
-		roundRect(cc.context, new Rect(0, 0, size, size), 15);
+		cc.context.drawRoundRect(0, 0, size, size, "stroke", {
+			padding: cc.context.lineWidth,
+			radius: 15,
+		});
 
 		const data = cc.context.getImageData(0, 0, size, size).data;
 		const allColors: [number, number][] = [];
 		for (let i = 0; i < data.length; i += 4) {
-			if (data[i] || data[i + 1] || data[i + 2]) {
+			if (data[i + 3]) {
 				allColors.push([(i / 4) % size, (i / 4 / size) | 0]);
 			}
 		}
@@ -551,7 +504,7 @@ defineMethod(
 			}
 		}
 
-		for (let i = allColors.length - 1; i > 0; i--) {
+		for (let i = allColors.length - 1; i >= 0; i--) {
 			if (allColors[i][0] <= size * 0.5) {
 				colors.push(allColors[i]);
 			}
