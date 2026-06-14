@@ -2,6 +2,9 @@
 
 set -e
 
+echo "Running npm audit..."
+npm audit
+
 echo "Running ESLint..."
 npx eslint src tests --ext .ts --fix
 
