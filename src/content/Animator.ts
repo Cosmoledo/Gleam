@@ -33,11 +33,11 @@ export default class Animator {
 		}
 
 		const prefix = `${namespace}.`;
-		for (const key of Animator.spriteCache.keys()) {
+		Animator.spriteCache.forEach((_, key) => {
 			if (key.startsWith(prefix)) {
 				Animator.spriteCache.delete(key);
 			}
-		}
+		});
 	}
 
 	public active = true;
