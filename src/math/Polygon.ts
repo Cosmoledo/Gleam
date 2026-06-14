@@ -139,55 +139,27 @@ export default class Polygon {
 			);
 		}
 
-		let ang1 = 0;
-		let ang2 = 0;
+		for (let i = 0; i < numPoints; i++) {
+			const a = i;
+			const b = (i + 1) % numPoints;
+			const c = (i + 2) % numPoints;
 
-		for (let i = 0; i < numPoints - 2; i++) {
-			ang1 = pointDirection(
-				vertexX[i],
-				vertexY[i],
-				vertexX[i + 1],
-				vertexY[i + 1],
+			const ang1 = pointDirection(
+				vertexX[a],
+				vertexY[a],
+				vertexX[b],
+				vertexY[b],
 			);
-			ang2 = pointDirection(
-				vertexX[i + 1],
-				vertexY[i + 1],
-				vertexX[i + 2],
-				vertexY[i + 2],
+			const ang2 = pointDirection(
+				vertexX[b],
+				vertexY[b],
+				vertexX[c],
+				vertexY[c],
 			);
 
 			if (Math.abs(wrapRadians(ang1 - ang2)) <= angle) {
-				vertexK[i + 1] = 0;
+				vertexK[b] = 0;
 			}
-		}
-
-		ang1 = pointDirection(
-			vertexX[numPoints - 2],
-			vertexY[numPoints - 2],
-			vertexX[numPoints - 1],
-			vertexY[numPoints - 1],
-		);
-		ang2 = pointDirection(
-			vertexX[numPoints - 1],
-			vertexY[numPoints - 1],
-			vertexX[0],
-			vertexY[0],
-		);
-
-		if (Math.abs(wrapRadians(ang1 - ang2)) <= angle) {
-			vertexK[numPoints - 1] = 0;
-		}
-
-		ang1 = pointDirection(
-			vertexX[numPoints - 1],
-			vertexY[numPoints - 1],
-			vertexX[0],
-			vertexY[0],
-		);
-		ang2 = pointDirection(vertexX[0], vertexY[0], vertexX[1], vertexY[1]);
-
-		if (Math.abs(wrapRadians(ang1 - ang2)) <= angle) {
-			vertexK[0] = 0;
 		}
 
 		const points: Vec2[] = [];
