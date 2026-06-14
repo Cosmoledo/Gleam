@@ -290,10 +290,7 @@ export default class Polygon {
 	}
 
 	public offset(x = 0, y = 0): Polygon {
-		for (const point of this._points) {
-			point.add(x, y);
-		}
-
+		this._points.forEach(point => point.add(x, y));
 		this.update();
 
 		return this;
