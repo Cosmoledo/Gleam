@@ -2,6 +2,8 @@ import Rect from "@/math/Rect";
 import { createNewCanvas } from "@/utilities/Canvas";
 import type { Vector2, Vector4 } from "@/math/Vec2";
 
+type Mode = "fill" | "stroke";
+
 // #region fillBar
 declare global {
 	interface CanvasRenderingContext2D {
@@ -75,121 +77,143 @@ CanvasRenderingContext2D.prototype.fillFramedBar = function (
 };
 // #endregion
 
-// #region drawCircleV2
+// #region drawCircle
 declare global {
 	interface CanvasRenderingContext2D {
 		/**
-		 * Stroke a circle centered at `vecPos`. Writes `strokeStyle`/`lineWidth` only when supplied; persists on the context — wrap in `save()`/`restore()` to preserve prior state.
+		 * Draws a circle centered at `vecPos`.
 		 * @param amount sweep fraction in `[0, 1]`. Default `1` (full circle).
 		 */
-		drawCircleV2(
+		drawCircle(
 			vecPos: Vector2,
 			rad: number,
-			lineWidth?: number,
-			strokeStyle?: string,
+			mode: Mode,
 			amount?: number,
 		): void;
 	}
 }
 
-CanvasRenderingContext2D.prototype.drawCircleV2 = function (
+CanvasRenderingContext2D.prototype.drawCircle = function (
 	vecPos,
 	rad,
-	lineWidth,
-	strokeStyle,
+	mode,
 	amount = 1,
 ): void {
 	this.beginPath();
 	this.arc(vecPos.x, vecPos.y, rad, 0, amount * 2 * Math.PI);
 
-	if (strokeStyle) {
-		this.strokeStyle = strokeStyle;
-	}
-
-	if (lineWidth) {
-		this.lineWidth = lineWidth;
-	}
-
-	this.stroke();
+	this[mode]();
 };
 // #endregion
 
-// #region drawCircleV4
+// #region drawRect
 declare global {
 	interface CanvasRenderingContext2D {
-		/**
-		 * Stroke a circle inscribed in `rect`. Writes `strokeStyle`/`lineWidth` only when supplied; persists on the context — wrap in `save()`/`restore()` to preserve prior state.
-		 * @param amount sweep fraction in `[0, 1]`. Default `1` (full circle).
-		 */
-		drawCircleV4(
+		/** Draws a rectangle (from `Vector4` or `x, y, w, h`). */
+		drawRect(rect: Vector4, mode: Mode): void;
+		drawRect(x: number, y: number, w: number, h: number, mode: Mode): void;
+	}
+}
+
+CanvasRenderingContext2D.prototype.drawRect = function (
+	...args: [Vector4, Mode] | [number, number, number, number, Mode]
+): void {
+	let x: number;
+	let y: number;
+	let w: number;
+	let h: number;
+	let mode: Mode;
+
+	if (typeof args[0] === "number") {
+		[x, y, w, h, mode] = args as [number, number, number, number, Mode];
+	} else {
+		[{ x, y, w, h }, mode] = args as [Vector4, Mode];
+	}
+
+	this.beginPath();
+	this.rect(x, y, w, h);
+	this[mode]();
+};
+// #endregion
+
+// #region drawRoundRect
+interface DrawRoundRectOptions {
+	/** Inset from the rect edges. Default `0` (no inset). */
+	padding?: number;
+	/** Corner radius. Default `16`. */
+	radius?: number;
+}
+
+declare global {
+	interface CanvasRenderingContext2D {
+		/** Draw a rounded rectangle from a `Vector4` or `x, y, w, h` plus an options bag. Delegates the corner path to native `roundRect` (Safari 16+ / Chrome 99+ / Firefox 113+). */
+		drawRoundRect(
 			rect: Vector4,
-			rad: number,
-			lineWidth?: number,
-			strokeStyle?: string,
-			amount?: number,
+			mode: Mode,
+			options?: DrawRoundRectOptions,
+		): void;
+		drawRoundRect(
+			x: number,
+			y: number,
+			w: number,
+			h: number,
+			mode: Mode,
+			options?: DrawRoundRectOptions,
 		): void;
 	}
 }
 
-CanvasRenderingContext2D.prototype.drawCircleV4 = function (
-	rect,
-	rad,
-	lineWidth,
-	strokeStyle,
-	amount = 1,
+CanvasRenderingContext2D.prototype.drawRoundRect = function (
+	...args:
+		| [Vector4, mode: Mode, DrawRoundRectOptions?]
+		| [number, number, number, number, mode: Mode, DrawRoundRectOptions?]
 ): void {
+	let x: number;
+	let y: number;
+	let w: number;
+	let h: number;
+	let mode: Mode;
+	let options: DrawRoundRectOptions | undefined;
+
+	if (typeof args[0] === "number") {
+		[x, y, w, h, mode, options] = args as [
+			number,
+			number,
+			number,
+			number,
+			Mode,
+			DrawRoundRectOptions?,
+		];
+	} else {
+		[{ x, y, w, h }, mode, options] = args as [
+			Vector4,
+			Mode,
+			DrawRoundRectOptions?,
+		];
+	}
+
+	const { padding = 0, radius = 16 } = options ?? {};
+
+	x += padding;
+	y += padding;
+	w -= padding * 2;
+	h -= padding * 2;
+
 	this.beginPath();
-	this.arc(
-		rect.x + rect.w * 0.5,
-		rect.y + rect.h * 0.5,
-		rad,
-		0,
-		amount * 2 * Math.PI,
-	);
-
-	if (strokeStyle) {
-		this.strokeStyle = strokeStyle;
-	}
-
-	if (lineWidth) {
-		this.lineWidth = lineWidth;
-	}
-
-	this.stroke();
+	this.roundRect(x, y, w, h, radius);
+	this[mode]();
 };
 // #endregion
 
-// #region fillCircle
+// #region strokeDottedRect
 declare global {
 	interface CanvasRenderingContext2D {
-		/** Fill a circle. Writes `fillStyle` only when supplied; persists on the context — wrap in `save()`/`restore()` to preserve prior state. */
-		fillCircle(vecPos: Vector2, rad: number, fillStyle?: string): void;
+		/** Stroke a dotted rectangle. Writes `lineWidth` and `setLineDash` — wrap in `save()`/`restore()` to preserve prior state. */
+		strokeDottedRect(rect: Vector4): void;
 	}
 }
 
-CanvasRenderingContext2D.prototype.fillCircle = function (
-	vecPos,
-	rad,
-	fillStyle,
-): void {
-	this.beginPath();
-	this.arc(vecPos.x, vecPos.y, rad, 0, 2 * Math.PI);
-	if (fillStyle) {
-		this.fillStyle = fillStyle;
-	}
-	this.fill();
-};
-// #endregion
-
-// #region drawDottedRect
-declare global {
-	interface CanvasRenderingContext2D {
-		/** Stroke a dotted rectangle. Writes `lineWidth` and resets `setLineDash` to `[]` (does not restore the prior dash pattern) — wrap in `save()`/`restore()` to preserve prior state. */
-		drawDottedRect(rect: Vector4): void;
-	}
-}
-
-CanvasRenderingContext2D.prototype.drawDottedRect = function (rect): void {
+CanvasRenderingContext2D.prototype.strokeDottedRect = function (rect): void {
 	this.setLineDash([15, 15]);
 	this.lineWidth = 5;
 	this.beginPath();
@@ -199,168 +223,23 @@ CanvasRenderingContext2D.prototype.drawDottedRect = function (rect): void {
 	this.lineTo(rect.x, rect.y + rect.h);
 	this.lineTo(rect.x, rect.y);
 	this.stroke();
-	this.setLineDash([]);
 };
 // #endregion
 
-// #region drawRect
+// #region strokeLine
 declare global {
 	interface CanvasRenderingContext2D {
-		/** Stroke a rectangle (from `Vector4` or `x, y, w, h`). Writes `strokeStyle` only when supplied; persists on the context — wrap in `save()`/`restore()` to preserve prior state. */
-		drawRect(rect: Vector4, strokeStyle?: string): void;
-		drawRect(
-			x: number,
-			y: number,
-			w: number,
-			h: number,
-			strokeStyle?: string,
-		): void;
+		/** Draw a line segment from `(x1, y1)` to `(x2, y2)`. */
+		strokeLine(x1: number, y1: number, x2: number, y2: number): void;
 	}
 }
 
-CanvasRenderingContext2D.prototype.drawRect = function (
-	...args: [Vector4, string?] | [number, number, number, number, string?]
+CanvasRenderingContext2D.prototype.strokeLine = function (
+	x1,
+	y1,
+	x2,
+	y2,
 ): void {
-	let x: number;
-	let y: number;
-	let w: number;
-	let h: number;
-	let strokeStyle: string | undefined;
-
-	if (typeof args[0] === "number") {
-		[x, y, w, h, strokeStyle] = args as [
-			number,
-			number,
-			number,
-			number,
-			string?,
-		];
-	} else {
-		const [rect, style] = args as [Vector4, string?];
-		({ x, y, w, h } = rect);
-		strokeStyle = style;
-	}
-
-	if (strokeStyle) {
-		this.strokeStyle = strokeStyle;
-	}
-
-	this.beginPath();
-	this.rect(x, y, w, h);
-	this.stroke();
-};
-// #endregion
-
-// #region drawRoundRect
-export interface DrawRoundRectOptions {
-	/** Fill color when `mode === "fill"`, stroke color when `mode === "stroke"`. */
-	color?: string;
-	/** Line width AND auto-inset distance when `padding` is undefined. Default `6`. */
-	lineWidth?: number;
-	/** Default `"fill"`. */
-	mode?: "fill" | "stroke";
-	/** Inset from the rect edges. Undefined → auto-inset by `lineWidth`. */
-	padding?: number;
-	/** Corner radius. Default `16`. */
-	radius?: number;
-}
-
-declare global {
-	interface CanvasRenderingContext2D {
-		/** Draw a rounded rectangle from a `Vector4` or `x, y, w, h` plus an options bag. Delegates the corner path to native `roundRect` (Safari 16+ / Chrome 99+ / Firefox 113+). Writes `lineWidth`, and `fillStyle` (when filling) or `strokeStyle` (when stroking) when `options.color` is supplied; persists on the context — wrap in `save()`/`restore()` to preserve prior state. */
-		drawRoundRect(rect: Vector4, options?: DrawRoundRectOptions): void;
-		drawRoundRect(
-			x: number,
-			y: number,
-			w: number,
-			h: number,
-			options?: DrawRoundRectOptions,
-		): void;
-	}
-}
-
-CanvasRenderingContext2D.prototype.drawRoundRect = function (
-	...args:
-		| [Vector4, DrawRoundRectOptions?]
-		| [number, number, number, number, DrawRoundRectOptions?]
-): void {
-	let x: number;
-	let y: number;
-	let w: number;
-	let h: number;
-	let options: DrawRoundRectOptions | undefined;
-
-	if (typeof args[0] === "number") {
-		[x, y, w, h, options] = args as [
-			number,
-			number,
-			number,
-			number,
-			DrawRoundRectOptions?,
-		];
-	} else {
-		const [rect, opts] = args as [Vector4, DrawRoundRectOptions?];
-		({ x, y, w, h } = rect);
-		options = opts;
-	}
-
-	const {
-		color,
-		lineWidth = 6,
-		mode = "fill",
-		padding,
-		radius = 16,
-	} = options ?? {};
-
-	this.lineWidth = lineWidth;
-	if (color) {
-		if (mode === "fill") {
-			this.fillStyle = color;
-		} else {
-			this.strokeStyle = color;
-		}
-	}
-
-	const inset = padding ?? lineWidth;
-	if (inset > 0) {
-		x += inset;
-		y += inset;
-		w -= inset * 2;
-		h -= inset * 2;
-	}
-
-	this.beginPath();
-	this.roundRect(x, y, w, h, radius);
-	if (mode === "fill") {
-		this.fill();
-	} else {
-		this.stroke();
-	}
-};
-// #endregion
-
-// #region fillRectObject
-declare global {
-	interface CanvasRenderingContext2D {
-		/** Fill a rectangle from a `Vector4`. Uses current `fillStyle`. */
-		fillRectObject(rect: Vector4): void;
-	}
-}
-
-CanvasRenderingContext2D.prototype.fillRectObject = function (rect): void {
-	this.fillRect(rect.x, rect.y, rect.w, rect.h);
-};
-// #endregion
-
-// #region drawLine
-declare global {
-	interface CanvasRenderingContext2D {
-		/** Stroke a line segment from `(x1, y1)` to `(x2, y2)`. Uses current `strokeStyle`/`lineWidth`. */
-		drawLine(x1: number, y1: number, x2: number, y2: number): void;
-	}
-}
-
-CanvasRenderingContext2D.prototype.drawLine = function (x1, y1, x2, y2): void {
 	this.beginPath();
 	this.moveTo(x1, y1);
 	this.lineTo(x2, y2);
@@ -373,23 +252,21 @@ CanvasRenderingContext2D.prototype.drawLine = function (x1, y1, x2, y2): void {
 declare global {
 	interface CanvasRenderingContext2D {
 		/**
-		 * Stroke a regular polygon centered in `rect`, with vertices on a circle of radius `min(rect.w, rect.h) * 0.5`. Writes `strokeStyle`; persists on the context — wrap in `save()`/`restore()` to preserve prior state.
-		 * @param strokeStyle default `"white"`.
+		 * Draw a regular polygon centered in `rect`, with vertices on a circle of radius `min(rect.w, rect.h) * 0.5`.
 		 */
-		drawPolygon(sides: number, rect: Vector4, strokeStyle?: string): void;
+		drawPolygon(sides: number, rect: Vector4, mode: Mode): void;
 	}
 }
 
 CanvasRenderingContext2D.prototype.drawPolygon = function (
 	sides,
 	rect,
-	strokeStyle = "white",
+	mode,
 ): void {
 	const rad = Math.min(rect.w, rect.h) * 0.5;
 	const Xcenter = rect.x + rect.w * 0.5;
 	const Ycenter = rect.y + rect.h * 0.5;
 
-	this.strokeStyle = strokeStyle;
 	this.beginPath();
 	this.moveTo(Xcenter + rad, Ycenter);
 
@@ -401,24 +278,54 @@ CanvasRenderingContext2D.prototype.drawPolygon = function (
 	}
 
 	this.closePath();
-	this.stroke();
+	this[mode]();
 };
 // #endregion
 
 // #region drawTriangle
 declare global {
 	interface CanvasRenderingContext2D {
-		/** Fill a triangle: top-left → top-right → bottom-center. Uses current `fillStyle`. */
-		drawTriangle(rect: Vector4): void;
+		/** Draw a triangle: top-left → top-right → bottom-center. */
+		drawTriangle(rect: Vector4, mode: Mode): void;
 	}
 }
 
-CanvasRenderingContext2D.prototype.drawTriangle = function (rect): void {
+CanvasRenderingContext2D.prototype.drawTriangle = function (rect, mode): void {
 	this.beginPath();
 	this.moveTo(rect.x, rect.y);
 	this.lineTo(rect.x + rect.w, rect.y);
 	this.lineTo(rect.x + rect.w * 0.5, rect.y + rect.h);
-	this.fill();
+	this[mode]();
+};
+// #endregion
+
+// #region writeText
+declare global {
+	interface CanvasRenderingContext2D {
+		/**
+		 * Write text horizontally offset around `x` by `measureTextOffset` of its measured width.
+		 * @param measureTextOffset in `[0, 1]`. Default `0.5` (centered around `x`).
+		 */
+		writeText(
+			text: string,
+			x: number,
+			y: number,
+			measureTextOffset?: number,
+		): void;
+	}
+}
+
+CanvasRenderingContext2D.prototype.writeText = function (
+	text,
+	x,
+	y,
+	measureTextOffset = 0.5,
+): void {
+	this.fillText(
+		text,
+		x - this.measureText(text).width * measureTextOffset,
+		y,
+	);
 };
 // #endregion
 
@@ -426,7 +333,7 @@ CanvasRenderingContext2D.prototype.drawTriangle = function (rect): void {
 declare global {
 	interface CanvasRenderingContext2D {
 		/**
-		 * Word-wrap `text` into lines of pixel width `width`, drawing each line via `writeText`. Returns `false` and logs to `console.error` if `maxAttempts` is reached. Writes `font`/`fillStyle` indirectly via `writeText`.
+		 * Word-wrap `text` into lines of pixel width `width`, drawing each line via `writeText`. Returns `false` and logs to `console.error` if `maxAttempts` is reached.
 		 * @param lineOffset vertical spacing between lines in px. Default `50`.
 		 * @param maxAttempts safety cap on wrap iterations. Default `50`.
 		 */
@@ -435,7 +342,6 @@ declare global {
 			x: number,
 			y: number,
 			width: number,
-			color?: string,
 			lineOffset?: number,
 			maxAttempts?: number,
 		): boolean;
@@ -447,7 +353,6 @@ CanvasRenderingContext2D.prototype.writeMultilineText = function (
 	x,
 	y,
 	width,
-	color,
 	lineOffset = 50,
 	maxAttempts = 50,
 ): boolean {
@@ -460,7 +365,7 @@ CanvasRenderingContext2D.prototype.writeMultilineText = function (
 
 			if (textWidth > width) {
 				const count = Math.max(1, i - 1);
-				this.writeText(words.slice(0, count).join(" "), x, y, color, 0);
+				this.writeText(words.slice(0, count).join(" "), x, y, 0);
 				words.splice(0, count);
 				y += lineOffset;
 				break;
@@ -471,18 +376,12 @@ CanvasRenderingContext2D.prototype.writeMultilineText = function (
 
 				if (textWidth > width) {
 					const count = Math.max(1, i);
-					this.writeText(
-						words.slice(0, count).join(" "),
-						x,
-						y,
-						color,
-						0,
-					);
+					this.writeText(words.slice(0, count).join(" "), x, y, 0);
 					words.splice(0, count);
 					y += lineOffset;
 					break;
 				} else {
-					this.writeText(words.join(" "), x, y, color, 0);
+					this.writeText(words.join(" "), x, y, 0);
 					words.length = 0;
 					break;
 				}
@@ -500,56 +399,14 @@ CanvasRenderingContext2D.prototype.writeMultilineText = function (
 };
 // #endregion
 
-// #region writeText
-declare global {
-	interface CanvasRenderingContext2D {
-		/**
-		 * Write text horizontally offset around `x` by `measureTextOffset` of its measured width. Writes `font` and `fillStyle` only when supplied; persists on the context — wrap in `save()`/`restore()` to preserve prior state.
-		 * @param measureTextOffset in `[0, 1]`. Default `0.5` (centered around `x`).
-		 */
-		writeText(
-			text: string,
-			x: number,
-			y: number,
-			color?: string,
-			measureTextOffset?: number,
-			font?: string,
-		): void;
-	}
-}
-
-CanvasRenderingContext2D.prototype.writeText = function (
-	text,
-	x,
-	y,
-	color,
-	measureTextOffset = 0.5,
-	font,
-): void {
-	if (font) {
-		this.font = font;
-	}
-
-	if (color) {
-		this.fillStyle = color;
-	}
-
-	this.fillText(
-		text,
-		x - this.measureText(text).width * measureTextOffset,
-		y,
-	);
-};
-// #endregion
-
-// #region drawRotated
+// #region drawImageRotated
 declare global {
 	interface CanvasRenderingContext2D {
 		/**
 		 * Draw `image` rotated by `radians` around the center of its placement at `(x, y)`. Saves and restores the transform.
 		 * @param radians clockwise positive, in radians.
 		 */
-		drawRotated(
+		drawImageRotated(
 			image: HTMLCanvasElement,
 			x: number,
 			y: number,
@@ -558,7 +415,7 @@ declare global {
 	}
 }
 
-CanvasRenderingContext2D.prototype.drawRotated = function (
+CanvasRenderingContext2D.prototype.drawImageRotated = function (
 	image,
 	x,
 	y,

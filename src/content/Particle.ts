@@ -39,13 +39,14 @@ export default class Particle {
 		context: CanvasRenderingContext2D,
 		offset: Vec2 = new Vec2(),
 	): void {
-		context.fillCircle(
+		context.fillStyle = this.color;
+		context.drawCircle(
 			{
 				x: this.pos.x + offset.x,
 				y: this.pos.y + offset.y,
 			},
 			this.size,
-			this.color,
+			"fill",
 		);
 	}
 

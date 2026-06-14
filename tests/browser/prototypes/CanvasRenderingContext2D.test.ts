@@ -14,9 +14,9 @@ function makeCtx(
 	return { canvas, ctx: canvas.getContext("2d")! };
 }
 
-// ==================== drawBar ====================
+// ==================== fillBar ====================
 
-describe("CanvasRenderingContext2D.drawBar", () => {
+describe("CanvasRenderingContext2D.fillBar", () => {
 	it("fills background then foreground rect with default colors", () => {
 		const { ctx } = makeCtx();
 		const fillSpy = vi.spyOn(ctx, "fillRect");
@@ -92,136 +92,99 @@ describe("CanvasRenderingContext2D.fillFramedBar", () => {
 	});
 });
 
-// ==================== drawCircleV2 / drawCircleV4 ====================
+// ==================== drawCircle ====================
 
-describe("CanvasRenderingContext2D.drawCircleV2", () => {
+describe("CanvasRenderingContext2D.drawCircle", () => {
 	it("calls arc with provided center, radius, and full sweep by default", () => {
 		const { ctx } = makeCtx();
 		const arcSpy = vi.spyOn(ctx, "arc");
-		ctx.drawCircleV2({ x: 30, y: 40 }, 10);
+		ctx.drawCircle({ x: 30, y: 40 }, 10, "stroke");
 		expect(arcSpy).toHaveBeenCalledWith(30, 40, 10, 0, 2 * Math.PI);
 	});
 
 	it("scales sweep by amount", () => {
 		const { ctx } = makeCtx();
 		const arcSpy = vi.spyOn(ctx, "arc");
-		ctx.drawCircleV2({ x: 0, y: 0 }, 5, undefined, undefined, 0.25);
+		ctx.drawCircle({ x: 0, y: 0 }, 5, "stroke", 0.25);
 		expect(arcSpy).toHaveBeenCalledWith(0, 0, 5, 0, 0.5 * Math.PI);
 	});
 
-	it("only writes strokeStyle/lineWidth when supplied", () => {
+	it("strokes when mode is 'stroke'", () => {
 		const { ctx } = makeCtx();
-		const writes: string[] = [];
-		Object.defineProperty(ctx, "strokeStyle", {
-			configurable: true,
-			get: () => "",
-			set: () => writes.push("strokeStyle"),
-		});
-		Object.defineProperty(ctx, "lineWidth", {
-			configurable: true,
-			get: () => 1,
-			set: () => writes.push("lineWidth"),
-		});
-		ctx.drawCircleV2({ x: 0, y: 0 }, 5);
-		expect(writes).toEqual([]);
-
-		ctx.drawCircleV2({ x: 0, y: 0 }, 5, 3, "#f00");
-		expect(writes).toEqual(["strokeStyle", "lineWidth"]);
+		const stroke = vi.spyOn(ctx, "stroke");
+		const fill = vi.spyOn(ctx, "fill");
+		ctx.drawCircle({ x: 0, y: 0 }, 5, "stroke");
+		expect(stroke).toHaveBeenCalled();
+		expect(fill).not.toHaveBeenCalled();
 	});
 
-	it("calls beginPath then stroke", () => {
+	it("fills when mode is 'fill'", () => {
 		const { ctx } = makeCtx();
-		const begin = vi.spyOn(ctx, "beginPath");
 		const stroke = vi.spyOn(ctx, "stroke");
-		ctx.drawCircleV2({ x: 0, y: 0 }, 5);
-		expect(begin).toHaveBeenCalled();
+		const fill = vi.spyOn(ctx, "fill");
+		ctx.drawCircle({ x: 0, y: 0 }, 5, "fill");
+		expect(fill).toHaveBeenCalled();
+		expect(stroke).not.toHaveBeenCalled();
+	});
+
+	it("does not write strokeStyle, lineWidth, or fillStyle", () => {
+		const { ctx } = makeCtx();
+		ctx.strokeStyle = "#abc123";
+		ctx.lineWidth = 7;
+		ctx.fillStyle = "#def456";
+		ctx.drawCircle({ x: 0, y: 0 }, 5, "stroke");
+		ctx.drawCircle({ x: 0, y: 0 }, 5, "fill");
+		expect(ctx.strokeStyle).toBe("#abc123");
+		expect(ctx.lineWidth).toBe(7);
+		expect(ctx.fillStyle).toBe("#def456");
+	});
+});
+
+// ==================== drawRect ====================
+
+describe("CanvasRenderingContext2D.drawRect", () => {
+	it("strokes from a Rect when mode is 'stroke'", () => {
+		const { ctx } = makeCtx();
+		const rect = vi.spyOn(ctx, "rect");
+		const stroke = vi.spyOn(ctx, "stroke");
+		ctx.drawRect(new Rect(2, 3, 10, 5), "stroke");
+		expect(rect).toHaveBeenCalledWith(2, 3, 10, 5);
 		expect(stroke).toHaveBeenCalled();
 	});
-});
 
-describe("CanvasRenderingContext2D.drawCircleV4", () => {
-	it("centers arc inside the rect", () => {
+	it("fills from a Rect when mode is 'fill'", () => {
 		const { ctx } = makeCtx();
-		const arcSpy = vi.spyOn(ctx, "arc");
-		ctx.drawCircleV4({ x: 10, y: 20, w: 30, h: 40 }, 5);
-		expect(arcSpy).toHaveBeenCalledWith(25, 40, 5, 0, 2 * Math.PI);
-	});
-
-	it("scales sweep by amount", () => {
-		const { ctx } = makeCtx();
-		const arcSpy = vi.spyOn(ctx, "arc");
-		ctx.drawCircleV4(
-			{ x: 0, y: 0, w: 10, h: 10 },
-			5,
-			undefined,
-			undefined,
-			0.5,
-		);
-		expect(arcSpy).toHaveBeenCalledWith(5, 5, 5, 0, Math.PI);
-	});
-
-	it("writes strokeStyle and lineWidth when supplied", () => {
-		const { ctx } = makeCtx();
-		ctx.drawCircleV4({ x: 0, y: 0, w: 10, h: 10 }, 5, 4, "#00ffff");
-		expect(ctx.strokeStyle).toBe("#00ffff");
-		expect(ctx.lineWidth).toBe(4);
-	});
-});
-
-// ==================== drawTriangle ====================
-
-describe("CanvasRenderingContext2D.drawTriangle", () => {
-	it("draws the three triangle edges and fills", () => {
-		const { ctx } = makeCtx();
-		const moveTo = vi.spyOn(ctx, "moveTo");
-		const lineTo = vi.spyOn(ctx, "lineTo");
 		const fill = vi.spyOn(ctx, "fill");
-		ctx.drawTriangle(new Rect(10, 20, 30, 40));
-		expect(moveTo).toHaveBeenCalledWith(10, 20);
-		expect(lineTo).toHaveBeenNthCalledWith(1, 40, 20);
-		expect(lineTo).toHaveBeenNthCalledWith(2, 25, 60);
+		ctx.drawRect(new Rect(0, 0, 10, 10), "fill");
 		expect(fill).toHaveBeenCalled();
 	});
-});
 
-// ==================== drawDottedRect ====================
-
-describe("CanvasRenderingContext2D.drawDottedRect", () => {
-	it("sets a 15,15 line dash and resets to []", () => {
+	it("accepts explicit coords", () => {
 		const { ctx } = makeCtx();
-		const dashSpy = vi.spyOn(ctx, "setLineDash");
-		ctx.drawDottedRect(new Rect(0, 0, 10, 10));
-		expect(dashSpy).toHaveBeenNthCalledWith(1, [15, 15]);
-		expect(dashSpy).toHaveBeenNthCalledWith(2, []);
+		const rect = vi.spyOn(ctx, "rect");
+		ctx.drawRect(1, 2, 3, 4, "stroke");
+		expect(rect).toHaveBeenCalledWith(1, 2, 3, 4);
 	});
 
-	it("sets lineWidth to 5", () => {
+	it("does not write strokeStyle or fillStyle", () => {
 		const { ctx } = makeCtx();
-		ctx.drawDottedRect(new Rect(0, 0, 10, 10));
-		expect(ctx.lineWidth).toBe(5);
-	});
-
-	it("closes the path back to start via 4 lineTos", () => {
-		const { ctx } = makeCtx();
-		const moveTo = vi.spyOn(ctx, "moveTo");
-		const lineTo = vi.spyOn(ctx, "lineTo");
-		ctx.drawDottedRect(new Rect(2, 3, 8, 6));
-		expect(moveTo).toHaveBeenCalledWith(2, 3);
-		expect(lineTo).toHaveBeenNthCalledWith(1, 10, 3);
-		expect(lineTo).toHaveBeenNthCalledWith(2, 10, 9);
-		expect(lineTo).toHaveBeenNthCalledWith(3, 2, 9);
-		expect(lineTo).toHaveBeenNthCalledWith(4, 2, 3);
+		ctx.strokeStyle = "#abc123";
+		ctx.fillStyle = "#def456";
+		ctx.drawRect(new Rect(0, 0, 10, 10), "stroke");
+		ctx.drawRect(new Rect(0, 0, 10, 10), "fill");
+		expect(ctx.strokeStyle).toBe("#abc123");
+		expect(ctx.fillStyle).toBe("#def456");
 	});
 });
 
 // ==================== drawRoundRect ====================
 
 describe("CanvasRenderingContext2D.drawRoundRect", () => {
-	it("fills by default", () => {
+	it("fills when mode is 'fill'", () => {
 		const { ctx } = makeCtx();
 		const fill = vi.spyOn(ctx, "fill");
 		const stroke = vi.spyOn(ctx, "stroke");
-		ctx.drawRoundRect(0, 0, 30, 30);
+		ctx.drawRoundRect(0, 0, 30, 30, "fill");
 		expect(fill).toHaveBeenCalled();
 		expect(stroke).not.toHaveBeenCalled();
 	});
@@ -230,211 +193,97 @@ describe("CanvasRenderingContext2D.drawRoundRect", () => {
 		const { ctx } = makeCtx();
 		const fill = vi.spyOn(ctx, "fill");
 		const stroke = vi.spyOn(ctx, "stroke");
-		ctx.drawRoundRect(0, 0, 30, 30, {
-			padding: 0,
-			radius: 5,
-			mode: "stroke",
-		});
+		ctx.drawRoundRect(0, 0, 30, 30, "stroke", { padding: 0, radius: 5 });
 		expect(fill).not.toHaveBeenCalled();
 		expect(stroke).toHaveBeenCalled();
 	});
 
-	it("sets fillStyle when color is supplied", () => {
-		const { ctx } = makeCtx();
-		ctx.drawRoundRect(0, 0, 30, 30, { color: "#abcdef" });
-		expect(ctx.fillStyle).toBe("#abcdef");
-	});
-
-	it("sets strokeStyle (not fillStyle) when color is supplied and mode is 'stroke'", () => {
-		const { ctx } = makeCtx();
-		ctx.fillStyle = "#000000";
-		ctx.drawRoundRect(0, 0, 30, 30, { color: "#abcdef", mode: "stroke" });
-		expect(ctx.strokeStyle).toBe("#abcdef");
-		expect(ctx.fillStyle).toBe("#000000");
-	});
-
-	it("auto-insets by lineWidth when padding is undefined", () => {
+	it("does not inset when padding is undefined", () => {
 		const { ctx } = makeCtx();
 		const spy = vi.spyOn(ctx, "roundRect");
-		ctx.drawRoundRect(0, 0, 100, 100);
-		// lineWidth=6 inset → (6, 6, 88, 88), radius default 16
-		expect(spy).toHaveBeenCalledWith(6, 6, 88, 88, 16);
+		ctx.drawRoundRect(0, 0, 100, 100, "fill");
+		// default radius 16, no padding inset
+		expect(spy).toHaveBeenCalledWith(0, 0, 100, 100, 16);
 	});
 
 	it("respects an explicit positive padding", () => {
 		const { ctx } = makeCtx();
 		const spy = vi.spyOn(ctx, "roundRect");
-		ctx.drawRoundRect(0, 0, 100, 100, { padding: 10 });
+		ctx.drawRoundRect(0, 0, 100, 100, "fill", { padding: 10 });
 		expect(spy).toHaveBeenCalledWith(10, 10, 80, 80, 16);
-	});
-
-	it("respects a custom lineWidth", () => {
-		const { ctx } = makeCtx();
-		ctx.drawRoundRect(0, 0, 30, 30, { lineWidth: 12 });
-		expect(ctx.lineWidth).toBe(12);
-	});
-
-	it("uses the custom lineWidth for auto-inset", () => {
-		const { ctx } = makeCtx();
-		const spy = vi.spyOn(ctx, "roundRect");
-		ctx.drawRoundRect(0, 0, 100, 100, { lineWidth: 4 });
-		expect(spy).toHaveBeenCalledWith(4, 4, 92, 92, 16);
 	});
 
 	it("delegates corner radius to native roundRect", () => {
 		const { ctx } = makeCtx();
 		const spy = vi.spyOn(ctx, "roundRect");
-		ctx.drawRoundRect(0, 0, 40, 40, { padding: 0, radius: 5 });
+		ctx.drawRoundRect(0, 0, 40, 40, "fill", { padding: 0, radius: 5 });
 		expect(spy).toHaveBeenCalledWith(0, 0, 40, 40, 5);
 	});
 
 	it("accepts a Vector4 as first arg", () => {
 		const { ctx } = makeCtx();
 		const spy = vi.spyOn(ctx, "roundRect");
-		ctx.drawRoundRect(
-			{ x: 1, y: 2, w: 30, h: 40 },
-			{ padding: 0, radius: 7 },
-		);
+		ctx.drawRoundRect({ x: 1, y: 2, w: 30, h: 40 }, "fill", {
+			padding: 0,
+			radius: 7,
+		});
 		expect(spy).toHaveBeenCalledWith(1, 2, 30, 40, 7);
 	});
 
-	it("Vector4 overload accepts color option", () => {
-		const { ctx } = makeCtx();
-		ctx.drawRoundRect({ x: 0, y: 0, w: 30, h: 40 }, { color: "#ff0000" });
-		expect(ctx.fillStyle).toBe("#ff0000");
-	});
-});
-
-// ==================== drawRect ====================
-
-describe("CanvasRenderingContext2D.drawRect", () => {
-	it("strokes from a Rect", () => {
-		const { ctx } = makeCtx();
-		const rect = vi.spyOn(ctx, "rect");
-		const stroke = vi.spyOn(ctx, "stroke");
-		ctx.drawRect(new Rect(2, 3, 10, 5));
-		expect(rect).toHaveBeenCalledWith(2, 3, 10, 5);
-		expect(stroke).toHaveBeenCalled();
-	});
-
-	it("strokes from explicit coords", () => {
-		const { ctx } = makeCtx();
-		const rect = vi.spyOn(ctx, "rect");
-		ctx.drawRect(1, 2, 3, 4);
-		expect(rect).toHaveBeenCalledWith(1, 2, 3, 4);
-	});
-
-	it("applies strokeStyle from Rect overload", () => {
-		const { ctx } = makeCtx();
-		ctx.drawRect(new Rect(0, 0, 10, 10), "#f00");
-		expect(ctx.strokeStyle).toBe("#ff0000");
-	});
-
-	it("applies strokeStyle from explicit overload", () => {
-		const { ctx } = makeCtx();
-		ctx.drawRect(0, 0, 10, 10, "#0f0");
-		expect(ctx.strokeStyle).toBe("#00ff00");
-	});
-
-	it("does not write strokeStyle when omitted", () => {
-		const { ctx } = makeCtx();
-		ctx.strokeStyle = "#abc123";
-		ctx.drawRect(new Rect(0, 0, 10, 10));
-		expect(ctx.strokeStyle).toBe("#abc123");
-	});
-});
-
-// ==================== fillCircle ====================
-
-describe("CanvasRenderingContext2D.fillCircle", () => {
-	it("draws an arc at vecPos with radius", () => {
-		const { ctx } = makeCtx();
-		const arcSpy = vi.spyOn(ctx, "arc");
-		const fill = vi.spyOn(ctx, "fill");
-		ctx.fillCircle({ x: 20, y: 30 }, 7);
-		expect(arcSpy).toHaveBeenCalledWith(20, 30, 7, 0, 2 * Math.PI);
-		expect(fill).toHaveBeenCalled();
-	});
-
-	it("applies fillStyle when supplied", () => {
-		const { ctx } = makeCtx();
-		ctx.fillCircle({ x: 0, y: 0 }, 5, "#f0f");
-		expect(ctx.fillStyle).toBe("#ff00ff");
-	});
-
-	it("does not write fillStyle when omitted", () => {
+	it("does not write fillStyle, strokeStyle, or lineWidth", () => {
 		const { ctx } = makeCtx();
 		ctx.fillStyle = "#abc123";
-		ctx.fillCircle({ x: 0, y: 0 }, 5);
+		ctx.strokeStyle = "#def456";
+		ctx.lineWidth = 7;
+		ctx.drawRoundRect(0, 0, 30, 30, "fill");
+		ctx.drawRoundRect(0, 0, 30, 30, "stroke");
 		expect(ctx.fillStyle).toBe("#abc123");
+		expect(ctx.strokeStyle).toBe("#def456");
+		expect(ctx.lineWidth).toBe(7);
 	});
 });
 
-// ==================== fillRectObject ====================
+// ==================== strokeDottedRect ====================
 
-describe("CanvasRenderingContext2D.fillRectObject", () => {
-	it("forwards to fillRect with rect fields", () => {
+describe("CanvasRenderingContext2D.strokeDottedRect", () => {
+	it("sets a 15,15 line dash", () => {
 		const { ctx } = makeCtx();
-		const fillSpy = vi.spyOn(ctx, "fillRect");
-		ctx.fillRectObject(new Rect(3, 4, 5, 6));
-		expect(fillSpy).toHaveBeenCalledWith(3, 4, 5, 6);
+		const dashSpy = vi.spyOn(ctx, "setLineDash");
+		ctx.strokeDottedRect(new Rect(0, 0, 10, 10));
+		expect(dashSpy).toHaveBeenCalledWith([15, 15]);
+	});
+
+	it("sets lineWidth to 5", () => {
+		const { ctx } = makeCtx();
+		ctx.strokeDottedRect(new Rect(0, 0, 10, 10));
+		expect(ctx.lineWidth).toBe(5);
+	});
+
+	it("closes the path back to start via 4 lineTos", () => {
+		const { ctx } = makeCtx();
+		const moveTo = vi.spyOn(ctx, "moveTo");
+		const lineTo = vi.spyOn(ctx, "lineTo");
+		ctx.strokeDottedRect(new Rect(2, 3, 8, 6));
+		expect(moveTo).toHaveBeenCalledWith(2, 3);
+		expect(lineTo).toHaveBeenNthCalledWith(1, 10, 3);
+		expect(lineTo).toHaveBeenNthCalledWith(2, 10, 9);
+		expect(lineTo).toHaveBeenNthCalledWith(3, 2, 9);
+		expect(lineTo).toHaveBeenNthCalledWith(4, 2, 3);
 	});
 });
 
-// ==================== drawLine ====================
+// ==================== strokeLine ====================
 
-describe("CanvasRenderingContext2D.drawLine", () => {
+describe("CanvasRenderingContext2D.strokeLine", () => {
 	it("draws a stroked segment between two points", () => {
 		const { ctx } = makeCtx();
 		const moveTo = vi.spyOn(ctx, "moveTo");
 		const lineTo = vi.spyOn(ctx, "lineTo");
 		const stroke = vi.spyOn(ctx, "stroke");
-		ctx.drawLine(1, 2, 30, 40);
+		ctx.strokeLine(1, 2, 30, 40);
 		expect(moveTo).toHaveBeenCalledWith(1, 2);
 		expect(lineTo).toHaveBeenCalledWith(30, 40);
 		expect(stroke).toHaveBeenCalled();
-	});
-});
-
-// ==================== drawRotated ====================
-
-describe("CanvasRenderingContext2D.drawRotated", () => {
-	let savedCalls: string[];
-
-	beforeEach(() => {
-		savedCalls = [];
-	});
-
-	it("wraps draw in save/restore", () => {
-		const { ctx } = makeCtx();
-		const save = vi.spyOn(ctx, "save").mockImplementation(() => {
-			savedCalls.push("save");
-		});
-		const restore = vi.spyOn(ctx, "restore").mockImplementation(() => {
-			savedCalls.push("restore");
-		});
-		const img = document.createElement("canvas");
-		img.width = 20;
-		img.height = 10;
-		ctx.drawRotated(img, 100, 200, Math.PI / 4);
-		expect(save).toHaveBeenCalledTimes(1);
-		expect(restore).toHaveBeenCalledTimes(1);
-		expect(savedCalls[0]).toBe("save");
-		expect(savedCalls[savedCalls.length - 1]).toBe("restore");
-	});
-
-	it("translates to image center, rotates, then draws image centered", () => {
-		const { ctx } = makeCtx();
-		const translate = vi.spyOn(ctx, "translate");
-		const rotate = vi.spyOn(ctx, "rotate");
-		const drawImage = vi.spyOn(ctx, "drawImage");
-		const img = document.createElement("canvas");
-		img.width = 20;
-		img.height = 10;
-		ctx.drawRotated(img, 100, 200, 1.5);
-		expect(translate).toHaveBeenCalledWith(110, 205);
-		expect(rotate).toHaveBeenCalledWith(1.5);
-		expect(drawImage).toHaveBeenCalledWith(img, -10, -5);
 	});
 });
 
@@ -444,24 +293,58 @@ describe("CanvasRenderingContext2D.drawPolygon", () => {
 	it("draws sides vertices", () => {
 		const { ctx } = makeCtx();
 		const lineTo = vi.spyOn(ctx, "lineTo");
-		ctx.drawPolygon(6, { x: 0, y: 0, w: 100, h: 100 });
+		ctx.drawPolygon(6, { x: 0, y: 0, w: 100, h: 100 }, "stroke");
 		expect(lineTo).toHaveBeenCalledTimes(6);
 	});
 
-	it("sets strokeStyle to provided value (default white)", () => {
+	it("strokes when mode is 'stroke'", () => {
 		const { ctx } = makeCtx();
-		ctx.drawPolygon(3, { x: 0, y: 0, w: 50, h: 50 });
-		expect(ctx.strokeStyle).toBe("#ffffff");
-		ctx.drawPolygon(3, { x: 0, y: 0, w: 50, h: 50 }, "#ff0000");
-		expect(ctx.strokeStyle).toBe("#ff0000");
+		const stroke = vi.spyOn(ctx, "stroke");
+		ctx.drawPolygon(3, { x: 0, y: 0, w: 50, h: 50 }, "stroke");
+		expect(stroke).toHaveBeenCalled();
+	});
+
+	it("fills when mode is 'fill'", () => {
+		const { ctx } = makeCtx();
+		const fill = vi.spyOn(ctx, "fill");
+		ctx.drawPolygon(3, { x: 0, y: 0, w: 50, h: 50 }, "fill");
+		expect(fill).toHaveBeenCalled();
 	});
 
 	it("starts at the right side of the polygon", () => {
 		const { ctx } = makeCtx();
 		const moveTo = vi.spyOn(ctx, "moveTo");
-		ctx.drawPolygon(4, { x: 0, y: 0, w: 40, h: 60 });
+		ctx.drawPolygon(4, { x: 0, y: 0, w: 40, h: 60 }, "stroke");
 		// rad = min(40, 60)/2 = 20; Xcenter = 20, Ycenter = 30 → (20+20, 30)
 		expect(moveTo).toHaveBeenCalledWith(40, 30);
+	});
+});
+
+// ==================== drawTriangle ====================
+
+describe("CanvasRenderingContext2D.drawTriangle", () => {
+	it("draws the three triangle edges", () => {
+		const { ctx } = makeCtx();
+		const moveTo = vi.spyOn(ctx, "moveTo");
+		const lineTo = vi.spyOn(ctx, "lineTo");
+		ctx.drawTriangle(new Rect(10, 20, 30, 40), "fill");
+		expect(moveTo).toHaveBeenCalledWith(10, 20);
+		expect(lineTo).toHaveBeenNthCalledWith(1, 40, 20);
+		expect(lineTo).toHaveBeenNthCalledWith(2, 25, 60);
+	});
+
+	it("fills when mode is 'fill'", () => {
+		const { ctx } = makeCtx();
+		const fill = vi.spyOn(ctx, "fill");
+		ctx.drawTriangle(new Rect(0, 0, 10, 10), "fill");
+		expect(fill).toHaveBeenCalled();
+	});
+
+	it("strokes when mode is 'stroke'", () => {
+		const { ctx } = makeCtx();
+		const stroke = vi.spyOn(ctx, "stroke");
+		ctx.drawTriangle(new Rect(0, 0, 10, 10), "stroke");
+		expect(stroke).toHaveBeenCalled();
 	});
 });
 
@@ -498,35 +381,25 @@ describe("CanvasRenderingContext2D.writeText", () => {
 	it("places text at supplied x when offset is 0", () => {
 		const { ctx } = makeCtx();
 		const fillText = vi.spyOn(ctx, "fillText");
-		ctx.writeText("abcd", 100, 50, undefined, 0);
+		ctx.writeText("abcd", 100, 50, 0);
 		expect(fillText).toHaveBeenCalledWith("abcd", 100, 50);
 	});
 
 	it("right-aligns when offset is 1", () => {
 		const { ctx } = makeCtx();
 		const fillText = vi.spyOn(ctx, "fillText");
-		ctx.writeText("ab", 100, 50, undefined, 1);
+		ctx.writeText("ab", 100, 50, 1);
 		// width=20 → x = 100 - 20 = 80
 		expect(fillText).toHaveBeenCalledWith("ab", 80, 50);
 	});
 
-	it("applies font when supplied", () => {
-		const { ctx } = makeCtx();
-		ctx.writeText("hi", 0, 0, undefined, 0, "20px Arial");
-		expect(ctx.font).toContain("Arial");
-	});
-
-	it("applies color when supplied", () => {
-		const { ctx } = makeCtx();
-		ctx.writeText("hi", 0, 0, "#abcdef");
-		expect(ctx.fillStyle).toBe("#abcdef");
-	});
-
-	it("does not write fillStyle when color omitted", () => {
+	it("does not write fillStyle or font", () => {
 		const { ctx } = makeCtx();
 		ctx.fillStyle = "#123456";
+		const fontBefore = ctx.font;
 		ctx.writeText("hi", 0, 0);
 		expect(ctx.fillStyle).toBe("#123456");
+		expect(ctx.font).toBe(fontBefore);
 	});
 });
 
@@ -577,7 +450,7 @@ describe("CanvasRenderingContext2D.writeMultilineText", () => {
 	it("advances y by lineOffset between lines", () => {
 		const { ctx } = makeCtx();
 		const fillText = vi.spyOn(ctx, "fillText");
-		ctx.writeMultilineText("aaa bbb ccc", 5, 0, 40, undefined, 20);
+		ctx.writeMultilineText("aaa bbb ccc", 5, 0, 40, 20);
 		const ys = fillText.mock.calls.map(c => c[2]);
 		expect(ys[1]).toBe((ys[0] as number) + 20);
 	});
@@ -599,13 +472,54 @@ describe("CanvasRenderingContext2D.writeMultilineText", () => {
 			0,
 			0,
 			5,
-			undefined,
 			10,
 			2,
 		);
 		expect(result).toBe(false);
 		expect(err).toHaveBeenCalled();
 		err.mockRestore();
+	});
+});
+
+// ==================== drawImageRotated ====================
+
+describe("CanvasRenderingContext2D.drawImageRotated", () => {
+	let savedCalls: string[];
+
+	beforeEach(() => {
+		savedCalls = [];
+	});
+
+	it("wraps draw in save/restore", () => {
+		const { ctx } = makeCtx();
+		const save = vi.spyOn(ctx, "save").mockImplementation(() => {
+			savedCalls.push("save");
+		});
+		const restore = vi.spyOn(ctx, "restore").mockImplementation(() => {
+			savedCalls.push("restore");
+		});
+		const img = document.createElement("canvas");
+		img.width = 20;
+		img.height = 10;
+		ctx.drawImageRotated(img, 100, 200, Math.PI / 4);
+		expect(save).toHaveBeenCalledTimes(1);
+		expect(restore).toHaveBeenCalledTimes(1);
+		expect(savedCalls[0]).toBe("save");
+		expect(savedCalls[savedCalls.length - 1]).toBe("restore");
+	});
+
+	it("translates to image center, rotates, then draws image centered", () => {
+		const { ctx } = makeCtx();
+		const translate = vi.spyOn(ctx, "translate");
+		const rotate = vi.spyOn(ctx, "rotate");
+		const drawImage = vi.spyOn(ctx, "drawImage");
+		const img = document.createElement("canvas");
+		img.width = 20;
+		img.height = 10;
+		ctx.drawImageRotated(img, 100, 200, 1.5);
+		expect(translate).toHaveBeenCalledWith(110, 205);
+		expect(rotate).toHaveBeenCalledWith(1.5);
+		expect(drawImage).toHaveBeenCalledWith(img, -10, -5);
 	});
 });
 

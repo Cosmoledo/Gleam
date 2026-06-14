@@ -151,18 +151,19 @@ describe("Particle.draw", () => {
 	it("draws a circle at pos using the configured color and size", () => {
 		const p = new Particle(new Vec2(40, 60), "#abcdef", 4);
 		const ctx = makeContext();
-		const spy = vi.spyOn(ctx, "fillCircle");
+		const spy = vi.spyOn(ctx, "drawCircle");
 		p.draw(ctx);
 		expect(spy).toHaveBeenCalledTimes(1);
 		expect(spy.mock.calls[0][0]).toEqual({ x: 40, y: 60 });
 		expect(spy.mock.calls[0][1]).toBe(4);
-		expect(spy.mock.calls[0][2]).toBe("#abcdef");
+		expect(spy.mock.calls[0][2]).toBe("fill");
+		expect(ctx.fillStyle).toBe("#abcdef");
 	});
 
 	it("applies an offset to the draw position", () => {
 		const p = new Particle(new Vec2(10, 10), "#ff0000", 2);
 		const ctx = makeContext();
-		const spy = vi.spyOn(ctx, "fillCircle");
+		const spy = vi.spyOn(ctx, "drawCircle");
 		p.draw(ctx, new Vec2(5, -3));
 		expect(spy.mock.calls[0][0]).toEqual({ x: 15, y: 7 });
 	});
