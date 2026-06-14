@@ -1,7 +1,7 @@
 {
 	"name": "@cosmoledo/gleam",
 	"version": "1.0.0",
-	"description": "Small TypeScript framework for 2D canvas games in the browser — graphics, loop, effects, audio, math.",
+	"description": "TypeScript framework for 2D canvas games in the browser — graphics, loop, effects, audio, math.",
 	"homepage": "https://github.com/Cosmoledo/Gleam#readme",
 	"bugs": {
 		"url": "https://github.com/Cosmoledo/Gleam/issues"

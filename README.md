@@ -1,6 +1,6 @@
 # Gleam
 
-A small TypeScript framework for 2D canvas games in the browser.
+A TypeScript framework for 2D canvas games in the browser.
 
 - **G**raphics
   - `CanvasManager` — sizes/clears the canvas and exposes the 2D context
