@@ -214,82 +214,90 @@ describe("CanvasRenderingContext2D.drawDottedRect", () => {
 	});
 });
 
-// ==================== fillRoundRect / fillRoundRectObject ====================
+// ==================== drawRoundRect ====================
 
-describe("CanvasRenderingContext2D.fillRoundRect", () => {
+describe("CanvasRenderingContext2D.drawRoundRect", () => {
 	it("fills by default", () => {
 		const { ctx } = makeCtx();
 		const fill = vi.spyOn(ctx, "fill");
 		const stroke = vi.spyOn(ctx, "stroke");
-		ctx.fillRoundRect(0, 0, 30, 30);
+		ctx.drawRoundRect(0, 0, 30, 30);
 		expect(fill).toHaveBeenCalled();
 		expect(stroke).not.toHaveBeenCalled();
 	});
 
-	it("strokes when fill is false", () => {
+	it("strokes when mode is 'stroke'", () => {
 		const { ctx } = makeCtx();
 		const fill = vi.spyOn(ctx, "fill");
 		const stroke = vi.spyOn(ctx, "stroke");
-		ctx.fillRoundRect(0, 0, 30, 30, undefined, 0, 5, false);
+		ctx.drawRoundRect(0, 0, 30, 30, { padding: 0, radius: 5, mode: "stroke" });
 		expect(fill).not.toHaveBeenCalled();
 		expect(stroke).toHaveBeenCalled();
 	});
 
 	it("sets fillStyle when color is supplied", () => {
 		const { ctx } = makeCtx();
-		ctx.fillRoundRect(0, 0, 30, 30, "#abcdef");
+		ctx.drawRoundRect(0, 0, 30, 30, { color: "#abcdef" });
 		expect(ctx.fillStyle).toBe("#abcdef");
 	});
 
-	it("auto-pads by lineWidth when padding < 0", () => {
+	it("sets strokeStyle (not fillStyle) when color is supplied and mode is 'stroke'", () => {
 		const { ctx } = makeCtx();
-		const arc = vi.spyOn(ctx, "arcTo");
-		ctx.fillRoundRect(0, 0, 100, 100);
-		// lineWidth=6, so first arc origin is x+w = 6+88 = 94
-		expect(arc.mock.calls[0][0]).toBe(94);
+		ctx.fillStyle = "#000000";
+		ctx.drawRoundRect(0, 0, 30, 30, { color: "#abcdef", mode: "stroke" });
+		expect(ctx.strokeStyle).toBe("#abcdef");
+		expect(ctx.fillStyle).toBe("#000000");
+	});
+
+	it("auto-insets by lineWidth when padding is undefined", () => {
+		const { ctx } = makeCtx();
+		const spy = vi.spyOn(ctx, "roundRect");
+		ctx.drawRoundRect(0, 0, 100, 100);
+		// lineWidth=6 inset → (6, 6, 88, 88), radius default 16
+		expect(spy).toHaveBeenCalledWith(6, 6, 88, 88, 16);
 	});
 
 	it("respects an explicit positive padding", () => {
 		const { ctx } = makeCtx();
-		const arc = vi.spyOn(ctx, "arcTo");
-		ctx.fillRoundRect(0, 0, 100, 100, undefined, 10);
-		// padding=10 → first arc origin is x+w-padding = 0+100-10 = 90
-		expect(arc.mock.calls[0][0]).toBe(90);
+		const spy = vi.spyOn(ctx, "roundRect");
+		ctx.drawRoundRect(0, 0, 100, 100, { padding: 10 });
+		expect(spy).toHaveBeenCalledWith(10, 10, 80, 80, 16);
 	});
 
-	it("clamps radius to half-width / half-height when too small", () => {
+	it("respects a custom lineWidth", () => {
 		const { ctx } = makeCtx();
-		const moveTo = vi.spyOn(ctx, "moveTo");
-		ctx.fillRoundRect(0, 0, 20, 20, undefined, 0, 16);
-		// w < 2*16 → radius = w*0.5 = 10
-		expect(moveTo).toHaveBeenCalledWith(10, 0);
+		ctx.drawRoundRect(0, 0, 30, 30, { lineWidth: 12 });
+		expect(ctx.lineWidth).toBe(12);
 	});
 
-	it("clamps radius by height when height < 2*radius", () => {
+	it("uses the custom lineWidth for auto-inset", () => {
 		const { ctx } = makeCtx();
-		const arcTo = vi.spyOn(ctx, "arcTo");
-		// w=100 (>> 2*8) but h=10 → radius gets clamped to h/2 = 5
-		ctx.fillRoundRect(0, 0, 100, 10, undefined, 0, 8);
-		// last arg of each arcTo is the radius
-		expect(arcTo.mock.calls[0][4]).toBe(5);
+		const spy = vi.spyOn(ctx, "roundRect");
+		ctx.drawRoundRect(0, 0, 100, 100, { lineWidth: 4 });
+		expect(spy).toHaveBeenCalledWith(4, 4, 92, 92, 16);
 	});
 
-	it("draws four arcTo corners + closePath", () => {
+	it("delegates corner radius to native roundRect", () => {
 		const { ctx } = makeCtx();
-		const arcTo = vi.spyOn(ctx, "arcTo");
-		const closePath = vi.spyOn(ctx, "closePath");
-		ctx.fillRoundRect(0, 0, 40, 40, undefined, 0, 5);
-		expect(arcTo).toHaveBeenCalledTimes(4);
-		expect(closePath).toHaveBeenCalled();
+		const spy = vi.spyOn(ctx, "roundRect");
+		ctx.drawRoundRect(0, 0, 40, 40, { padding: 0, radius: 5 });
+		expect(spy).toHaveBeenCalledWith(0, 0, 40, 40, 5);
 	});
-});
 
-describe("CanvasRenderingContext2D.fillRoundRectObject", () => {
-	it("delegates to fillRoundRect with rect fields", () => {
+	it("accepts a Vector4 as first arg", () => {
 		const { ctx } = makeCtx();
-		const spy = vi.spyOn(ctx, "fillRoundRect");
-		ctx.fillRoundRectObject({ x: 1, y: 2, w: 30, h: 40 }, "#fff", 4, 7);
-		expect(spy).toHaveBeenCalledWith(1, 2, 30, 40, "#fff", 4, 7);
+		const spy = vi.spyOn(ctx, "roundRect");
+		ctx.drawRoundRect(
+			{ x: 1, y: 2, w: 30, h: 40 },
+			{ padding: 0, radius: 7 },
+		);
+		expect(spy).toHaveBeenCalledWith(1, 2, 30, 40, 7);
+	});
+
+	it("Vector4 overload accepts color option", () => {
+		const { ctx } = makeCtx();
+		ctx.drawRoundRect({ x: 0, y: 0, w: 30, h: 40 }, { color: "#ff0000" });
+		expect(ctx.fillStyle).toBe("#ff0000");
 	});
 });
 

@@ -2,7 +2,13 @@ import Rect from "@/math/Rect";
 import { createNewCanvas } from "@/utilities/Canvas";
 import type { Vector2, Vector4 } from "@/math/Vec2";
 
-export {};
+export interface DrawRoundRectOptions {
+	color?: string;
+	lineWidth?: number;
+	mode?: "fill" | "stroke";
+	padding?: number;
+	radius?: number;
+}
 
 declare global {
 	interface CanvasRenderingContext2D {
@@ -67,21 +73,13 @@ declare global {
 				offsetY?: number,
 			) => void;
 		};
-		fillRoundRect(
+		drawRoundRect(rect: Vector4, options?: DrawRoundRectOptions): void;
+		drawRoundRect(
 			x: number,
 			y: number,
 			w: number,
 			h: number,
-			color?: string,
-			padding?: number,
-			radius?: number,
-			fill?: boolean,
-		): void;
-		fillRoundRectObject(
-			rect: Vector4,
-			color: string,
-			padding?: number,
-			radius?: number,
+			options?: DrawRoundRectOptions,
 		): void;
 		writeMultilineText(
 			text: string,
@@ -357,66 +355,65 @@ CanvasRenderingContext2D.prototype.generateColor = function (
 };
 
 /**
- * Draw a rounded rectangle. Pass `padding < 0` to auto-pad by `lineWidth`. Writes `lineWidth`, and `fillStyle` when `color` is supplied; values persist on the context — wrap in `save()`/`restore()` if you need to preserve prior state.
+ * Draw a rounded rectangle from a `Vector4` or `x, y, w, h` plus an options bag. `options.padding` undefined → auto-inset by `lineWidth`. Writes `lineWidth`, and `fillStyle` (when filling) or `strokeStyle` (when stroking) when `color` is supplied; values persist on the context — wrap in `save()`/`restore()` if you need to preserve prior state.
  */
-CanvasRenderingContext2D.prototype.fillRoundRect = function (
-	x: number,
-	y: number,
-	w: number,
-	h: number,
-	color?: string,
-	padding = -1,
-	radius = 16,
-	fill = true,
+CanvasRenderingContext2D.prototype.drawRoundRect = function (
+	...args:
+		| [Vector4, DrawRoundRectOptions?]
+		| [number, number, number, number, DrawRoundRectOptions?]
 ): void {
+	let x: number;
+	let y: number;
+	let w: number;
+	let h: number;
+	let options: DrawRoundRectOptions | undefined;
+
+	if (typeof args[0] === "number") {
+		[x, y, w, h, options] = args as [
+			number,
+			number,
+			number,
+			number,
+			DrawRoundRectOptions?,
+		];
+	} else {
+		const [rect, opts] = args as [Vector4, DrawRoundRectOptions?];
+		({ x, y, w, h } = rect);
+		options = opts;
+	}
+
+	const {
+		color,
+		lineWidth = 6,
+		mode = "fill",
+		padding,
+		radius = 16,
+	} = options ?? {};
+
+	this.lineWidth = lineWidth;
 	if (color) {
-		this.fillStyle = color;
-	}
-	this.lineWidth = 6;
-
-	if (padding < 0) {
-		x += this.lineWidth;
-		y += this.lineWidth;
-		w -= this.lineWidth * 2;
-		h -= this.lineWidth * 2;
-	} else if (padding > 0) {
-		x += padding;
-		y += padding;
-		w -= padding * 2;
-		h -= padding * 2;
+		if (mode === "fill") {
+			this.fillStyle = color;
+		} else {
+			this.strokeStyle = color;
+		}
 	}
 
-	if (w < 2 * radius) {
-		radius = w * 0.5;
-	}
-	if (h < 2 * radius) {
-		radius = h * 0.5;
+	const inset = padding ?? lineWidth;
+	if (inset > 0) {
+		x += inset;
+		y += inset;
+		w -= inset * 2;
+		h -= inset * 2;
 	}
 
 	this.beginPath();
-	this.moveTo(x + radius, y);
-	this.arcTo(x + w, y, x + w, y + h, radius);
-	this.arcTo(x + w, y + h, x, y + h, radius);
-	this.arcTo(x, y + h, x, y, radius);
-	this.arcTo(x, y, x + w, y, radius);
-	if (fill) {
+	this.roundRect(x, y, w, h, radius);
+	if (mode === "fill") {
 		this.fill();
 	} else {
 		this.stroke();
 	}
-	this.closePath();
-};
-
-/**
- * `fillRoundRect` variant accepting a `Vector4`; inherits the same state writes.
- */
-CanvasRenderingContext2D.prototype.fillRoundRectObject = function (
-	rect: Vector4,
-	color: string,
-	padding?: number,
-	radius?: number,
-): void {
-	this.fillRoundRect(rect.x, rect.y, rect.w, rect.h, color, padding, radius);
 };
 
 /**
