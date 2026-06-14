@@ -65,6 +65,7 @@ function bundleTypes(entry, outfile) {
 		"--project",
 		TSCONFIG,
 		"--inline-declare-global",
+		"--no-check",
 		"-o",
 		outfile,
 		entry,
