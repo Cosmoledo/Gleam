@@ -48,7 +48,7 @@ Browser tests that exercise canvas prototypes need `import "@/prototypes/index";
 - **Module-level exports use `function` keyword**, not arrow functions. Internal callbacks may be arrows.
 - **Tabs** for indentation. **Double quotes** for strings. **Semicolons** required.
 - **Path alias `@/`** maps to `src/`. Prefer it for cross-directory imports.
-- **JSDoc on public utility exports**: one short line. Only expand for non-obvious behavior. Skip `@param`/`@returns` — types live in the signature.
+- **JSDoc on public utility exports**: one short line. Only expand for non-obvious behavior. Skip `@param`/`@returns` when they'd just repeat the TS signature; use them for info the type can't carry — defaults, units, ranges, semantic constraints.
 - **PascalCase** file names matching the default export.
 - **No section comment headers** inside class files (`// --- Factories ---`).
 - **No underscore prefix on function/method names.** Use `private`/`protected` visibility modifiers. Only underscores allowed on private backing fields paired with an accessor (`_r` for `get r()`).
