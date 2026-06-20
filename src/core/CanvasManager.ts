@@ -120,7 +120,7 @@ export default class CanvasManager {
 	public setupCanvas(
 		canvasType: symbol,
 		selector: string,
-		resize: boolean = true,
+		resize: boolean = Settings.enableResize,
 	): CanvasHolder {
 		if (!document.querySelector(selector)) {
 			throw new Error("Canvas '" + selector + "' does not exist!");
