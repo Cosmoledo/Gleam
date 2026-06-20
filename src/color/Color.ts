@@ -20,7 +20,7 @@ export interface HSLObject {
  *
  * All `to*` methods return CSS-compatible strings; `toHSLObject` returns the components as numbers if you need to mutate them.
  */
-export class Color {
+export default class Color {
 	/** Parse `#rgb`, `#rgba`, `#rrggbb`, or `#rrggbbaa` (case-insensitive, `#` optional). Throws on any other shape or on non-hex characters. */
 	public static fromHex(hex: string): Color {
 		let cleanHex = hex.replace("#", "").toUpperCase();

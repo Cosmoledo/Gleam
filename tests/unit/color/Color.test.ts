@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 // ==================== Imports ====================
 
-import { Color } from "@/color/Color";
+import Color from "@/color/Color";
 
 // ==================== Color.fromHex ====================
 

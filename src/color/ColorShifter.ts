@@ -1,4 +1,4 @@
-import { Color } from "./Color";
+import Color from "./Color";
 import { wrapDegrees } from "@/utilities/Math";
 import { wrapValue } from "@/utilities/Number";
 import type { RGB } from "@/utilities/Color";
