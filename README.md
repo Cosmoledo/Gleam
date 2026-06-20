@@ -82,7 +82,7 @@ Add a canvas to the page:
 Subclass `Game`, register the canvas as `MAIN` on the `CanvasManager` instance `canman`, implement `init`/`update`/`draw`, and kick off `preInit()` from the constructor:
 
 ```ts
-import Game, { CANVAS_TYPES, type SettingsOverrides } from "@cosmoledo/gleam";
+import { Game, CANVAS_TYPES, type SettingsOverrides } from "@cosmoledo/gleam";
 
 class MyGame extends Game {
     constructor(overrides: SettingsOverrides = {}) {
