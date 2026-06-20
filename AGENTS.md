@@ -1,7 +1,5 @@
 # Gleam — AI Agent Instructions
 
-Read the gitignored file `.ai/memory.md` for additional rules.
-
 ## Verification commands
 
 ```sh
@@ -48,8 +46,8 @@ Browser tests that exercise canvas prototypes need `import "@/prototypes/index";
 - **Module-level exports use `function` keyword**, not arrow functions. Internal callbacks may be arrows.
 - **Tabs** for indentation. **Double quotes** for strings. **Semicolons** required.
 - **Path alias `@/`** maps to `src/`. Prefer it for cross-directory imports.
-- **JSDoc on public utility exports**: one short line. Only expand for non-obvious behavior. Skip `@param`/`@returns` when they'd just repeat the TS signature; use them for info the type can't carry — defaults, units, ranges, semantic constraints.
-- **PascalCase** file names matching the default export.
+- **JSDoc required on all public exports** — classes, free functions, public methods/accessors, exported interfaces/types, and their fields. One short line minimum. Expand for non-obvious behavior. Skip `@param`/`@returns` when they'd just repeat the TS signature; use them for info the type can't carry — defaults, units, ranges, semantic constraints. JSDoc must match the implementation: when params, return shape, defaults, or behavior change, update the JSDoc in the same commit. Stale or contradictory JSDoc is a deviation.
+- **PascalCase** file names. `export default` is reserved for class files (filename matches the class name); files of free functions use named exports.
 - **No section comment headers** inside class files (`// --- Factories ---`).
 - **No underscore prefix on function/method names.** Use `private`/`protected` visibility modifiers. Only underscores allowed on private backing fields paired with an accessor (`_r` for `get r()`).
 - **Prefer `arr.forEach(...)` over `for-of`/`for-i`** for general iteration. Use `for-of` only when you need `break`/`continue`/early `return`, an index without `forEach`'s second arg, or reverse traversal.
@@ -70,6 +68,21 @@ Browser tests that exercise canvas prototypes need `import "@/prototypes/index";
 10. Instance utility (`clone`, `equals`)
 
 Within slots 6–10, sort by visibility (public → protected → private), then by slot. Within same slot + visibility, alphabetically. Exceptions: `draw` first, `update` second. Color channels (`r, g, b, alpha` and `_r, _g, _b, _alpha`) keep RGBA order.
+
+## Prototype augmentation
+
+- Put JSDoc on the `declare global` interface member, not on the prototype-assignment impl — IDE hover reads the augmentation, not the impl.
+- One local `declare global` block per method, immediately above its impl. Multiple blocks in the same module merge into one interface — keeps signature, JSDoc, and impl adjacent and individually foldable.
+- Drop explicit param types in the impl when the augmentation is unambiguous (TS infers from the merged declaration). Overloaded impls keep their `...args: [A] | [B]` tuple for discrimination.
+- Defaults need explicit JSDoc — `= X` in the impl is invisible to IDE hover and to TypeDoc. Use ``@param X default `Y` `` on the interface signature.
+- `@param` over `@default`: `@param` shows in VSCode hover; `@default` only shows in signature-help.
+- Wrap a logical unit in `// #region <name>` / `// #endregion` only when it spans multiple top-level constructs that belong together (e.g. `declare global` block + the matching prototype assignment). Skip in files where each construct is self-contained — a single `export function` is already foldable on its own.
+- No convenience state args on prototype helpers (`color`, `fillStyle`, `strokeStyle`, `lineWidth`, `font` on `CanvasRenderingContext2D`) — caller sets `ctx.<prop>` externally, matching native canvas and Phaser library. Exception: helpers that are inherently multi-state (e.g. `fillBar` writes per-layer colors) keep those args.
+- Augment global DOM interfaces via `defineMethod(Foo.prototype, "bar", function (...) {})` from `@/utilities/Prototype` — the helper sets descriptors so added methods are non-enumerable (matching native methods) and centralizes the boilerplate. Don't use plain `Foo.prototype.bar = function(){}` (enumerable; pollutes `for-in`).
+
+### For CanvasRenderingContext2D specifically
+
+- Name shape helpers by what they always do: `draw*` takes a positional `mode: "fill" | "stroke"` and dispatches via `this[mode]()`; `stroke*` always strokes (use when fill is meaningless — dashed outlines, zero-area paths); `fill*` always fills (use when the helper writes multiple per-layer colors or stroke makes no sense).
 
 ## Commit style
 
