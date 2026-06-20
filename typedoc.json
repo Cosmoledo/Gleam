@@ -10,6 +10,9 @@
 	"excludeInternal": true,
 	"cleanOutputDir": true,
 	"hideGenerator": true,
+	"validation": {
+		"notDocumented": true
+	},
 	"navigationLinks": {
 		"GitHub": "https://github.com/Cosmoledo/Gleam",
 		"Examples": "https://cosmoledo.github.io/Gleam/examples/",

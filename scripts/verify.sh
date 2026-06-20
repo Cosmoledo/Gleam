@@ -15,5 +15,8 @@ echo "No issues runnning tests"
 echo ""
 node scripts/checkCoverage.js
 
+echo "Generating docs..."
+npm run docs -- --treatWarningsAsErrors
+
 echo "Building project..."
 npm run build

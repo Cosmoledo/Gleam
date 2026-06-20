@@ -18,8 +18,14 @@ function run(cmd, args) {
 }
 
 run("node", [join(ROOT, "scripts/generate-barrel.mjs")]);
-try {
-	run("npx", ["typedoc"]);
-} finally {
-	rmSync(BARREL, { force: true });
+
+const result = spawnSync("npx", ["typedoc", ...process.argv.slice(2)], {
+	stdio: "inherit",
+	cwd: ROOT,
+});
+
+rmSync(BARREL, { force: true });
+
+if (result.status !== 0) {
+	process.exit(result.status ?? 1);
 }
