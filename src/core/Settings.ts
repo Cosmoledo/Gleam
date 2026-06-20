@@ -61,9 +61,9 @@ export default class Settings {
 		}
 
 		if (this.debug) {
-			// debug-only devtools hook; kept as `any` so the temporary
-			// debug surface doesn't leak into any .d.ts file.
-			(window as any).game = game;
+			// debug-only devtools hook; local cast keeps `game` off the
+			// global `Window` interface so it doesn't leak into any .d.ts file.
+			(window as Window & { game?: Game }).game = game;
 		}
 
 		if (this.warnBeforeClose) {

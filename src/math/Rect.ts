@@ -58,34 +58,12 @@ export default class Rect {
 		return new Rect(minX, minY, maxX - minX, maxY - minY);
 	}
 
-	private _h = 0;
-	private _w = 0;
 	private _x = 0;
 	private _y = 0;
+	private _w = 0;
+	private _h = 0;
 	private _sides!: Sides;
 	private sideIsDirty: boolean = true;
-
-	/** Height. */
-	public get h(): number {
-		return this._h;
-	}
-
-	/** Height. */
-	public set h(value: number) {
-		this._h = value;
-		this.sideIsDirty = true;
-	}
-
-	/** Width. */
-	public get w(): number {
-		return this._w;
-	}
-
-	/** Width. */
-	public set w(value: number) {
-		this._w = value;
-		this.sideIsDirty = true;
-	}
 
 	/** Top-left x. */
 	public get x(): number {
@@ -106,6 +84,28 @@ export default class Rect {
 	/** Top-left y. */
 	public set y(value: number) {
 		this._y = value;
+		this.sideIsDirty = true;
+	}
+
+	/** Width. */
+	public get w(): number {
+		return this._w;
+	}
+
+	/** Width. */
+	public set w(value: number) {
+		this._w = value;
+		this.sideIsDirty = true;
+	}
+
+	/** Height. */
+	public get h(): number {
+		return this._h;
+	}
+
+	/** Height. */
+	public set h(value: number) {
+		this._h = value;
 		this.sideIsDirty = true;
 	}
 

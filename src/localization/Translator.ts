@@ -10,7 +10,7 @@ declare global {
 }
 
 // non-enumerable own property on the instance.
-defineMethod(window, "t", function (): string {
+defineMethod(window, "t", function (_key): string {
 	throw new Error("Call 'prepareLanguage' first!");
 });
 

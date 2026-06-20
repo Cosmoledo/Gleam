@@ -48,6 +48,8 @@ export function getCanvasConstruct(selector: string): CanvasConstruct {
 
 /**
  * Apply a CSS `filter` string to an image and return the result as a new canvas.
+ * @param width default `image.width`
+ * @param height default `image.height`
  */
 export function applyFilterOnCanvas(
 	image: HTMLCanvasElement | HTMLImageElement,
