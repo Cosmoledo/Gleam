@@ -26,8 +26,10 @@ export function linear(t: number): number {
 	return t;
 }
 
+/** Names of the built-in easing curves. Use as a key into {@link EASINGS}. */
 export type EasingName = "ease-in" | "ease-in-out" | "ease-out" | "linear";
 
+/** Lookup table from {@link EasingName} to its easing function (`t ∈ [0, 1] → eased t`). */
 export const EASINGS: Record<EasingName, (t: number) => number> = {
 	"ease-in": easeIn,
 	"ease-in-out": easeInOut,

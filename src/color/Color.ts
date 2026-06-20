@@ -1,7 +1,27 @@
 import { approxEqual, clamp, wrapValue } from "@/utilities/Number";
 import { hue2rgb } from "@/utilities/Color";
 
+/** Components returned by {@link Color.toHSLObject}. */
+export interface HSLObject {
+	/** Hue in degrees, `[0, 360]`. */
+	h: number;
+	/** Saturation in percent, `[0, 100]`. */
+	s: number;
+	/** Lightness in percent, `[0, 100]`. */
+	l: number;
+	/** Alpha in `[0, 1]`. */
+	a: number;
+}
+
+/**
+ * RGBA color with chainable mutators. Channels are stored clamped (`r/g/b` ∈ `[0, 255]`, `alpha` ∈ `[0, 1]`) — every mutator routes through {@link set}, so direct field writes aren't possible and clamping/rounding is uniform.
+ *
+ * **Hue unit gotcha**: {@link fromHSL} takes hue in **degrees** (CSS convention), but {@link hueRotate} takes **radians** (codebase convention). Use `Math.PI` etc. for hueRotate.
+ *
+ * All `to*` methods return CSS-compatible strings; `toHSLObject` returns the components as numbers if you need to mutate them.
+ */
 export class Color {
+	/** Parse `#rgb`, `#rgba`, `#rrggbb`, or `#rrggbbaa` (case-insensitive, `#` optional). Throws on any other shape or on non-hex characters. */
 	public static fromHex(hex: string): Color {
 		let cleanHex = hex.replace("#", "").toUpperCase();
 
@@ -33,6 +53,7 @@ export class Color {
 		return new Color(r, g, b);
 	}
 
+	/** Build from HSL(A). `h` in **degrees** (wraps mod 360), `s`/`l` in percent `[0, 100]`, `a` in `[0, 1]`. The degree convention matches CSS — note that {@link hueRotate} uses radians instead. */
 	public static fromHSL(
 		h: number,
 		s: number,
@@ -66,18 +87,22 @@ export class Color {
 	private _b!: number;
 	private _alpha: number = 1;
 
+	/** Red channel, `[0, 255]`. Read-only; mutate via {@link set} or any chainable transform. */
 	public get r(): number {
 		return this._r;
 	}
 
+	/** Green channel, `[0, 255]`. Read-only; mutate via {@link set} or any chainable transform. */
 	public get g(): number {
 		return this._g;
 	}
 
+	/** Blue channel, `[0, 255]`. Read-only; mutate via {@link set} or any chainable transform. */
 	public get b(): number {
 		return this._b;
 	}
 
+	/** Alpha channel, `[0, 1]`. Read-only; mutate via {@link set} (pass the fourth arg). */
 	public get alpha(): number {
 		return this._alpha;
 	}
@@ -86,6 +111,7 @@ export class Color {
 		this.set(r, g, b, a);
 	}
 
+	/** Primary mutator — every other transform on this class routes through it. Clamps `r`/`g`/`b` to `[0, 255]` and `a` to `[0, 1]`; alpha is snapped to exact `0` or `1` when within `approxEqual` tolerance so equality checks stay clean. Returns `this` for chaining. */
 	public set(r: number, g: number, b: number, a?: number): this {
 		this._r = clamp(r, 0, 255);
 		this._g = clamp(g, 0, 255);
@@ -103,6 +129,7 @@ export class Color {
 		return this;
 	}
 
+	/** Apply a 3×3 RGB color matrix in row-major order (`m1..m9`). Alpha is unchanged. Used by {@link grayscale}, {@link hueRotate}, {@link saturate}, {@link sepia}. Mutates and returns `this`. */
 	public applyMatrix(
 		m1: number,
 		m2: number,
@@ -121,10 +148,12 @@ export class Color {
 		);
 	}
 
+	/** Multiply each channel by `factor`. `factor < 1` darkens, `factor > 1` brightens (clamped at 255). Mutates and returns `this`. */
 	public brightness(factor: number): this {
 		return this.set(this.r * factor, this.g * factor, this.b * factor);
 	}
 
+	/** Push each channel away from `127.5` (the midtone) by `factor`. `factor < 1` flattens contrast, `> 1` increases it, `0` collapses every channel to gray. Mutates and returns `this`. */
 	public contrast(factor: number): this {
 		const midtone = 127.5;
 		return this.set(
@@ -134,6 +163,7 @@ export class Color {
 		);
 	}
 
+	/** Desaturate via the standard luminance-preserving matrix. `value` in `[0, 1]`: `0` is a no-op, `1` is full grayscale. Mutates and returns `this`. */
 	public grayscale(value: number = 1): this {
 		const m1 = 0.2126 + 0.7874 * (1 - value);
 		const m2 = 0.7152 - 0.7152 * (1 - value);
@@ -148,6 +178,7 @@ export class Color {
 		return this.applyMatrix(m1, m2, m3, m4, m5, m6, m7, m8, m9);
 	}
 
+	/** Rotate hue by `radians` (use `Math.PI / 2` etc.). Unlike {@link fromHSL}, this takes radians, not degrees. Mutates and returns `this`. */
 	public hueRotate(radians: number): this {
 		const cos = Math.cos(radians);
 		const sin = Math.sin(radians);
@@ -165,6 +196,7 @@ export class Color {
 		return this.applyMatrix(m1, m2, m3, m4, m5, m6, m7, m8, m9);
 	}
 
+	/** Interpolate each channel toward its inverse (`255 - c`). `factor` in `[0, 1]`: `0` is unchanged, `1` is fully inverted. Mutates and returns `this`. */
 	public invert(factor: number = 1): this {
 		return this.set(
 			this.r * (1 - factor) + (255 - this.r) * factor,
@@ -173,6 +205,7 @@ export class Color {
 		);
 	}
 
+	/** Linear blend toward `other`. `amount` in `[0, 1]`: `0` keeps `this`, `1` becomes `other`. Mixes alpha too. Mutates and returns `this`. */
 	public mix(other: Color, amount: number): this {
 		const inv = 1 - amount;
 
@@ -184,6 +217,7 @@ export class Color {
 		);
 	}
 
+	/** Round each RGB channel to the nearest integer. Alpha is untouched. Mutates and returns `this`. */
 	public round(): this {
 		return this.set(
 			Math.round(this.r),
@@ -192,6 +226,7 @@ export class Color {
 		);
 	}
 
+	/** Saturation matrix. `value` typically in `[0, 2]`: `0` desaturates to grayscale (same as `grayscale(1)`), `1` is a no-op, `> 1` oversaturates. Mutates and returns `this`. */
 	public saturate(value: number = 1): this {
 		const m1 = 0.213 + 0.787 * value;
 		const m2 = 0.715 - 0.715 * value;
@@ -206,6 +241,7 @@ export class Color {
 		return this.applyMatrix(m1, m2, m3, m4, m5, m6, m7, m8, m9);
 	}
 
+	/** Sepia matrix. `value` in `[0, 1]`: `0` is unchanged, `1` is full sepia. Mutates and returns `this`. */
 	public sepia(value: number = 1): this {
 		const m1 = 0.393 + 0.607 * (1 - value);
 		const m2 = 0.769 - 0.769 * (1 - value);
@@ -220,6 +256,7 @@ export class Color {
 		return this.applyMatrix(m1, m2, m3, m4, m5, m6, m7, m8, m9);
 	}
 
+	/** Tint or shade. `percent` in `[-1, 1]`: negative shades toward black, positive tints toward white, magnitude is the amount. Mutates and returns `this`. */
 	public shade(percent: number): this {
 		const target = percent < 0 ? 0 : 255;
 		const p = Math.abs(percent);
@@ -231,6 +268,7 @@ export class Color {
 		);
 	}
 
+	/** CSS hex string. `#rrggbb` when alpha is exactly `1`, `#rrggbbaa` otherwise. Channels are rounded. */
 	public toHex(): string {
 		const r = Math.round(this.r).toString(16).padStart(2, "0");
 		const g = Math.round(this.g).toString(16).padStart(2, "0");
@@ -245,6 +283,7 @@ export class Color {
 		return `${rgb}${a.toString(16).padStart(2, "0")}`;
 	}
 
+	/** CSS HSL string. `hsl(h, s%, l%)` when alpha is exactly `1`, `hsla(...)` otherwise. Hue is in degrees. */
 	public toHSL(): string {
 		const { h, s, l } = this.toHSLObject();
 		const cssH = Math.round(h);
@@ -256,7 +295,8 @@ export class Color {
 			: `hsla(${cssH}, ${cssS}%, ${cssL}%, ${this.alpha.toFixed(2)})`;
 	}
 
-	public toHSLObject(): { h: number; s: number; l: number; a: number } {
+	/** HSL(A) components as numbers — see {@link HSLObject}. Use when you need to compute against the values rather than render them as a string. */
+	public toHSLObject(): HSLObject {
 		const r = this.r / 255;
 		const g = this.g / 255;
 		const b = this.b / 255;
@@ -290,6 +330,7 @@ export class Color {
 		return { h: h * 360, s: s * 100, l: l * 100, a: this.alpha };
 	}
 
+	/** CSS RGB string. `rgb(r, g, b)` when alpha is exactly `1`, `rgba(r, g, b, a)` otherwise. Channels are rounded. */
 	public toRGB(): string {
 		const r = Math.round(this.r);
 		const g = Math.round(this.g);
@@ -300,10 +341,12 @@ export class Color {
 			: `rgba(${r}, ${g}, ${b}, ${this.alpha.toFixed(2)})`;
 	}
 
+	/** New `Color` with the same channels. */
 	public clone(): Color {
 		return new Color(this.r, this.g, this.b, this.alpha);
 	}
 
+	/** Approximate equality (within `approxEqual` tolerance). Pass `compareAlpha: false` to ignore the alpha channel. */
 	public equals(other: Color, compareAlpha: boolean = true): boolean {
 		return (
 			approxEqual(this.r, other.r) &&

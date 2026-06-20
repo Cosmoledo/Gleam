@@ -1,21 +1,33 @@
 import type Pointer from "@/input/Pointer";
 import { throttleByKey } from "@/utilities/Functions";
 
+/**
+ * Type-safe registry of engine events and their payload tuples. Both {@link EventSystem.addEventListener} and {@link EventSystem.dispatchEvent} are generic over this map, so the listener callback and dispatched args are checked against the declared shape.
+ */
 export interface GameEventMap {
+	/** Fired by {@link Gameloop} once teardown completes, after `stopLoop()` is called. */
 	gameloopStopped: [];
+	/** Fired by {@link Controller} when a gamepad is connected. Payload is the native `Gamepad`. */
 	inputControllerConnected: [event: Gamepad];
+	/** Fired by {@link Controller} when *our* tracked gamepad disconnects. Other gamepads disconnecting are logged but don't dispatch. */
 	inputControllerDisconnected: [];
+	/** Fired by {@link Keyboard} on every key down/up with the live `keys` map, the `code` that changed, and its new pressed state. */
 	inputKeyboard: [
 		keys: Record<string, boolean>,
 		code: string,
 		pressed: boolean,
 	];
+	/** Fired by {@link Pointer} on every move and button transition. Payload is the `Pointer` instance — read `posScaled`/`pressed` from it. */
 	inputPointer: [pointer: Pointer];
+	/** Fired by {@link Game.preInit} once at startup and on every debounced `window.resize` thereafter. The canonical "viewport changed" signal. */
 	resized: [];
 }
 
+/** Options for {@link EventSystem.addEventListener}. */
 export interface EventSystemOptions {
+	/** Auto-dispose the listener after the first dispatch. */
 	once?: boolean;
+	/** Dispose the listener when the signal aborts. Already-aborted signals make `addEventListener` a no-op. */
 	signal?: AbortSignal;
 }
 
@@ -25,6 +37,15 @@ type GameEventListener<K extends keyof GameEventMap> = {
 	options: { once: boolean; signal?: AbortSignal };
 };
 
+/**
+ * Synchronous, type-safe pub/sub for engine-wide events. Static-only — call as `EventSystem.addEventListener(...)` / `EventSystem.dispatchEvent(...)`. Event names and payloads are constrained by {@link GameEventMap}.
+ *
+ * Guarantees:
+ *
+ * - Listeners registered during a dispatch are deferred to the next dispatch (won't fire in the round that registered them).
+ * - `once` listeners are removed *before* their callback runs, so nested dispatches and throwing callbacks can't double-fire them.
+ * - A throwing callback is caught and logged (throttled per `eventName:message`); siblings still receive the event.
+ */
 export default class EventSystem {
 	private static eventListener: {
 		[K in keyof GameEventMap]?: Map<number, GameEventListener<K>>;
@@ -46,6 +67,9 @@ export default class EventSystem {
 	// registered mid-dispatch (id > maxId) are deferred to the next dispatch.
 	private static nextId = 0;
 
+	/**
+	 * Register a listener for `eventName`. Returns a dispose function — the primary teardown path. Multiple disposers (returned, `once`, `signal.abort`) are idempotent. Use {@link EventSystemOptions} for `once` and `signal` behavior.
+	 */
 	public static addEventListener<K extends keyof GameEventMap>(
 		eventName: K,
 		callback: (...args: GameEventMap[K]) => void,
@@ -102,6 +126,7 @@ export default class EventSystem {
 		return dispose;
 	}
 
+	/** Synchronously fire `eventName` with the typed payload. Listeners are invoked in registration order; nested dispatches and self-disposing listeners are handled safely. */
 	public static dispatchEvent<K extends keyof GameEventMap>(
 		eventName: K,
 		...params: GameEventMap[K]

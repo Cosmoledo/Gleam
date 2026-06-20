@@ -4,12 +4,18 @@ import { type EasingName, EASINGS } from "@/utilities/Easing";
 import { rafLoop } from "@/utilities/Functions";
 import { randomItem, remove } from "@/utilities/Array";
 
+/**
+ * Background music with eased cross-fades. Tracks auto-cycle: when the current track ends, the next one fades in. Inherits registration, enable/disable, and volume from {@link AudioBase}.
+ *
+ * Random track picking excludes the previous two songs to avoid back-to-back repeats. If only one track is registered, it's looped instead of faded.
+ */
 export default class Music extends AudioBase {
 	private last: HTMLAudioElement | null = null;
 	private current: HTMLAudioElement | null = null;
 	private next: HTMLAudioElement | null = null;
 	private fadeCancel: (() => void) | null = null;
 
+	/** `true` while a fade is in progress OR the current track is actively playing. */
 	public get isPlaying(): boolean {
 		return (
 			!!this.fadeCancel ||
@@ -17,10 +23,12 @@ export default class Music extends AudioBase {
 		);
 	}
 
+	/** Whether music playback is permitted (inherited from {@link AudioBase}). */
 	public get enabled(): boolean {
 		return super.enabled;
 	}
 
+	/** Flipping from `false` to `true` while no music is playing auto-starts a fade-in to a random track. */
 	public set enabled(value: boolean) {
 		super.enabled = value;
 
@@ -29,6 +37,9 @@ export default class Music extends AudioBase {
 		}
 	}
 
+	/**
+	 * Cross-fade to `name` (or a random unplayed track when `null`) over `fadeTime` ms. `easing.cur` controls the outgoing track's volume curve, `easing.next` the incoming one. Cancels any in-progress fade. No-op when disabled. Throws on `fadeTime <= 0`, an empty registry, or an unknown `name`. When the new track ends, the next fade fires automatically — call {@link stop} to break the cycle.
+	 */
 	public fade(
 		name: string | null = null,
 		fadeTime: number = 1000,
@@ -133,6 +144,7 @@ export default class Music extends AudioBase {
 		});
 	}
 
+	/** Stop everything immediately: cancels any in-flight fade, halts current and next tracks, and breaks the auto-cycle chain. Restart via {@link fade} or by flipping {@link enabled}. */
 	public stop(): void {
 		super.stop();
 

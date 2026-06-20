@@ -1,5 +1,6 @@
 import { randomBetweenInt } from "./Math";
 
+/** `[r, g, b]` tuple of integer channel values, each in `[0, 255]`. */
 export type RGB = [number, number, number];
 
 /**

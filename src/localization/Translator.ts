@@ -30,8 +30,12 @@ const logMissingLanguage = throttleByKey<[string, string]>(
 	},
 );
 
+/** Translation tables keyed by `languageCode → translationKey → text` (e.g. `{ en: { hello: "Hi" }, de: { hello: "Hallo" } }`). */
 export type Languages = Record<string, Record<string, string>>;
 
+/**
+ * Install the global `window.t(key)` translator. Picks the active language from `Settings.localStorage.language` (seeded from `navigator.language` and overridable via `Settings.setLocalStorage("language", ...)`). Falls back to `defaultLanguage` when the active language isn't registered; returns the key itself when a translation is missing. Both fallback cases log a throttled `console.warn`. Logs `console.error` per missing key during preparation if some languages don't cover every key. Throws if `defaultLanguage` isn't in `languages`.
+ */
 export function prepareLanguage(
 	languages: Languages,
 	defaultLanguage: string = "en",

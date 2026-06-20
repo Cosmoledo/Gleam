@@ -1,6 +1,10 @@
+/** `get`/`set` helpers for CSS custom properties (`--name`) on `:root`. Build via {@link initCSSVariables}. */
 export interface CSSVariables {
+	/** The `:root` element these helpers read from / write to. */
 	root: HTMLElement;
+	/** Read the computed value of `--${name}`. */
 	get(name: string): string;
+	/** Write `value` to `--${name}` on the root element's inline style. */
 	set(name: string, value: string): void;
 }
 

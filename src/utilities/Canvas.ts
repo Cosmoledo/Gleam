@@ -4,8 +4,11 @@ import { rgb2Int } from "./Color";
 
 import "@/prototypes/HTMLCanvasElement"; // splitSpriteSheet relies on the subImage patch
 
+/** A `<canvas>` element paired with its 2D rendering context. Returned by {@link createNewCanvas} / {@link getCanvasConstruct} and inherited by {@link CanvasHolder}. */
 export interface CanvasConstruct {
+	/** The `<canvas>` element. */
 	canvas: HTMLCanvasElement;
+	/** Its 2D rendering context. */
 	context: CanvasRenderingContext2D;
 }
 

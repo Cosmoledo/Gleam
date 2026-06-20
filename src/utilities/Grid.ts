@@ -29,6 +29,7 @@ export function convert2DTo1D(
 	return indexX + width * indexY;
 }
 
+/** Primitive cell types accepted by {@link generateGrid}'s overload that takes a default value (used so every cell can safely share the same primitive without aliasing). */
 export type GridPrimitive =
 	| string
 	| number

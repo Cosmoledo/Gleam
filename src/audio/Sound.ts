@@ -1,9 +1,11 @@
 import AudioBase from "./AudioBase";
 import { remove } from "@/utilities/Array";
 
+/** One-shot SFX. Each {@link play} call clones the registered `HTMLAudioElement` so the same sound can overlap itself; {@link stop} cuts every in-flight clone. Inherits registration, enable/disable, and volume from {@link AudioBase}. */
 export default class Sound extends AudioBase {
 	private currentSounds: HTMLAudioElement[] = [];
 
+	/** Play the registered sound `name` once. Returns a promise that resolves when playback starts (or immediately if `enabled` is `false`) and rejects on autoplay/permission errors. Throws synchronously if no sounds are registered or `name` is unknown. Each call allocates a clone, so concurrent plays of the same name overlap. */
 	public play(name: string): Promise<void> {
 		if (this.songs.size === 0) {
 			throw new Error("No sounds registered!");
@@ -35,6 +37,7 @@ export default class Sound extends AudioBase {
 		});
 	}
 
+	/** Stop and forget every currently-playing clone. Also calls the base-class teardown. */
 	public stop(): void {
 		super.stop();
 

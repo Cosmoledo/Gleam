@@ -1,3 +1,4 @@
+/** Conditional helper used by {@link defineMethod}: given `T[K]` is a function, produces a corresponding function type with `this: T` bound to the prototype owner. Non-function members resolve to `never` so prototype patches can't target accessors or fields by mistake. */
 export type Method<T, K extends keyof T> = T[K] extends (
 	...args: infer A
 ) => infer R

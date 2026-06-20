@@ -3,21 +3,39 @@ import Vec2 from "@/math/Vec2";
 import type Game from "@/core/Game";
 import { clamp } from "@/utilities/Number";
 
+/** Button indices that match `PointerEvent.button` and index into {@link Pointer.pressed}. */
 export const POINTER_KEYS = {
+	/** Primary button (left for right-handers). */
 	LEFT: 0,
+	/** Middle button / wheel click. */
 	MIDDLE: 1,
+	/** Secondary button (right for right-handers). */
 	RIGHT: 2,
+	/** "Back" side button (browser back). */
 	PREV: 3,
+	/** "Forward" side button. */
 	FORWARD: 4,
 } as const;
 
+/**
+ * Pointer (mouse / pen / touch) state. Wired into `Game` automatically. The preferred way to consume input is to subscribe to the {@link EventSystem} `"inputPointer"` event — it fires on every move and button transition, with this `Pointer` instance as the payload. If you need the latest state on a frame boundary instead, poll `game.pointer.posScaled` and `game.pointer.pressed[POINTER_KEYS.LEFT]` from `update`.
+ *
+ * Suppresses the browser context menu on right-click globally.
+ */
 export default class Pointer {
+	/** Dirty bit set to `true` on every move and never cleared by the engine — flip it back to `false` after reading to detect "moved since last check". */
 	public hasMoved = false;
+	/** Last raw `PointerEvent` received. `null` until any pointer event fires. Use for properties not surfaced as Vec2/booleans (pressure, pointerType, etc.). */
 	public lastEvent: PointerEvent | null = null;
+	/** Viewport-space coordinates (`event.clientX/Y` — CSS pixels relative to the page). */
 	public posReal = new Vec2();
+	/** Previous tick's {@link posReal}. Subtract for a per-frame delta. */
 	public posRealLast = new Vec2();
+	/** Canvas-space coordinates, mapped from the bounding rect into the main canvas's pixel buffer and clamped to its size. This is the position to use for in-game logic. */
 	public posScaled = new Vec2();
+	/** Previous tick's {@link posScaled}. */
 	public posScaledLast = new Vec2();
+	/** Per-button pressed state. Index with {@link POINTER_KEYS} (e.g. `pressed[POINTER_KEYS.LEFT]`). Sparse — unindexed entries are `undefined`, not `false`. */
 	public pressed: boolean[] = [];
 	private game: Game;
 
@@ -65,6 +83,7 @@ export default class Pointer {
 		);
 	}
 
+	/** Clear all pressed-button state. Called automatically on `window` blur so held buttons don't stay "pressed" forever when focus is lost. */
 	public reset(): void {
 		this.pressed.length = 0;
 	}

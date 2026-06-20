@@ -3,9 +3,13 @@ import type Rect from "@/math/Rect";
 import { throttle } from "@/utilities/Functions";
 import { wrapRadians } from "@/utilities/Math";
 
+/** Result of a {@link Polygon.collide} call. */
 export interface PolygonCollisionResult {
+	/** `true` if the polygons currently overlap. */
 	intersect: boolean;
+	/** Smallest displacement that would separate the polygons (zero `Vec2` when they're disjoint). */
 	minimumTranslationVector: Vec2;
+	/** `true` if applying the `velocity` passed to `collide` would put the polygons into contact. */
 	willIntersect: boolean;
 }
 
@@ -49,10 +53,14 @@ function projectPolygon(axis: Vec2, polygon: Polygon, bounds: Vec2): void {
 	}
 }
 
+/**
+ * Convex 2D polygon. **The collision API ({@link Polygon.collide}) uses SAT, which is mathematically defined only for convex polygons** — feeding it a concave polygon silently produces wrong results.
+ */
 export default class Polygon {
 	/**
-	 * `angle` is the simplification threshold in radians: vertices whose turn
-	 * angle wraps to within ±`angle` of straight are dropped.
+	 * Trace an outline around the opaque pixels of `canvas` via four directional sweeps (top, right, bottom, left). `detail` is the pixel stride (≥ 2) between scanline samples — higher = faster but coarser. `angle` is the simplification threshold in radians: vertices whose turn angle wraps to within ±`angle` of straight are dropped. Throws if fewer than 3 vertices survive.
+	 *
+	 * **Convex shapes only.** The sweep ignores anything an outer-perimeter ray can't reach: holes (donuts), inward bays (a "C" opening sideways), or any row/column with multiple disjoint opaque spans. For those inputs the result is either a broken polygon or simply the outer hull, and {@link Polygon.collide} relies on convexity anyway.
 	 */
 	public static fromCanvas(
 		canvas: HTMLCanvasElement,
@@ -172,6 +180,7 @@ export default class Polygon {
 		return new Polygon(...points);
 	}
 
+	/** Regular convex polygon with `edges` vertices, inscribed in a bounding box of `size` (number = square). */
 	public static fromEdges(edges: number, size: Vec2 | number): Polygon {
 		const s = size instanceof Vec2 ? size : new Vec2(size, size);
 
@@ -196,6 +205,7 @@ export default class Polygon {
 		return new Polygon(...points);
 	}
 
+	/** Polygon from the four corners of `rect`. */
 	public static fromRect(rect: Rect): Polygon {
 		return new Polygon(
 			new Vec2(rect.x, rect.y),
@@ -209,10 +219,12 @@ export default class Polygon {
 	private _points: Vec2[] = [];
 	private edges: Vec2[] = [];
 
+	/** Centroid (mean of vertex positions). Recomputed whenever the vertex set changes. */
 	public get center(): Readonly<Vec2> {
 		return this._center;
 	}
 
+	/** Read-only view of the current vertex list. Use `addPoint`/`offset`/`rotate` to mutate. */
 	public get points(): Readonly<Vec2[]> {
 		return this._points;
 	}
@@ -221,6 +233,7 @@ export default class Polygon {
 		this.addPoints(...points);
 	}
 
+	/** Stroke the polygon to `context`, shifted by `offset`. Coordinates are truncated to integers (via `| 0`) for crisp lines. */
 	public draw(
 		context: CanvasRenderingContext2D,
 		offset: Vec2 = new Vec2(),
@@ -247,6 +260,7 @@ export default class Polygon {
 		context.stroke();
 	}
 
+	/** Append a single vertex at `(x, y)`. Mutates and returns `this`. */
 	public addPoint(x: number, y: number): Polygon {
 		this._points.push(new Vec2(x, y));
 		this.update();
@@ -254,6 +268,7 @@ export default class Polygon {
 		return this;
 	}
 
+	/** Append cloned copies of every passed vertex. Mutates and returns `this`. */
 	public addPoints(...points: Vec2[]): Polygon {
 		points.forEach(point => this._points.push(point.clone()));
 		this.update();
@@ -261,6 +276,7 @@ export default class Polygon {
 		return this;
 	}
 
+	/** Translate every vertex by `(x, y)`. Mutates and returns `this`. */
 	public offset(x = 0, y = 0): Polygon {
 		this._points.forEach(point => point.add(x, y));
 		this.update();
@@ -268,6 +284,7 @@ export default class Polygon {
 		return this;
 	}
 
+	/** Rotate by `angle` radians around `pos` (defaults to the centroid). Mutates and returns `this`. */
 	public rotate(angle: number, pos: Readonly<Vec2> = this.center) {
 		if (!angle) {
 			return this;
@@ -287,6 +304,7 @@ export default class Polygon {
 		return this;
 	}
 
+	/** SAT collision against `otherPolygon`. **Both polygons must be convex** — SAT silently misses collisions for concave shapes. Pass a non-zero `velocity` to also compute whether the polygons would intersect after that displacement. Warns and returns a no-collision result if either polygon has zero edges. */
 	public collide(
 		otherPolygon: Polygon,
 		velocity: Vec2 = new Vec2(),
@@ -380,6 +398,7 @@ export default class Polygon {
 		return result;
 	}
 
+	/** New `Polygon` with the same vertices. */
 	public clone(): Polygon {
 		return new Polygon(...this._points);
 	}
