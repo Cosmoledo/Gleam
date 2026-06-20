@@ -1,5 +1,5 @@
 import Vec2 from "@/math/Vec2";
-import type Controller from "./Controller";
+import type Controller from "@/input/Controller";
 
 /**
  * On-screen crosshairs driven by a {@link Controller}'s analog sticks. Each anchor in `sticks` gets its own crosshair that follows the corresponding stick's deflection with frame-rate-independent exponential smoothing (50 ms half-life). The caller owns the anchor positions and the crosshair image — any `CanvasImageSource` works (a loaded `HTMLImageElement`, a procedurally-drawn `HTMLCanvasElement`, an `ImageBitmap`, …).

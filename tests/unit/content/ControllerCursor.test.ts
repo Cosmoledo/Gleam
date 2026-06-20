@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import ControllerCursor from "@/input/ControllerCursor";
+import ControllerCursor from "@/content/ControllerCursor";
 import Vec2 from "@/math/Vec2";
 import type Controller from "@/input/Controller";
 
