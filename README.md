@@ -65,7 +65,7 @@ Or drop the IIFE bundle into a page and use the `Gleam` global:
 
 ## Examples
 
-Live demos: [cosmoledo.github.io/Gleam/examples/](https://cosmoledo.github.io/Gleam/examples/). Source under [`examples/`](./examples/) — each demo is a single self-contained HTML file that imports the published bundle via jsdelivr, so you can also open them directly with any static server (`npx serve examples`).
+Live demos: [cosmoledo.github.io/Gleam/examples/](https://cosmoledo.github.io/Gleam/examples/). Source under [`examples/`](https://github.com/Cosmoledo/Gleam/tree/main/examples) — each demo is a single self-contained HTML file that imports the published bundle via jsdelivr, so you can also open them directly with any static server (`npx serve examples`).
 
 ## API reference
 

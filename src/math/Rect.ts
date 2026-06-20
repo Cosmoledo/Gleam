@@ -3,7 +3,7 @@ import type Polygon from "@/math/Polygon";
 import { approxEqual } from "@/utilities/Number";
 import type { Vector2, Vector4 } from "@/math/Vec2";
 
-interface Sides {
+export interface Sides {
 	bottom: number;
 	centerPos: Vec2;
 	halfSize: Vec2;

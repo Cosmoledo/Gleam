@@ -1,7 +1,7 @@
 import { rafLoop } from "@/utilities/Functions";
 import { randomBetweenFloat } from "@/utilities/Math";
 
-type CssStyleKey = {
+export type CssStyleKey = {
 	[K in keyof CSSStyleDeclaration]: K extends string
 		? CSSStyleDeclaration[K] extends string
 			? K
@@ -9,9 +9,9 @@ type CssStyleKey = {
 		: never;
 }[keyof CSSStyleDeclaration];
 
-type CssProxy = (key: CssStyleKey, value: string) => void;
+export type CssProxy = (key: CssStyleKey, value: string) => void;
 
-interface ShakeType {
+export interface ShakeType {
 	step: number;
 	update: (updateCss: CssProxy, time: number) => void;
 }

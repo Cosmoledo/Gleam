@@ -1,4 +1,6 @@
-type Method<T, K extends keyof T> = T[K] extends (...args: infer A) => infer R
+export type Method<T, K extends keyof T> = T[K] extends (
+	...args: infer A
+) => infer R
 	? (this: T, ...args: A) => R
 	: never;
 

@@ -29,7 +29,7 @@ export function convert2DTo1D(
 	return indexX + width * indexY;
 }
 
-type GridPrimitive =
+export type GridPrimitive =
 	| string
 	| number
 	| boolean

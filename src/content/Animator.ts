@@ -9,10 +9,10 @@ export interface SpriteAnimation {
 	timing: number;
 }
 
-type onEndType = () => void;
-type onFrameType = Record<number, () => void>;
+export type onEndType = () => void;
+export type onFrameType = Record<number, () => void>;
 
-interface BaseEntity {
+export interface BaseEntity {
 	pos: Vec2;
 	flipX?: number;
 }
