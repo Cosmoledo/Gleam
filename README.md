@@ -38,6 +38,7 @@ Also bundled: asset loaders (`UrlLoaders`, `TiledMap`), `Translator` for localiz
 ## Contents
 
 - [Install](#install)
+- [Examples](#examples)
 - [Quick start](#quick-start)
 - [Constraints](#constraints)
 - [How errors surface](#how-errors-surface)
@@ -54,12 +55,16 @@ npm install @cosmoledo/gleam
 Or drop the IIFE bundle into a page and use the `Gleam` global:
 
 ```html
-<script src="https://unpkg.com/@cosmoledo/gleam/dist/gleam.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@cosmoledo/gleam/dist/gleam.min.js"></script>
 <script>
     const { Game, Settings } = Gleam;
     // ...
 </script>
 ```
+
+## Examples
+
+Live demos: [cosmoledo.github.io/Gleam/examples/](https://cosmoledo.github.io/Gleam/examples/). Source under [`examples/`](./examples/) — each demo is a single self-contained HTML file that imports the published bundle via jsdelivr, so you can also open them directly with any static server (`npx serve examples`).
 
 ## Quick start
 

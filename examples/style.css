@@ -1,0 +1,88 @@
+:root {
+	color-scheme: dark;
+	--bg: #0e0e10;
+	--fg: #e8e8ea;
+	--muted: #8a8a93;
+	--accent: #58c8ff;
+}
+
+* {
+	box-sizing: border-box;
+}
+
+body {
+	align-items: center;
+	background: var(--bg);
+	color: var(--fg);
+	display: flex;
+	flex-direction: column;
+	font:
+		15px/1.5 system-ui,
+		sans-serif;
+	gap: 1.25rem;
+	margin: 0;
+	padding: 2rem;
+}
+
+header {
+	align-items: baseline;
+	display: flex;
+	gap: 1rem;
+	max-width: 720px;
+	width: 100%;
+}
+
+header h1 {
+	font-size: 1.25rem;
+	font-weight: 600;
+	margin: 0;
+}
+
+header a {
+	color: var(--muted);
+	text-decoration: none;
+}
+
+header a:hover {
+	color: var(--accent);
+}
+
+canvas {
+	background: #000;
+	border-radius: 8px;
+	max-width: 100%;
+}
+
+.examples {
+	display: grid;
+	gap: 0.75rem;
+	grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+	list-style: none;
+	max-width: 720px;
+	padding: 0;
+	width: 100%;
+}
+
+.examples a {
+	background: #18181b;
+	border: 1px solid #26262b;
+	border-radius: 8px;
+	color: var(--fg);
+	display: block;
+	padding: 1rem;
+	text-decoration: none;
+}
+
+.examples a:hover {
+	border-color: var(--accent);
+}
+
+.examples strong {
+	display: block;
+	margin-bottom: 0.25rem;
+}
+
+.examples span {
+	color: var(--muted);
+	font-size: 0.9em;
+}
