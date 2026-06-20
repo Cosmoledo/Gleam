@@ -1,6 +1,7 @@
 /.ai
 /coverage
 /dist
+/docs
 /node_modules
 /src_framework
 /src/*.js

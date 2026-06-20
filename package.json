@@ -27,6 +27,7 @@
 	],
 	"scripts": {
 		"build": "node scripts/build.mjs",
+		"docs": "node scripts/docs.mjs",
 		"lint": "eslint src tests --ext .ts",
 		"prepublishOnly": "bash scripts/verify.sh",
 		"test": "vitest run",
@@ -60,6 +61,7 @@
 		"esbuild": "^0.28.1",
 		"happy-dom": "^20.10.3",
 		"playwright": "^1.60.0",
+		"typedoc": "^0.28.19",
 		"typescript": "^6.0.3",
 		"vitest": "^4.1.8",
 		"vitest-canvas-mock": "^1.1.4"

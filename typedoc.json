@@ -1,0 +1,18 @@
+{
+	"$schema": "https://typedoc.org/schema.json",
+	"entryPoints": ["src/index.ts"],
+	"tsconfig": "tsconfig.json",
+	"out": "docs",
+	"name": "Gleam",
+	"readme": "README.md",
+	"includeVersion": true,
+	"excludePrivate": true,
+	"excludeInternal": true,
+	"cleanOutputDir": true,
+	"hideGenerator": true,
+	"navigationLinks": {
+		"GitHub": "https://github.com/Cosmoledo/Gleam",
+		"Examples": "https://cosmoledo.github.io/Gleam/examples/",
+		"npm": "https://www.npmjs.com/package/@cosmoledo/gleam"
+	}
+}

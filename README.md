@@ -39,6 +39,7 @@ Also bundled: asset loaders (`UrlLoaders`, `TiledMap`), `Translator` for localiz
 
 - [Install](#install)
 - [Examples](#examples)
+- [API reference](#api-reference)
 - [Quick start](#quick-start)
 - [Constraints](#constraints)
 - [How errors surface](#how-errors-surface)
@@ -65,6 +66,10 @@ Or drop the IIFE bundle into a page and use the `Gleam` global:
 ## Examples
 
 Live demos: [cosmoledo.github.io/Gleam/examples/](https://cosmoledo.github.io/Gleam/examples/). Source under [`examples/`](./examples/) — each demo is a single self-contained HTML file that imports the published bundle via jsdelivr, so you can also open them directly with any static server (`npx serve examples`).
+
+## API reference
+
+Full API reference is generated from the source by [TypeDoc](https://typedoc.org/) and served alongside the examples on Pages: [cosmoledo.github.io/Gleam/](https://cosmoledo.github.io/Gleam/). Regenerate locally with `npm run docs` (outputs to `docs/`, gitignored).
 
 ## Quick start
 
