@@ -1,8 +1,5 @@
-import ControllerCursor from "./ControllerCursor";
 import EventSystem from "@/core/EventSystem";
 import Vec2 from "@/math/Vec2";
-import type Game from "@/core/Game";
-import { map, threshold } from "@/utilities/Number";
 
 export const CONTROLLER_KEYS = {
 	A: 0,
@@ -24,27 +21,25 @@ export const CONTROLLER_KEYS = {
 	GUIDE: 16,
 } as const;
 
-const AXIS_THRESHOLD = 0.3;
+const DEADZONE = 0.25;
 
 export default class Controller {
 	public buttons: boolean[] = [];
-	public cursors: ControllerCursor[] = [];
 	private axes: Vec2[] = [];
 	private index = -1;
 	private lastTime = 0;
 
-	constructor(game: Game) {
+	constructor() {
 		if (!("getGamepads" in navigator)) {
 			console.error("Controller not supported!");
 			return;
 		}
 
-		for (let i = 0; i < 2; i++) {
-			this.cursors.push(new ControllerCursor(this, game, i));
-		}
-
 		window.addEventListener("gamepadconnected", (event: GamepadEvent) => {
 			this.index = event.gamepad.index;
+			for (let i = 0; i < event.gamepad.axes.length / 2; i++) {
+				this.axes.push(new Vec2());
+			}
 			console.log("Gamepad connected:", event.gamepad.id);
 			EventSystem.dispatchEvent(
 				"inputControllerConnected",
@@ -62,6 +57,7 @@ export default class Controller {
 						"Our Gamepad was disconnected:",
 						event.gamepad.index,
 					);
+					this.reset();
 					EventSystem.dispatchEvent("inputControllerDisconnected");
 				} else {
 					console.log(
@@ -75,21 +71,11 @@ export default class Controller {
 		window.addEventListener("blur", () => this.reset(), false);
 	}
 
-	public draw(context: CanvasRenderingContext2D): void {
-		if (this.index < 0) {
-			return;
-		}
-
-		this.cursors.forEach(cursor => cursor.draw(context));
-	}
-
-	public update(dt: number): void {
-		this.cursors.forEach(cursor => cursor.update(dt));
-
+	public poll(): Vec2[] {
 		const gp = this.getGamepad();
 
 		if (!gp || this.lastTime === gp.timestamp) {
-			return;
+			return this.axes;
 		}
 
 		this.lastTime = gp.timestamp;
@@ -98,12 +84,20 @@ export default class Controller {
 			(button: GamepadButton) => button.pressed,
 		);
 
-		this.axes.length = 0;
-		const axes = gp.axes;
+		for (let i = 0; i < this.axes.length; i++) {
+			this.axes[i].set(gp.axes[i * 2], gp.axes[i * 2 + 1]);
 
-		for (let i = 0; i + 1 < axes.length; i += 2) {
-			this.axes.push(new Vec2(axes[i], axes[i + 1]));
+			const mag = this.axes[i].length();
+			if (mag < DEADZONE) {
+				this.axes[i].set(0, 0);
+			} else {
+				this.axes[i].mult(
+					(Math.min(1, mag) - DEADZONE) / (1 - DEADZONE) / mag,
+				);
+			}
 		}
+
+		return this.axes;
 	}
 
 	public reset(): void {
@@ -130,21 +124,6 @@ export default class Controller {
 		}
 
 		return !!vibrator;
-	}
-
-	public stick(index: number): Vec2 {
-		if (this.index < 0 || index >= this.axes.length) {
-			return new Vec2();
-		}
-
-		return this.axes[index]
-			.clone()
-			.map((value: number) => threshold(value, AXIS_THRESHOLD))
-			.map(
-				(value: number) =>
-					Math.sign(value) *
-					map(Math.abs(value), AXIS_THRESHOLD, 1, 0, 1),
-			);
 	}
 
 	private getGamepad(): Gamepad | null {

@@ -1,11 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import ControllerCursor from "@/input/ControllerCursor";
+import Controller, { CONTROLLER_KEYS } from "@/input/Controller";
 import EventSystem from "@/core/EventSystem";
 import Vec2 from "@/math/Vec2";
-import type Game from "@/core/Game";
-import { CONTROLLER_KEYS } from "@/input/Controller";
-import { createMockGame } from "../createMockGame";
 
 // ==================== CONTROLLER_KEYS ====================
 
@@ -39,9 +36,7 @@ function createMockGamepad(
 	timestamp: number = 0,
 	index: number = 0,
 ): Gamepad {
-	const vibrationActuator = {
-		playEffect: vi.fn(),
-	};
+	const vibrationActuator = { playEffect: vi.fn() };
 	const buttonObjs: GamepadButton[] = buttons.map(b => ({
 		pressed: b,
 		value: 0,
@@ -57,7 +52,7 @@ function createMockGamepad(
 	} as unknown as Gamepad;
 }
 
-function defineGamepadSupport(gamepad: Gamepad) {
+function defineGamepadSupport(gamepad: Gamepad | null) {
 	Object.defineProperty(navigator, "getGamepads", {
 		configurable: true,
 		value: vi.fn(() => [gamepad]),
@@ -70,12 +65,30 @@ function removeGamepadSupport() {
 	}
 }
 
+interface Handlers {
+	connect?: (e: GamepadEvent) => void;
+	disconnect?: (e: GamepadEvent) => void;
+	blur?: () => void;
+}
+
+function captureHandlers(): Handlers {
+	const handlers: Handlers = {};
+	vi.spyOn(window, "addEventListener").mockImplementation((type, cb) => {
+		if (type === "gamepadconnected") {
+			handlers.connect = cb as (e: GamepadEvent) => void;
+		} else if (type === "gamepaddisconnected") {
+			handlers.disconnect = cb as (e: GamepadEvent) => void;
+		} else if (type === "blur") {
+			handlers.blur = cb as () => void;
+		}
+	});
+	return handlers;
+}
+
 describe("Controller", () => {
-	let mockGame: Game;
 	let dispatchSpy: ReturnType<typeof vi.spyOn>;
 
 	beforeEach(() => {
-		mockGame = createMockGame();
 		vi.spyOn(console, "log").mockImplementation(() => {});
 		vi.spyOn(console, "error").mockImplementation(() => {});
 		dispatchSpy = vi.spyOn(EventSystem, "dispatchEvent");
@@ -86,423 +99,254 @@ describe("Controller", () => {
 		vi.restoreAllMocks();
 	});
 
-	// ==================== Constructor ====================
-
 	describe("constructor", () => {
-		it("logs error when navigator.getGamepads is not available", async () => {
+		it("logs error when navigator.getGamepads is not available", () => {
 			removeGamepadSupport();
-			const { default: Controller } = await import("@/input/Controller");
-			new Controller(mockGame);
+			new Controller();
 			expect(console.error).toHaveBeenCalledWith(
 				"Controller not supported!",
 			);
 		});
 
-		it("creates cursors when gamepad support exists", async () => {
-			const mockGp = createMockGamepad([false], [0, 0, 0, 0], 0, 0);
+		it("registers gamepad and blur listeners", () => {
+			const mockGp = createMockGamepad([], [0, 0]);
 			defineGamepadSupport(mockGp);
-			const { default: Controller } = await import("@/input/Controller");
-			const controller = new Controller(mockGame);
-			expect(controller.cursors).toHaveLength(2);
-			expect(controller.cursors[0]).toBeInstanceOf(ControllerCursor);
-			expect(controller.cursors[1]).toBeInstanceOf(ControllerCursor);
+			const handlers = captureHandlers();
+			new Controller();
+			expect(handlers.connect).toBeDefined();
+			expect(handlers.disconnect).toBeDefined();
+			expect(handlers.blur).toBeDefined();
 		});
+	});
 
-		it("calls vibrate and dispatches inputControllerConnected on gamepad connect", async () => {
-			const mockGp = createMockGamepad([false], [0, 0, 0, 0], 0, 0);
+	describe("gamepadconnected", () => {
+		it("sets index, pre-allocates one Vec2 per stick pair, vibrates, and dispatches event", () => {
+			const mockGp = createMockGamepad([], [0, 0, 0, 0], 0, 0);
 			defineGamepadSupport(mockGp);
-			const { default: Controller } = await import("@/input/Controller");
-			let connectedCb: ((e: GamepadEvent) => void) | null = null;
-			vi.spyOn(window, "addEventListener").mockImplementation(
-				(type, cb) => {
-					if (type === "gamepadconnected") {
-						connectedCb = cb as (e: GamepadEvent) => void;
-					}
-				},
-			);
-			const controller = new Controller(mockGame);
-			if (connectedCb) {
-				(connectedCb as (e: GamepadEvent) => void)({
-					gamepad: mockGp,
-				} as GamepadEvent);
-			}
-			expect(controller["index"]).toBe(mockGp.index);
+			const handlers = captureHandlers();
+			const controller = new Controller();
+			handlers.connect!({ gamepad: mockGp } as GamepadEvent);
+
+			expect(controller["index"]).toBe(0);
+			expect(controller["axes"]).toHaveLength(2);
+			expect(controller["axes"][0]).toBeInstanceOf(Vec2);
 			expect(mockGp.vibrationActuator.playEffect).toHaveBeenCalled();
 			expect(dispatchSpy).toHaveBeenCalledWith(
 				"inputControllerConnected",
 				mockGp,
 			);
 		});
+	});
 
-		it("dispatches INPUT_CONTROLLER_DISCONNECTED when own gamepad disconnects", async () => {
-			const mockGp = createMockGamepad([false], [0, 0, 0, 0], 0, 5);
+	describe("gamepaddisconnected", () => {
+		it("resets and dispatches event when our gamepad disconnects", () => {
+			const mockGp = createMockGamepad([true], [0.5, 0.5], 0, 5);
 			defineGamepadSupport(mockGp);
-			const { default: Controller } = await import("@/input/Controller");
-			const controller = new Controller(mockGame);
-			controller["index"] = mockGp.index;
+			const handlers = captureHandlers();
+			const controller = new Controller();
+			controller["index"] = 5;
+			controller.buttons = [true];
+			controller["axes"] = [new Vec2(0.5, 0.5)];
 
-			let disconnectCb: ((e: GamepadEvent) => void) | null = null;
-			vi.spyOn(window, "addEventListener").mockImplementation(
-				(type, cb) => {
-					if (type === "gamepaddisconnected") {
-						disconnectCb = cb as (e: GamepadEvent) => void;
-					}
-				},
+			handlers.disconnect!({ gamepad: mockGp } as GamepadEvent);
+
+			expect(controller["index"]).toBe(-1);
+			expect(controller.buttons).toHaveLength(0);
+			expect(controller["axes"]).toHaveLength(0);
+			expect(dispatchSpy).toHaveBeenCalledWith(
+				"inputControllerDisconnected",
 			);
-
-			const controller2 = new Controller(mockGame);
-			controller2["index"] = mockGp.index;
-
-			if (disconnectCb) {
-				(disconnectCb as (e: GamepadEvent) => void)({
-					gamepad: mockGp,
-				} as GamepadEvent);
-				expect(dispatchSpy).toHaveBeenCalledWith(
-					"inputControllerDisconnected",
-				);
-			}
 		});
 
-		it("does not dispatch INPUT_CONTROLLER_DISCONNECTED for different gamepad", async () => {
-			const mockGp = createMockGamepad([false], [0, 0, 0, 0], 0, 5);
-			defineGamepadSupport(mockGp);
-			const { default: Controller } = await import("@/input/Controller");
-			const controller = new Controller(mockGame);
-			controller["index"] = mockGp.index;
+		it("ignores disconnect events from other gamepads", () => {
+			const ourGp = createMockGamepad([], [0, 0], 0, 5);
+			defineGamepadSupport(ourGp);
+			const handlers = captureHandlers();
+			const controller = new Controller();
+			controller["index"] = 5;
 
-			const differentGamepad = { index: 99 } as Gamepad;
+			const otherGp = { index: 99 } as Gamepad;
+			handlers.disconnect!({ gamepad: otherGp } as GamepadEvent);
 
-			vi.spyOn(window, "addEventListener").mockImplementation(
-				(type, cb) => {
-					if (type === "gamepaddisconnected") {
-						(cb as (e: GamepadEvent) => void)({
-							gamepad: differentGamepad,
-						} as GamepadEvent);
-					}
-				},
+			expect(controller["index"]).toBe(5);
+			expect(dispatchSpy).not.toHaveBeenCalledWith(
+				"inputControllerDisconnected",
 			);
-
-			const controller2 = new Controller(mockGame);
-			controller2["index"] = mockGp.index;
-
-			expect(dispatchSpy).not.toHaveBeenCalled();
 		});
 	});
 
-	// ==================== draw ====================
-
-	describe("draw", () => {
-		it("returns early when no gamepad", async () => {
-			const { default: Controller } = await import("@/input/Controller");
-			const controller = new Controller(mockGame);
-			controller.draw({} as CanvasRenderingContext2D);
-			expect(dispatchSpy).not.toHaveBeenCalled();
-		});
-
-		it("calls draw on all cursors when gamepad exists", async () => {
-			const mockGp = createMockGamepad([false], [0, 0, 0, 0], 0, 0);
-			defineGamepadSupport(mockGp);
-			const { default: Controller } = await import("@/input/Controller");
-			const controller = new Controller(mockGame);
-			controller["index"] = mockGp.index;
-
-			const cursorDrawSpy = vi.spyOn(controller.cursors[0], "draw");
-			const ctx = {
-				drawImage: vi.fn(),
-			} as unknown as CanvasRenderingContext2D;
-			controller.draw(ctx);
-			expect(cursorDrawSpy).toHaveBeenCalled();
-		});
-	});
-
-	// ==================== update ====================
-
-	describe("update", () => {
-		it("returns early when no gamepad", async () => {
-			const { default: Controller } = await import("@/input/Controller");
-			const controller = new Controller(mockGame);
-			controller.update(16);
+	describe("poll", () => {
+		it("returns the (empty) axes array when no gamepad is connected", () => {
+			defineGamepadSupport(null);
+			const controller = new Controller();
+			expect(controller.poll()).toEqual([]);
 			expect(controller.buttons).toEqual([]);
 		});
 
-		it("returns early when timestamp has not changed", async () => {
-			const mockGp = createMockGamepad([false], [0, 0, 0, 0], 1000, 0);
+		it("returns cached axes when timestamp has not changed", () => {
+			const mockGp = createMockGamepad([true], [0.5, 0.5], 1000, 0);
 			defineGamepadSupport(mockGp);
-			const { default: Controller } = await import("@/input/Controller");
-			const controller = new Controller(mockGame);
-			controller["index"] = mockGp.index;
+			const controller = new Controller();
+			controller["index"] = 0;
+			controller["axes"] = [new Vec2()];
 			controller["lastTime"] = 1000;
-			controller.update(16);
-			expect(dispatchSpy).not.toHaveBeenCalled();
+			controller.poll();
+			expect(controller.buttons).toEqual([]);
 		});
 
-		it("updates buttons from gamepad", async () => {
+		it("updates buttons and lastTime on a fresh frame", () => {
 			const mockGp = createMockGamepad(
 				[true, false, true],
-				[0, 0, 0, 0],
-				1000,
+				[0, 0],
+				2000,
 				0,
 			);
 			defineGamepadSupport(mockGp);
-			const { default: Controller } = await import("@/input/Controller");
-			const controller = new Controller(mockGame);
-			controller["index"] = mockGp.index;
-			controller["lastTime"] = 0;
-			controller.update(16);
+			const controller = new Controller();
+			controller["index"] = 0;
+			controller["axes"] = [new Vec2()];
+
+			controller.poll();
 			expect(controller.buttons).toEqual([true, false, true]);
-		});
-
-		it("updates axes from gamepad", async () => {
-			const mockGp = createMockGamepad(
-				[false],
-				[0.5, -0.5, 0.25, 0.75],
-				1000,
-				0,
-			);
-			defineGamepadSupport(mockGp);
-			const { default: Controller } = await import("@/input/Controller");
-			const controller = new Controller(mockGame);
-			controller["index"] = mockGp.index;
-			controller["lastTime"] = 0;
-			controller.update(16);
-			expect(controller["axes"]).toHaveLength(2);
-			expect(controller["axes"][0]).toBeInstanceOf(Vec2);
-		});
-
-		it("does not dispatch inputControllerConnected from per-frame updates", async () => {
-			const mockGp = createMockGamepad([true], [0, 0, 0, 0], 1000, 0);
-			defineGamepadSupport(mockGp);
-			const { default: Controller } = await import("@/input/Controller");
-			const controller = new Controller(mockGame);
-			controller["index"] = mockGp.index;
-			controller["lastTime"] = 0;
-			dispatchSpy.mockClear();
-			controller.update(16);
-			expect(dispatchSpy).not.toHaveBeenCalled();
-		});
-
-		it("updates lastTime to gamepad timestamp", async () => {
-			const mockGp = createMockGamepad([false], [0, 0, 0, 0], 2000, 0);
-			defineGamepadSupport(mockGp);
-			const { default: Controller } = await import("@/input/Controller");
-			const controller = new Controller(mockGame);
-			controller["index"] = mockGp.index;
-			controller["lastTime"] = 0;
-			controller.update(16);
 			expect(controller["lastTime"]).toBe(2000);
 		});
 
-		it("handles odd number of axes", async () => {
-			const mockGp = createMockGamepad(
-				[false],
-				[0.5, -0.5, 0.25],
-				1000,
-				0,
-			);
+		it("zeros axes below the deadzone", () => {
+			const mockGp = createMockGamepad([], [0.1, 0.1], 1000, 0);
 			defineGamepadSupport(mockGp);
-			const { default: Controller } = await import("@/input/Controller");
-			const controller = new Controller(mockGame);
-			controller["index"] = mockGp.index;
-			controller["lastTime"] = 0;
-			controller.update(16);
-			expect(controller["axes"]).toHaveLength(1);
+			const controller = new Controller();
+			controller["index"] = 0;
+			controller["axes"] = [new Vec2()];
+
+			const axes = controller.poll();
+			expect(axes[0].x).toBe(0);
+			expect(axes[0].y).toBe(0);
 		});
 
-		it("safely handles navigator.getGamepads() returning nullish at the tracked index", async () => {
+		it("uses radial (not per-axis) deadzone: small diagonals just above DEADZONE register", () => {
+			// (0.2, 0.2) — each axis below 0.25, but magnitude ≈ 0.283 — radial registers, per-axis wouldn't.
+			const mockGp = createMockGamepad([], [0.2, 0.2], 1000, 0);
+			defineGamepadSupport(mockGp);
+			const controller = new Controller();
+			controller["index"] = 0;
+			controller["axes"] = [new Vec2()];
+
+			const axes = controller.poll();
+			expect(axes[0].length()).toBeGreaterThan(0);
+		});
+
+		it("rescales magnitude so full deflection produces unit output", () => {
+			const mockGp = createMockGamepad([], [1, 0], 1000, 0);
+			defineGamepadSupport(mockGp);
+			const controller = new Controller();
+			controller["index"] = 0;
+			controller["axes"] = [new Vec2()];
+
+			const axes = controller.poll();
+			expect(axes[0].x).toBeCloseTo(1, 5);
+			expect(axes[0].y).toBe(0);
+		});
+
+		it("preserves sign for negative input", () => {
+			const mockGp = createMockGamepad([], [-1, 0], 1000, 0);
+			defineGamepadSupport(mockGp);
+			const controller = new Controller();
+			controller["index"] = 0;
+			controller["axes"] = [new Vec2()];
+
+			const axes = controller.poll();
+			expect(axes[0].x).toBeCloseTo(-1, 5);
+		});
+
+		it("clamps over-unit input magnitudes to a unit-length output", () => {
+			// (1, 1) — raw magnitude √2, must not produce output magnitude > 1.
+			const mockGp = createMockGamepad([], [1, 1], 1000, 0);
+			defineGamepadSupport(mockGp);
+			const controller = new Controller();
+			controller["index"] = 0;
+			controller["axes"] = [new Vec2()];
+
+			const axes = controller.poll();
+			expect(axes[0].length()).toBeCloseTo(1, 5);
+		});
+
+		it("mutates pre-allocated axes in place rather than allocating new Vec2s", () => {
+			const mockGp = createMockGamepad([], [0.5, 0.5], 1000, 0);
+			defineGamepadSupport(mockGp);
+			const controller = new Controller();
+			controller["index"] = 0;
+			const slot = new Vec2();
+			controller["axes"] = [slot];
+
+			const axes = controller.poll();
+			expect(axes[0]).toBe(slot);
+		});
+
+		it("safely handles navigator.getGamepads() returning nothing at the tracked index", () => {
 			Object.defineProperty(navigator, "getGamepads", {
 				configurable: true,
 				value: vi.fn(() => []),
 			});
-			const { default: Controller } = await import("@/input/Controller");
-			const controller = new Controller(mockGame);
+			const controller = new Controller();
 			controller["index"] = 0;
-			controller["lastTime"] = 0;
-			controller.update(16);
-			expect(controller.buttons).toEqual([]);
-			expect(dispatchSpy).not.toHaveBeenCalled();
-		});
-
-		it("re-polls navigator.getGamepads() each frame for fresh state", async () => {
-			let currentGp = createMockGamepad([false], [0, 0], 1000, 0);
-			Object.defineProperty(navigator, "getGamepads", {
-				configurable: true,
-				value: vi.fn(() => [currentGp]),
-			});
-			const { default: Controller } = await import("@/input/Controller");
-			const controller = new Controller(mockGame);
-			controller["index"] = 0;
-			controller["lastTime"] = 0;
-			controller.update(16);
-			expect(controller.buttons).toEqual([false]);
-
-			currentGp = createMockGamepad([true], [0, 0], 2000, 0);
-			controller.update(16);
-			expect(controller.buttons).toEqual([true]);
+			expect(controller.poll()).toEqual([]);
 		});
 	});
 
-	// ==================== vibrate ====================
-
 	describe("vibrate", () => {
-		it("returns false when no gamepad", async () => {
-			const { default: Controller } = await import("@/input/Controller");
-			const controller = new Controller(mockGame);
+		it("returns false when no gamepad is connected", () => {
+			defineGamepadSupport(null);
+			const controller = new Controller();
 			expect(controller.vibrate()).toBe(false);
 		});
 
-		it("returns false when gamepad has no vibration actuator", async () => {
-			const mockGp = createMockGamepad([false], [0, 0, 0, 0], 1000, 0);
+		it("returns false when the gamepad has no vibration actuator", () => {
+			const mockGp = createMockGamepad([], [0, 0]);
 			(mockGp.vibrationActuator as any) = null;
 			defineGamepadSupport(mockGp);
-			const { default: Controller } = await import("@/input/Controller");
-			const controller = new Controller(mockGame);
-			controller["index"] = mockGp.index;
+			const controller = new Controller();
+			controller["index"] = 0;
 			expect(controller.vibrate()).toBe(false);
 		});
 
-		it("calls playEffect with correct params when actuator exists", async () => {
-			const mockGp = createMockGamepad([false], [0, 0, 0, 0], 1000, 0);
+		it("calls playEffect with dual-rumble params and returns true", () => {
+			const mockGp = createMockGamepad([], [0, 0]);
 			defineGamepadSupport(mockGp);
-			const { default: Controller } = await import("@/input/Controller");
-			const controller = new Controller(mockGame);
-			controller["index"] = mockGp.index;
-			controller.vibrate();
+			const controller = new Controller();
+			controller["index"] = 0;
+			expect(controller.vibrate()).toBe(true);
 			expect(mockGp.vibrationActuator.playEffect).toHaveBeenCalledWith(
 				"dual-rumble",
 				{
 					duration: 400,
-					weakMagnitude: 1.0,
 					startDelay: 0,
 					strongMagnitude: 1.0,
+					weakMagnitude: 1.0,
 				},
 			);
 		});
-
-		it("returns true when actuator exists", async () => {
-			const mockGp = createMockGamepad([false], [0, 0, 0, 0], 1000, 0);
-			defineGamepadSupport(mockGp);
-			const { default: Controller } = await import("@/input/Controller");
-			const controller = new Controller(mockGame);
-			controller["index"] = mockGp.index;
-			expect(controller.vibrate()).toBe(true);
-		});
 	});
-
-	// ==================== stick ====================
-
-	describe("stick", () => {
-		it("returns Vec2(0, 0) when no gamepad", async () => {
-			const { default: Controller } = await import("@/input/Controller");
-			const controller = new Controller(mockGame);
-			const result = controller.stick(0);
-			expect(result.x).toBe(0);
-			expect(result.y).toBe(0);
-		});
-
-		it("returns Vec2(0, 0) when index out of range", async () => {
-			const mockGp = createMockGamepad([false], [0, 0, 0, 0], 1000, 0);
-			defineGamepadSupport(mockGp);
-			const { default: Controller } = await import("@/input/Controller");
-			const controller = new Controller(mockGame);
-			controller["index"] = mockGp.index;
-			controller["axes"] = [new Vec2(0.5, 0.5)];
-			const result = controller.stick(99);
-			expect(result.x).toBe(0);
-			expect(result.y).toBe(0);
-		});
-
-		it("returns deadzone-filtered stick values", async () => {
-			const mockGp = createMockGamepad(
-				[false],
-				[0.5, 0.5, 0, 0],
-				1000,
-				0,
-			);
-			defineGamepadSupport(mockGp);
-			const { default: Controller } = await import("@/input/Controller");
-			const controller = new Controller(mockGame);
-			controller["index"] = mockGp.index;
-			controller["axes"] = [new Vec2(0.5, 0.5), new Vec2(0, 0)];
-			const result = controller.stick(0);
-			expect(result.x).toBeGreaterThan(0);
-			expect(result.y).toBeGreaterThan(0);
-		});
-
-		it("returns zero for values below threshold", async () => {
-			const mockGp = createMockGamepad(
-				[false],
-				[0.1, 0.1, 0, 0],
-				1000,
-				0,
-			);
-			defineGamepadSupport(mockGp);
-			const { default: Controller } = await import("@/input/Controller");
-			const controller = new Controller(mockGame);
-			controller["index"] = mockGp.index;
-			controller["axes"] = [new Vec2(0.1, 0.1), new Vec2(0, 0)];
-			const result = controller.stick(0);
-			expect(result.x).toBe(0);
-			expect(result.y).toBe(0);
-		});
-
-		it("returns positive values for positive input", async () => {
-			const mockGp = createMockGamepad([false], [1, 1, 0, 0], 1000, 0);
-			defineGamepadSupport(mockGp);
-			const { default: Controller } = await import("@/input/Controller");
-			const controller = new Controller(mockGame);
-			controller["index"] = mockGp.index;
-			controller["axes"] = [new Vec2(1, 1), new Vec2(0, 0)];
-			const result = controller.stick(0);
-			expect(result.x).toBe(1);
-			expect(result.y).toBe(1);
-		});
-
-		it("returns negative values for negative input", async () => {
-			const mockGp = createMockGamepad([false], [-1, -1, 0, 0], 1000, 0);
-			defineGamepadSupport(mockGp);
-			const { default: Controller } = await import("@/input/Controller");
-			const controller = new Controller(mockGame);
-			controller["index"] = mockGp.index;
-			controller["axes"] = [new Vec2(-1, -1), new Vec2(0, 0)];
-			const result = controller.stick(0);
-			expect(result.x).toBe(-1);
-			expect(result.y).toBe(-1);
-		});
-	});
-
-	// ==================== reset ====================
 
 	describe("reset", () => {
-		it("clears buttons and axes", async () => {
-			const mockGp = createMockGamepad([true], [1, 1], 1000, 0);
-			defineGamepadSupport(mockGp);
-			const { default: Controller } = await import("@/input/Controller");
-			const controller = new Controller(mockGame);
-			controller.buttons = [true, false, true];
+		it("clears buttons and axes", () => {
+			defineGamepadSupport(null);
+			const controller = new Controller();
+			controller.buttons = [true, false];
 			controller["axes"] = [new Vec2(1, 1)];
 			controller.reset();
-			expect(controller.buttons.length).toBe(0);
-			expect(controller["axes"].length).toBe(0);
+			expect(controller.buttons).toHaveLength(0);
+			expect(controller["axes"]).toHaveLength(0);
 		});
 
-		it("is called when the window blur event fires", async () => {
-			const mockGp = createMockGamepad([true], [0, 0], 1000, 0);
-			defineGamepadSupport(mockGp);
-			let blurCb: (() => void) | null = null;
-			vi.spyOn(window, "addEventListener").mockImplementation(
-				(type, cb) => {
-					if (type === "blur") {
-						blurCb = cb as () => void;
-					}
-				},
-			);
-			const { default: Controller } = await import("@/input/Controller");
-			const controller = new Controller(mockGame);
-			controller.buttons = [true, true];
-			controller["axes"] = [new Vec2(0.5, 0.5)];
-			blurCb!();
-			expect(controller.buttons.length).toBe(0);
-			expect(controller["axes"].length).toBe(0);
+		it("is called when the window blur event fires", () => {
+			defineGamepadSupport(createMockGamepad([], [0, 0]));
+			const handlers = captureHandlers();
+			const controller = new Controller();
+			controller.buttons = [true];
+			controller["axes"] = [new Vec2(1, 1)];
+			handlers.blur!();
+			expect(controller.buttons).toHaveLength(0);
+			expect(controller["axes"]).toHaveLength(0);
 		});
 	});
 });
