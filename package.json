@@ -51,7 +51,7 @@
 	"author": "Cosmoledo",
 	"license": "MIT",
 	"devDependencies": {
-		"@types/node": "^25.9.4",
+		"@types/node": "^26.0.1",
 		"@typescript-eslint/eslint-plugin": "^8.62.0",
 		"@typescript-eslint/parser": "^8.62.0",
 		"@vitest/browser": "^4.1.9",
