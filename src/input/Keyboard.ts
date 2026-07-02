@@ -130,7 +130,9 @@ export default class Keyboard {
 		window.addEventListener("keyup", keyEvent, false);
 		window.addEventListener("blur", () => this.reset(), false);
 
-		EventSystem.addEventListener("gameloopStopped", () => this.reset());
+		EventSystem.addEventListener("gameloopStopped", () => this.reset(), {
+			priority: true,
+		});
 	}
 
 	/** Mark every tracked key as released. Called automatically on `window` blur and on `gameloopStopped`. */

@@ -145,6 +145,60 @@ describe("EventSystem once: true", () => {
 	});
 });
 
+// ==================== priority ====================
+
+describe("EventSystem priority: true", () => {
+	it("fires priority listeners before non-priority ones regardless of registration order", () => {
+		const order: string[] = [];
+		EventSystem.addEventListener("resized", () => order.push("user-1"));
+		EventSystem.addEventListener("resized", () => order.push("engine"), {
+			priority: true,
+		});
+		EventSystem.addEventListener("resized", () => order.push("user-2"));
+		EventSystem.dispatchEvent("resized");
+		expect(order).toEqual(["engine", "user-1", "user-2"]);
+	});
+
+	it("preserves registration order (FIFO) within the priority tier", () => {
+		const order: string[] = [];
+		EventSystem.addEventListener("resized", () => order.push("engine-1"), {
+			priority: true,
+		});
+		EventSystem.addEventListener("resized", () => order.push("engine-2"), {
+			priority: true,
+		});
+		EventSystem.addEventListener("resized", () => order.push("user"));
+		EventSystem.dispatchEvent("resized");
+		expect(order).toEqual(["engine-1", "engine-2", "user"]);
+	});
+
+	it("defaults `priority` to false when omitted", () => {
+		EventSystem.addEventListener("resized", () => {});
+		expect(firstListenerOptions("resized").priority).toBe(false);
+	});
+
+	it("invokes every listener exactly once across the two-tier walk", () => {
+		const engine = vi.fn();
+		const user = vi.fn();
+		EventSystem.addEventListener("resized", engine, { priority: true });
+		EventSystem.addEventListener("resized", user);
+		EventSystem.dispatchEvent("resized");
+		expect(engine).toHaveBeenCalledTimes(1);
+		expect(user).toHaveBeenCalledTimes(1);
+	});
+
+	it("does not fire a priority listener registered mid-dispatch until the next dispatch", () => {
+		const late = vi.fn();
+		EventSystem.addEventListener("resized", () => {
+			EventSystem.addEventListener("resized", late, { priority: true });
+		});
+		EventSystem.dispatchEvent("resized");
+		expect(late).not.toHaveBeenCalled();
+		EventSystem.dispatchEvent("resized");
+		expect(late).toHaveBeenCalledTimes(1);
+	});
+});
+
 // ==================== stored options ====================
 
 describe("EventSystem.addEventListener stored options", () => {
@@ -158,6 +212,7 @@ describe("EventSystem.addEventListener stored options", () => {
 		});
 		expect(firstListenerOptions("resized")).toEqual({
 			once: true,
+			priority: false,
 			signal,
 			passthrough: "kept",
 		});

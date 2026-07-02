@@ -44,7 +44,9 @@ export default abstract class AudioBase {
 	constructor(enabled: boolean = true) {
 		this._enabled = enabled;
 
-		EventSystem.addEventListener("gameloopStopped", () => this.stop());
+		EventSystem.addEventListener("gameloopStopped", () => this.stop(), {
+			priority: true,
+		});
 	}
 
 	/** Load and register one or more audio files. Each entry may be a bare URL string (the file's basename becomes the name) or a {@link RegisterData} object. Per-song volume falls back to `defaultVolume`. **Call once per instance** — throws on a second invocation, on non-finite volume, or on volume outside `[0, 1]`. Load failures are logged to `console.error` but don't throw. */

@@ -103,7 +103,9 @@ export default class CanvasManager {
 		this.canvasBoundingClientRect = this.canvas.getBoundingClientRect();
 
 		if (Settings.enableResize) {
-			EventSystem.addEventListener("resized", (): void => this.resize());
+			EventSystem.addEventListener("resized", (): void => this.resize(), {
+				priority: true,
+			});
 		}
 	}
 

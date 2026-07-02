@@ -29,6 +29,8 @@ export interface EventSystemOptions {
 	[key: string]: unknown;
 	/** Auto-dispose the listener after the first dispatch. */
 	once?: boolean;
+	/** Fire this listener before non-priority listeners on every dispatch, regardless of when it was registered. Reserved for engine-internal wiring so the engine's own reaction (e.g. canvas resize) always precedes user listeners for the same event. */
+	priority?: boolean;
 	/** Dispose the listener when the signal aborts. Already-aborted signals make `addEventListener` a no-op. */
 	signal?: AbortSignal;
 }
@@ -36,7 +38,7 @@ export interface EventSystemOptions {
 type GameEventListener<K extends keyof GameEventMap> = {
 	callback: (...args: GameEventMap[K]) => void;
 	dispose: () => void;
-	options: { once: boolean; signal?: AbortSignal };
+	options: { once: boolean; priority: boolean; signal?: AbortSignal };
 };
 
 /**
@@ -44,6 +46,7 @@ type GameEventListener<K extends keyof GameEventMap> = {
  *
  * Guarantees:
  *
+ * - `priority` listeners (engine-internal wiring) run before non-priority ones on every dispatch, independent of registration order; within each tier, registration order (FIFO) is preserved.
  * - Listeners registered during a dispatch are deferred to the next dispatch (won't fire in the round that registered them).
  * - `once` listeners are removed *before* their callback runs, so nested dispatches and throwing callbacks can't double-fire them.
  * - A throwing callback is caught and logged (throttled per `eventName:message`); siblings still receive the event.
@@ -112,6 +115,7 @@ export default class EventSystem {
 			options: {
 				...options,
 				once: options.once ?? false,
+				priority: options.priority ?? false,
 				signal: options.signal,
 			},
 		};
@@ -132,7 +136,7 @@ export default class EventSystem {
 		return dispose;
 	}
 
-	/** Synchronously fire `eventName` with the typed payload. Listeners are invoked in registration order; nested dispatches and self-disposing listeners are handled safely. */
+	/** Synchronously fire `eventName` with the typed payload. `priority` (engine-internal) listeners run first, then the rest; within each tier registration order is preserved. Nested dispatches and self-disposing listeners are handled safely. */
 	public static dispatchEvent<K extends keyof GameEventMap>(
 		eventName: K,
 		...params: GameEventMap[K]
@@ -147,16 +151,14 @@ export default class EventSystem {
 		// (which would have ids > maxId) are skipped this round.
 		const maxId = this.nextId;
 
-		// Map.forEach is safe under mid-iteration mutation:
-		//   - entries deleted during the walk are skipped natively, so a callback
-		//     calling dispose() on itself, a sibling, or via nested dispatch needs
-		//     no extra bookkeeping;
-		//   - entries added during the walk would otherwise be visited, but the
-		//     `id > maxId` filter excludes them;
-		//   - nested forEach on the same Map keeps its own position, so recursive
-		//     dispatch works without depth tracking.
-		bucket.forEach((entry, id) => {
-			if (id > maxId) {
+		// Invoke one entry, filtering out mid-dispatch registrations and entries
+		// belonging to the tier not currently being walked.
+		const invoke = (
+			entry: GameEventListener<K>,
+			id: number,
+			priority: boolean,
+		): void => {
+			if (id > maxId || entry.options.priority !== priority) {
 				return;
 			}
 
@@ -173,6 +175,19 @@ export default class EventSystem {
 				const msg = err instanceof Error ? err.message : String(err);
 				this.logListenerError(`${eventName}:${msg}`, eventName, err);
 			}
-		});
+		};
+
+		// Two passes over the same Map — priority (engine-internal) listeners
+		// first, then the rest — rather than a sorted snapshot, so Map.forEach's
+		// native mid-iteration mutation safety is retained:
+		//   - entries deleted during the walk are skipped natively, so a callback
+		//     calling dispose() on itself, a sibling, or via nested dispatch needs
+		//     no extra bookkeeping;
+		//   - entries added during the walk would otherwise be visited, but the
+		//     `id > maxId` filter excludes them;
+		//   - nested forEach on the same Map keeps its own position, so recursive
+		//     dispatch works without depth tracking.
+		bucket.forEach((entry, id) => invoke(entry, id, true));
+		bucket.forEach((entry, id) => invoke(entry, id, false));
 	}
 }
