@@ -35,7 +35,7 @@ function calcCoverage() {
 		const bPct = bTotal === 0 ? 100 : (bCov / bTotal) * 100;
 
 		rows.push({
-			path: path.replace(/.*\/src\//, "src/"),
+			path: path.replace(/\\/g, "/").replace(/.*\/src\//, "src/"),
 			stmt: {
 				covered,
 				total,
@@ -103,7 +103,7 @@ function hasFileATest() {
 	 */
 	function walk(dir, out = []) {
 		for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
-			const p = path.join(dir, e.name);
+			const p = path.join(dir, e.name).replace(/\\/g, "/");
 
 			if (e.isDirectory()) {
 				walk(p, out);
