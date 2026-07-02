@@ -17,6 +17,14 @@ function bucketSize(name: string): number | undefined {
 	return internalListeners()[name]?.size;
 }
 
+function firstListenerOptions(name: string): Record<string, unknown> {
+	const listener = internalListeners()[name]?.values().next().value as {
+		options: Record<string, unknown>;
+	};
+
+	return listener.options;
+}
+
 beforeEach(() => {
 	(EventSystem as unknown as { eventListener: Listeners }).eventListener = {};
 });
@@ -134,6 +142,32 @@ describe("EventSystem once: true", () => {
 		EventSystem.dispatchEvent("resized");
 		EventSystem.dispatchEvent("resized");
 		expect(cb).toHaveBeenCalledTimes(2);
+	});
+});
+
+// ==================== stored options ====================
+
+describe("EventSystem.addEventListener stored options", () => {
+	it("preserves extra properties passed on the options object", () => {
+		const signal = new AbortController().signal;
+		EventSystem.addEventListener("resized", () => {}, {
+			once: true,
+			signal,
+			// An extra field accepted via EventSystemOptions' index signature.
+			passthrough: "kept",
+		});
+		expect(firstListenerOptions("resized")).toEqual({
+			once: true,
+			signal,
+			passthrough: "kept",
+		});
+	});
+
+	it("normalizes `once` to false even when the spread carries `once: undefined`", () => {
+		EventSystem.addEventListener("resized", () => {}, {
+			once: undefined,
+		});
+		expect(firstListenerOptions("resized").once).toBe(false);
 	});
 });
 

@@ -25,6 +25,8 @@ export interface GameEventMap {
 
 /** Options for {@link EventSystem.addEventListener}. */
 export interface EventSystemOptions {
+	/** Index signature for forward-compatible options: extra fields are accepted and preserved verbatim on the stored listener, so callers can attach metadata without a type change here. */
+	[key: string]: unknown;
 	/** Auto-dispose the listener after the first dispatch. */
 	once?: boolean;
 	/** Dispose the listener when the signal aborts. Already-aborted signals make `addEventListener` a no-op. */
@@ -107,7 +109,11 @@ export default class EventSystem {
 		const listener: GameEventListener<K> = {
 			callback,
 			dispose,
-			options: { once: options.once ?? false, signal: options.signal },
+			options: {
+				...options,
+				once: options.once ?? false,
+				signal: options.signal,
+			},
 		};
 
 		let bucket = this.eventListener[eventName];
