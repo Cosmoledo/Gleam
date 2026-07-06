@@ -1,6 +1,6 @@
 import Settings from "@/core/Settings";
 import { getElement } from "./DOM";
-import { rgb2Int } from "./Color";
+import { int2hex, rgb2Int } from "./Color";
 
 import "@/prototypes/HTMLCanvasElement"; // splitSpriteSheet relies on the subImage patch
 
@@ -178,7 +178,7 @@ export function getUsedColors(
 	return Array.from(counts.entries())
 		.sort(([, amountA], [, amountB]) => amountB - amountA)
 		.reduce((all, [color, amount]) => {
-			all.set("#" + (16777216 + color).toString(16).slice(1), amount);
+			all.set(int2hex(color), amount);
 			return all;
 		}, new Map<string, number>());
 }

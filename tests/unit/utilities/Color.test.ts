@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 import {
 	hex2rgb,
 	hue2rgb,
+	int2hex,
 	randomHex,
 	randomRgb,
 	rgb2hex,
@@ -109,6 +110,38 @@ describe("rgb2Int", () => {
 		const result = rgb2Int(255, 255, 255, 1);
 		expect(result >>> 0).toBe(result);
 		expect(result).toBe(0xffffffff);
+	});
+});
+
+// ==================== int2hex ====================
+
+describe("int2hex", () => {
+	it("converts 0 to #000000", () => {
+		expect(int2hex(0)).toBe("#000000");
+	});
+
+	it("converts 0xffffff to #ffffff", () => {
+		expect(int2hex(0xffffff)).toBe("#ffffff");
+	});
+
+	it("converts 0xff0000 to #ff0000", () => {
+		expect(int2hex(0xff0000)).toBe("#ff0000");
+	});
+
+	it("converts 0xff00 to #00ff00", () => {
+		expect(int2hex(0xff00)).toBe("#00ff00");
+	});
+
+	it("converts 0xff to #0000ff", () => {
+		expect(int2hex(0xff)).toBe("#0000ff");
+	});
+
+	it("zero-pads low values to six digits", () => {
+		expect(int2hex(0x000001)).toBe("#000001");
+	});
+
+	it("matches rgb2hex for the same packed int", () => {
+		expect(int2hex(rgb2Int(18, 52, 86))).toBe(rgb2hex(18, 52, 86));
 	});
 });
 

@@ -8,7 +8,7 @@ export type RGB = [number, number, number];
  * Low-level; prefer `Color.toHex()` outside hot per-pixel loops.
  */
 export function rgb2hex(red: number, green: number, blue: number): string {
-	return "#" + (0x1000000 + rgb2Int(red, green, blue)).toString(16).slice(1);
+	return int2hex(rgb2Int(red, green, blue));
 }
 
 /**
@@ -29,6 +29,14 @@ export function rgb2Int(
 
 	const a = Math.round(alpha * 255);
 	return ((red << 24) | (green << 16) | (blue << 8) | a) >>> 0;
+}
+
+/**
+ * Format a packed 24-bit `RGB` integer (see {@link rgb2Int}) as a `#rrggbb` hex string.
+ * Low-level; prefer `Color.toHex()` outside hot per-pixel loops.
+ */
+export function int2hex(int: number): string {
+	return "#" + (0x1000000 + int).toString(16).slice(1);
 }
 
 /**
