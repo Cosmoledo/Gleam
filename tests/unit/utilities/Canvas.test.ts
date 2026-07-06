@@ -371,4 +371,30 @@ describe("getUsedColors", () => {
 		const result = getUsedColors(img);
 		expect(result.get("#000000")).toBe(9);
 	});
+
+	it("orders entries by descending usage amount", () => {
+		const img = createNewCanvas(1, 6).canvas;
+		// green×3, blue×2, red×1 in an unordered layout, so the output order
+		// can only come from the count — not pixel/insertion order.
+		const pixels = new Uint8ClampedArray([
+			255, 0, 0, 255, // red   (1/1)
+			0, 255, 0, 255, // green (1/3)
+			0, 0, 255, 255, // blue  (1/2)
+			0, 255, 0, 255, // green (2/3)
+			0, 0, 255, 255, // blue  (2/2)
+			0, 255, 0, 255, // green (3/3)
+		]);
+		const spy = vi
+			.spyOn(img.getContext("2d")!, "getImageData")
+			.mockReturnValue({ data: pixels } as ImageData);
+
+		const result = getUsedColors(img);
+		spy.mockRestore();
+
+		expect([...result.entries()]).toEqual([
+			["#00ff00", 3],
+			["#0000ff", 2],
+			["#ff0000", 1],
+		]);
+	});
 });

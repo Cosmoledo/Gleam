@@ -175,10 +175,10 @@ export function getUsedColors(
 		});
 	}
 
-	const result = new Map<string, number>();
-	counts.forEach((count, rgbInt) => {
-		result.set("#" + (0x1000000 + rgbInt).toString(16).slice(1), count);
-	});
-
-	return result;
+	return Array.from(counts.entries())
+		.sort(([, amountA], [, amountB]) => amountB - amountA)
+		.reduce((all, [color, amount]) => {
+			all.set("#" + (16777216 + color).toString(16).slice(1), amount);
+			return all;
+		}, new Map<string, number>());
 }
