@@ -16,8 +16,12 @@ const DIST = join(ROOT, "dist");
 const TSCONFIG = join(ROOT, "tsconfig.json");
 const BARREL = join(SRC, "index.ts");
 
-function run(cmd, args) {
-	const result = spawnSync(cmd, args, { stdio: "inherit", cwd: ROOT });
+function run(cmd, args, opts) {
+	const result = spawnSync(cmd, args, {
+		stdio: "inherit",
+		cwd: ROOT,
+		...opts,
+	});
 	if (result.status !== 0) {
 		process.exit(result.status ?? 1);
 	}
@@ -60,16 +64,20 @@ await build({
 });
 
 function bundleTypes(entry, outfile) {
-	run("npx", [
-		"dts-bundle-generator",
-		"--project",
-		TSCONFIG,
-		"--inline-declare-global",
-		"--no-check",
-		"-o",
-		outfile,
-		entry,
-	]);
+	run(
+		"npx",
+		[
+			"dts-bundle-generator",
+			"--project",
+			TSCONFIG,
+			"--inline-declare-global",
+			"--no-check",
+			"-o",
+			outfile,
+			entry,
+		],
+		{ shell: true },
+	);
 }
 
 bundleTypes(BARREL, join(DIST, "gleam.d.ts"));
