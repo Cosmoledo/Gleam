@@ -8,6 +8,12 @@ export type SettingsOverrides = Partial<
 	>
 >;
 
+/** Shape of the persisted localStorage blob — the type of {@link Settings.localStorage} and the keys {@link Settings.setLocalStorage} accepts. */
+export interface LocalStorage {
+	/** Active language code (e.g. `"en"`), seeded from `navigator.language` in {@link Settings.init}. */
+	language: string;
+}
+
 const LOCAL_STORAGE_KEY = "gleam";
 
 /** Engine-wide configuration. A static-class singleton — read/write top-level fields directly (`Settings.fps = 1 / 30`). Initialised once via {@link init} from `Game`'s constructor; calling `init` twice throws. */
@@ -38,12 +44,12 @@ export default class Settings {
 	// Only mutated via `setLocalStorage` (typed) and via the localStorage
 	// round-trip in `init()` — since `setLocalStorage` is the sole writer of
 	// the persisted blob, the parsed payload is trusted to match the schema.
-	private static readonly _localStorage = {
+	private static readonly _localStorage: LocalStorage = {
 		language: "",
 	};
 
 	/** Read-only view of the persisted localStorage blob. Writes go through {@link setLocalStorage}. */
-	public static get localStorage(): Readonly<typeof Settings._localStorage> {
+	public static get localStorage(): Readonly<LocalStorage> {
 		return this._localStorage;
 	}
 
@@ -100,9 +106,9 @@ export default class Settings {
 	}
 
 	/** Typed setter for the persisted localStorage blob. Writes both in-memory and to actual `localStorage` (under a single JSON key — `"gleam"`). The only supported way to mutate persisted state. */
-	public static setLocalStorage<K extends keyof typeof this._localStorage>(
+	public static setLocalStorage<K extends keyof LocalStorage>(
 		key: K,
-		value: (typeof this._localStorage)[K],
+		value: LocalStorage[K],
 	): void {
 		this._localStorage[key] = value;
 
