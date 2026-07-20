@@ -85,24 +85,24 @@ describe("Keyboard", () => {
 	it("dispatches KEY event on keydown with pressed=true", async () => {
 		const { default: Keyboard } = await import("@/input/Keyboard");
 		const kb = new Keyboard(mockGame);
-		keydownCb!({ code: "KeyB", type: "keydown" } as KeyboardEvent);
+		const event = { code: "KeyB", type: "keydown" } as KeyboardEvent;
+		keydownCb!(event);
 		expect(dispatchSpy).toHaveBeenCalledWith(
 			"inputKeyboard",
 			kb.keys,
-			"KeyB",
-			true,
+			event,
 		);
 	});
 
 	it("dispatches KEY event on keyup with pressed=false", async () => {
 		const { default: Keyboard } = await import("@/input/Keyboard");
 		const kb = new Keyboard(mockGame);
-		keyupCb!({ code: "KeyC", type: "keyup" } as KeyboardEvent);
+		const event = { code: "KeyC", type: "keyup" } as KeyboardEvent;
+		keyupCb!(event);
 		expect(dispatchSpy).toHaveBeenCalledWith(
 			"inputKeyboard",
 			kb.keys,
-			"KeyC",
-			false,
+			event,
 		);
 	});
 

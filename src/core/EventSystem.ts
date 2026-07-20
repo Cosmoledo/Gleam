@@ -11,12 +11,8 @@ export interface GameEventMap {
 	inputControllerConnected: [event: Gamepad];
 	/** Fired by {@link Controller} when *our* tracked gamepad disconnects. Other gamepads disconnecting are logged but don't dispatch. */
 	inputControllerDisconnected: [];
-	/** Fired by {@link Keyboard} on every key down/up with the live `keys` map, the `code` that changed, and its new pressed state. */
-	inputKeyboard: [
-		keys: Record<string, boolean>,
-		code: string,
-		pressed: boolean,
-	];
+	/** Fired by {@link Keyboard} on every key down/up with the live `keys` map and the event. */
+	inputKeyboard: [keys: Record<string, boolean>, event: KeyboardEvent];
 	/** Fired by {@link Pointer} on every move and button transition. Payload is the `Pointer` instance — read `posScaled`/`pressed` from it. */
 	inputPointer: [pointer: Pointer];
 	/** Fired by {@link Game.preInit} once at startup and on every debounced `window.resize` thereafter. The canonical "viewport changed" signal. */

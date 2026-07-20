@@ -95,7 +95,7 @@ export const KEYBOARD_KEYS = {
 } as const;
 
 /**
- * Keyboard state. Wired into `Game` automatically. The preferred way to consume input is to poll {@link isPressed} from `update` — game input is held-state-based ("is W held this frame?"), and combining with {@link stopPress} handles one-shot actions cleanly. The {@link EventSystem} `"inputKeyboard"` event (payload: `(keys, code, pressed)`) is available for cases that genuinely need edge-triggered handling.
+ * Keyboard state. Wired into `Game` automatically. The preferred way to consume input is to poll {@link isPressed} from `update` — game input is held-state-based ("is W held this frame?"), and combining with {@link stopPress} handles one-shot actions cleanly. The {@link EventSystem} `"inputKeyboard"` event (payload: `(keys, event)`) is available for cases that genuinely need edge-triggered handling.
  *
  * State is cleared on `window` blur and on `gameloopStopped` so held keys don't stay "pressed" when focus or the loop is lost. In `Settings.debug` mode, pressing Escape stops the gameloop.
  */
@@ -118,12 +118,7 @@ export default class Keyboard {
 				game.gameloop.stopLoop();
 			}
 
-			EventSystem.dispatchEvent(
-				"inputKeyboard",
-				this.keys,
-				code,
-				pressed,
-			);
+			EventSystem.dispatchEvent("inputKeyboard", this.keys, event);
 		};
 
 		window.addEventListener("keydown", keyEvent, false);
