@@ -117,7 +117,7 @@ export function throttleByKey<T extends unknown[]>(
 }
 
 /** Discriminated union of an object's `[key, value]` entry tuples, correlating each key with its own value type. Return type of {@link typedEntries}. */
-export type Entries<T> = { [K in keyof T]: [K, T[K]] }[keyof T];
+export type Entries<T> = { [K in keyof T]-?: [K, T[K]] }[keyof T];
 
 /**
  * `Object.entries` retyped so each `[key, value]` tuple keeps the key↔value
@@ -131,7 +131,7 @@ export type Entries<T> = { [K in keyof T]: [K, T[K]] }[keyof T];
  * ```ts
  * interface LevelData {
  *     rects: { x: number; y: number }[];
- *     name: string;
+ *     name?: string;
  * }
  *
  * const levelData: LevelData = { rects: [{ x: 0, y: 0 }], name: "Level 1" };
@@ -142,7 +142,7 @@ export type Entries<T> = { [K in keyof T]: [K, T[K]] }[keyof T];
  *     }
  *
  *     if (key === "name") {
- *         value; // string
+ *         value; // string | undefined
  *     }
  * }
  * ```
