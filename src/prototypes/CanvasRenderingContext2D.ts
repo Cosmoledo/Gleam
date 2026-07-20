@@ -1,4 +1,4 @@
-import Rect from "@/math/Rect";
+import type Rect from "@/math/Rect";
 import { createNewCanvas } from "@/utilities/Canvas";
 import { defineMethod } from "@/utilities/Prototype";
 import type { Vector2, Vector4 } from "@/math/Vec2";
