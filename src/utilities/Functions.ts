@@ -116,6 +116,41 @@ export function throttleByKey<T extends unknown[]>(
 	};
 }
 
+/** Discriminated union of an object's `[key, value]` entry tuples, correlating each key with its own value type. Return type of {@link typedEntries}. */
+export type Entries<T> = { [K in keyof T]: [K, T[K]] }[keyof T];
+
+/**
+ * `Object.entries` retyped so each `[key, value]` tuple keeps the key↔value
+ * relationship. Narrowing `key` in a branch narrows `value` to that key's type —
+ * unlike the built-in `Object.entries`, which widens `value` to `any`.
+ *
+ * Runtime-identical to `Object.entries` (it *is* `Object.entries`); only the
+ * return type is narrowed.
+ *
+ * @example
+ * ```ts
+ * interface LevelData {
+ *     rects: { x: number; y: number }[];
+ *     name: string;
+ * }
+ *
+ * const levelData: LevelData = { rects: [{ x: 0, y: 0 }], name: "Level 1" };
+ *
+ * for (const [key, value] of typedEntries(levelData)) {
+ *     if (key === "rects") {
+ *         value; // { x: number; y: number }[]
+ *     }
+ *
+ *     if (key === "name") {
+ *         value; // string
+ *     }
+ * }
+ * ```
+ */
+export const typedEntries = Object.entries as <T extends object>(
+	obj: T,
+) => Entries<T>[];
+
 /**
  * Filename component of a URL/path, without directory, extension, or query string.
  * Returns `null` when no usable name can be derived: a path ending in `/`, or a stem containing a malformed percent-escape that `decodeURIComponent` rejects.
