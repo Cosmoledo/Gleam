@@ -10,7 +10,7 @@ export type CssStyleKey = {
 		: never;
 }[keyof CSSStyleDeclaration];
 
-/** Setter handed to {@link ShakeType.update} that writes a CSS value. Snapshots the prior value on first write per key so it can be restored on dispose. */
+/** Setter handed to {@link ShakeType.update} and {@link ShakeType.reset} that writes a CSS value. */
 export type CssProxy = (key: CssStyleKey, value: string) => void;
 
 /** Shape for a custom shake recipe. */
@@ -19,6 +19,8 @@ export interface ShakeType {
 	step: number;
 	/** Per-frame mutator. `time` decays from `1` to `0` over the shake — multiply your intensity by it for a natural fall-off. */
 	update: (updateCss: CssProxy, time: number) => void;
+	/** Cleanup run once when the shake ends. Clear every key {@link update} writes (assign `""`) so nothing is left on the element. */
+	reset: (updateCss: CssProxy) => void;
 }
 
 /** Built-in shake recipes. Pass one to {@link Screenshake.shake}. */
@@ -31,9 +33,13 @@ export const SHAKE_TYPES = {
 		update(updateCss: CssProxy, time: number): void {
 			const tr = `rotate(${randomBetweenFloat(-2, 2) * time}deg)`;
 			updateCss("transform", tr);
-			updateCss("webkitTransform", tr);
 
 			updateCss("filter", `blur(${time * 5}px)`);
+		},
+		/** Cleanup — see {@link ShakeType.reset}. */
+		reset(updateCss: CssProxy): void {
+			updateCss("transform", "");
+			updateCss("filter", "");
 		},
 	},
 	/** ~0.07 s impact: blur-only fall-off, no rotation. */
@@ -44,11 +50,15 @@ export const SHAKE_TYPES = {
 		update(updateCss: CssProxy, time: number): void {
 			updateCss("filter", `blur(${time * 3}px)`);
 		},
+		/** Cleanup — see {@link ShakeType.reset}. */
+		reset(updateCss: CssProxy): void {
+			updateCss("filter", "");
+		},
 	},
 } satisfies Record<string, ShakeType>;
 
 /**
- * Shake an element by mutating its inline CSS each rAF tick. One shake per instance — re-calling {@link shake} while one is active returns `null`. The returned dispose function (and natural timer expiry) restores every CSS key the shake touched.
+ * Shake an element by mutating its inline CSS each rAF tick. One shake per instance — re-calling {@link shake} while one is active returns `null`. The returned dispose function (and natural timer expiry) runs the shake type's {@link ShakeType.reset} to clear the keys it wrote.
  *
  * Only the built-in {@link SHAKE_TYPES} (`NORMAL`, `FAST`) are supported today. Letting callers define their own would be a natural extension — impact pulses, slow rumble, directional jolts — since {@link ShakeType} is already public.
  */
@@ -73,17 +83,13 @@ export default class Screenshake {
 		this.shakeType = shakeType;
 		let timer = 1;
 
-		const originalValue = new Map<string, string>();
-		const updateCssProxy: CssProxy = (key, value) => {
-			if (!originalValue.has(key)) {
-				originalValue.set(key, this.style[key]);
-			}
-
+		const updateCss: CssProxy = (key, value) => {
 			this.style[key] = value;
 		};
 
 		const stopLoop = rafLoop(dt => {
-			this.shakeType.update(updateCssProxy, timer);
+			this.shakeType.update(updateCss, timer);
+
 			timer -= this.shakeType.step * dt;
 
 			if (timer <= 0) {
@@ -93,16 +99,15 @@ export default class Screenshake {
 
 		let alive = true;
 		const dispose = (): void => {
-			// `alive` is per-shake, so a stale dispose handle from a previous shake can't restore its old snapshot over a later shake or flip the shared isShaking flag.
+			// `alive` is per-shake, so a stale dispose handle from a previous shake can't clear a later shake's styling or flip the shared isShaking flag.
 			if (!alive) {
 				return;
 			}
 			alive = false;
 
 			stopLoop();
-			originalValue.forEach((value, key) => {
-				this.style[key] = value;
-			});
+			this.shakeType.reset(updateCss);
+
 			this.isShaking = false;
 		};
 

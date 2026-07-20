@@ -60,7 +60,6 @@ describe("SHAKE_TYPES.NORMAL.update", () => {
 		const el = makeElement();
 		SHAKE_TYPES.NORMAL.update(styleSetter(el), 1);
 		expect(el.style.transform).toMatch(/^rotate\(-?\d+(\.\d+)?deg\)$/);
-		expect(el.style.webkitTransform).toBe(el.style.transform);
 		expect(el.style.filter).toBe("blur(5px)");
 	});
 
@@ -160,14 +159,15 @@ describe("Screenshake.shake style effects", () => {
 		expect(el.style.transform).toMatch(/^rotate\(.*deg\)$/);
 	});
 
-	it("restores prior inline style values when the shake completes", () => {
+	it("clears the shake's keys to empty when the shake completes, including prior inline values", () => {
 		const el = makeElement();
 		el.style.transform = "scale(2)";
 		el.style.filter = "brightness(0.5)";
 		new Screenshake(el).shake();
 		runToCompletion();
-		expect(el.style.transform).toBe("scale(2)");
-		expect(el.style.filter).toBe("brightness(0.5)");
+		// reset() clears the keys it wrote — prior inline values are not preserved.
+		expect(el.style.transform).toBe("");
+		expect(el.style.filter).toBe("");
 	});
 
 	it("leaves the style empty when there was no prior inline value", () => {
@@ -217,14 +217,13 @@ describe("Screenshake.shake lifecycle", () => {
 // ==================== shake — dispose ====================
 
 describe("Screenshake.shake dispose", () => {
-	it("cancels a running shake and restores prior style", () => {
+	it("cancels a running shake and clears the shake's style", () => {
 		const el = makeElement();
-		el.style.transform = "scale(2)";
 		const dispose = new Screenshake(el).shake();
 		stepFrame();
 		expect(el.style.transform).toMatch(/^rotate\(.*deg\)$/);
 		dispose!();
-		expect(el.style.transform).toBe("scale(2)");
+		expect(el.style.transform).toBe("");
 	});
 
 	it("unblocks the instance for a new shake", () => {
@@ -235,9 +234,8 @@ describe("Screenshake.shake dispose", () => {
 		expect(typeof s.shake()).toBe("function");
 	});
 
-	it("second call does not re-apply the snapshot over caller writes", () => {
+	it("a second dispose call does not clobber later caller writes", () => {
 		const el = makeElement();
-		el.style.transform = "scale(2)";
 		const dispose = new Screenshake(el).shake();
 		stepFrame();
 		dispose!();
@@ -246,12 +244,11 @@ describe("Screenshake.shake dispose", () => {
 		expect(el.style.transform).toBe("rotate(45deg)");
 	});
 
-	it("caller call after natural completion is a no-op", () => {
+	it("a dispose call after natural completion is a no-op", () => {
 		const el = makeElement();
-		el.style.transform = "scale(2)";
 		const dispose = new Screenshake(el).shake();
 		runToCompletion();
-		expect(el.style.transform).toBe("scale(2)");
+		expect(el.style.transform).toBe("");
 		el.style.transform = "rotate(45deg)";
 		dispose!();
 		expect(el.style.transform).toBe("rotate(45deg)");
