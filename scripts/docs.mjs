@@ -19,9 +19,15 @@ function run(cmd, args) {
 
 run("node", [join(ROOT, "scripts/generate-barrel.mjs")]);
 
-const result = spawnSync("npx", ["typedoc", ...process.argv.slice(2)], {
+// `shell: true` lets Windows resolve the `npx.cmd` shim; pairing it with an
+// args array trips Node's DEP0190 (args aren't shell-escaped). Pass one command
+// string instead. The forwarded flags (e.g. --treatWarningsAsErrors) come from
+// the npm script invocation, not untrusted input.
+const extraArgs = process.argv.slice(2).join(" ");
+const result = spawnSync(`npx typedoc ${extraArgs}`, [], {
 	stdio: "inherit",
 	cwd: ROOT,
+	shell: true,
 });
 
 rmSync(BARREL, { force: true });

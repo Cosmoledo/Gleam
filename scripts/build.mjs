@@ -16,8 +16,12 @@ const DIST = join(ROOT, "dist");
 const TSCONFIG = join(ROOT, "tsconfig.json");
 const BARREL = join(SRC, "index.ts");
 
-function run(cmd, args) {
-	const result = spawnSync(cmd, args, { stdio: "inherit", cwd: ROOT });
+function run(cmd, args, opts) {
+	const result = spawnSync(cmd, args, {
+		stdio: "inherit",
+		cwd: ROOT,
+		...opts,
+	});
 	if (result.status !== 0) {
 		process.exit(result.status ?? 1);
 	}
@@ -60,16 +64,16 @@ await build({
 });
 
 function bundleTypes(entry, outfile) {
-	run("npx", [
-		"dts-bundle-generator",
-		"--project",
-		TSCONFIG,
-		"--inline-declare-global",
-		"--no-check",
-		"-o",
-		outfile,
-		entry,
-	]);
+	// `shell: true` is required so Windows resolves the `npx.cmd` shim, but
+	// pairing it with an args array trips Node's DEP0190 warning (args aren't
+	// escaped under a shell). Pass one command string instead; paths are quoted
+	// so spaces survive both cmd.exe and POSIX shells. All parts are fixed
+	// literals or build-controlled paths — no untrusted input.
+	run(
+		`npx dts-bundle-generator --project "${TSCONFIG}" --inline-declare-global --no-check -o "${outfile}" "${entry}"`,
+		[],
+		{ shell: true },
+	);
 }
 
 bundleTypes(BARREL, join(DIST, "gleam.d.ts"));

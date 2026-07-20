@@ -37,7 +37,7 @@ function walk(dir) {
 				continue;
 			}
 
-			out.push(rel);
+			out.push(rel.replace(/\\/g, "/"));
 		}
 	}
 	return out;
