@@ -1,0 +1,11 @@
+{
+	"options": { "file": "terrain.png" },
+	"sprites": [
+		{ "name": "grass", "x": 112, "y": 0, "w": 16, "h": 16 },
+		{ "name": "dirt", "x": 112, "y": 16, "w": 16, "h": 16 },
+		{ "name": "wood", "x": 16, "y": 64, "w": 16, "h": 16 },
+		{ "name": "stone", "x": 240, "y": 96, "w": 16, "h": 16 },
+		{ "name": "brick", "x": 304, "y": 80, "w": 16, "h": 16 },
+		{ "name": "gold", "x": 304, "y": 144, "w": 16, "h": 16 }
+	]
+}
