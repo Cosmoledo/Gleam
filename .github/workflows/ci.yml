@@ -6,10 +6,6 @@ on:
     pull_request:
     workflow_call:
 
-concurrency:
-    group: verify-${{ github.sha }}
-    cancel-in-progress: true
-
 jobs:
     verify:
         runs-on: ubuntu-latest
