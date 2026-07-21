@@ -26,12 +26,14 @@
 	],
 	"scripts": {
 		"build": "node scripts/build.mjs",
+		"changelog": "node node_modules/keep-a-changelog/bin.js --url https://github.com/Cosmoledo/Gleam",
 		"docs": "node scripts/docs.mjs",
 		"lint": "eslint src tests --ext .ts",
 		"prepublishOnly": "bash scripts/verify.sh",
 		"test": "vitest run",
 		"test:unit": "vitest run --project unit",
-		"test:browser": "vitest run --project browser"
+		"test:browser": "vitest run --project browser",
+		"version": "node node_modules/keep-a-changelog/bin.js --release && npm run changelog && git add CHANGELOG.md"
 	},
 	"publishConfig": {
 		"access": "public"
@@ -56,6 +58,7 @@
 		"dts-bundle-generator": "^9.5.1",
 		"esbuild": "^0.28.1",
 		"happy-dom": "^20.11.0",
+		"keep-a-changelog": "^3.0.5",
 		"playwright": "^1.61.1",
 		"typedoc": "^0.28.20",
 		"typescript": "^6.0.3",

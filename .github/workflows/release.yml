@@ -30,6 +30,21 @@ jobs:
 
             - run: npm publish --ignore-scripts
 
-            - run: gh release create "$GITHUB_REF_NAME" --generate-notes
+            # Notes come from CHANGELOG.md's newest release via keep-a-changelog.
+            # Guarded so a tag that doesn't match the changelog's latest version
+            # falls back to auto-generated notes instead of publishing stale ones.
+            - name: Create GitHub release
+              run: |
+                  VERSION="${GITHUB_REF_NAME#v}"
+                  CHANGELOG_BIN="node_modules/keep-a-changelog/bin.js"
+                  LATEST="$(node "$CHANGELOG_BIN" --latest-release)"
+                  if [ "$LATEST" = "$VERSION" ]; then
+                      node "$CHANGELOG_BIN" --latest-release-full \
+                          | sed '1{/^## /d;}' > notes.md
+                      gh release create "$GITHUB_REF_NAME" --notes-file notes.md
+                  else
+                      echo "CHANGELOG latest ($LATEST) != tag ($VERSION); using auto-generated notes."
+                      gh release create "$GITHUB_REF_NAME" --generate-notes
+                  fi
               env:
                   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
