@@ -130,9 +130,9 @@ Two error sources, handled differently:
 
 ## Build outputs
 
-`dist/` ships three bundles plus a single rolled-up `.d.ts`:
+`dist/` ships the per-module ESM tree, two single-file IIFE bundles, and a single rolled-up `.d.ts`:
 
-- `gleam.esm.js` — ESM, for bundlers (`main`/`import`).
+- `esm/` — per-module ESM mirroring the `src/` tree, entry `esm/index.js` (`main`/`import`); module boundaries are preserved so bundlers can tree-shake.
 - `gleam.js` — IIFE, exposes the `Gleam` global.
 - `gleam.min.js` — minified IIFE.
 - `gleam.d.ts` — bundled type definitions.
