@@ -33,9 +33,6 @@
 		"test:unit": "vitest run --project unit",
 		"test:browser": "vitest run --project browser"
 	},
-	"engines": {
-		"node": ">=24"
-	},
 	"publishConfig": {
 		"access": "public"
 	},
