@@ -94,6 +94,17 @@ Within slots 6–10, sort by visibility (public → protected → private), then
   - Bad: `replace any payload with generic type parameter`
 - **No filler words** — skip articles, avoid "update"/"improve"/"refactor" without specifics.
 
+## Changelog
+
+Follows [Keep a Changelog](https://keepachangelog.com/) and is validated by `keep-a-changelog` (run through `npm run changelog`, which `verify.sh` invokes).
+
+- **Every new feature or user-facing change adds a `CHANGELOG.md` entry in the same commit.** Add a one-line bullet under the current unreleased section, in the matching category: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, or `Security`. Prefix breaking changes with `**BREAKING:**`.
+- **Write for the library's users, not its maintainers.** Name the affected public API and the observable behavior change — not the internal refactor. Each entry must carry enough that it doubles as a small migration guide: what changed and how to adapt calling code (old → new signature, how to recover the previous behavior). See the existing `**BREAKING:**` entries (e.g. the `Keyboard` payload and `Color` default-export changes) for the expected depth.
+- **Only those six categories parse** — any other heading fails `npm run changelog`. Run it after editing to normalize the file (regenerates compare links, rejects bad categories).
+- **If there is no unreleased section** (e.g. right after a release consumed it), create one with `npx changelog --create <version>` — infer `<version>` by bumping the last released version (patch/minor/major to match the change). This adds a `## [<version>] - Unreleased` section to write entries into.
+- **One line per bullet** (no hard-wrapping); GitHub soft-wraps on render.
+- **Never run `npx changelog --release` — that is the user's action at publish time, never an agent's.** Agents only add entries to the unreleased section; don't date/finalize the release or hand-edit compare links (releasing dates it and the tool manages the links).
+
 ## Analysis workflow
 
 When asked to list issues (e.g. `as any` usages, convention violations):
