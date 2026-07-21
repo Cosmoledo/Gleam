@@ -7,20 +7,19 @@
 		"url": "https://github.com/Cosmoledo/Gleam/issues"
 	},
 	"type": "module",
-	"main": "dist/gleam.esm.js",
+	"main": "dist/esm/index.js",
 	"types": "dist/gleam.d.ts",
 	"exports": {
 		".": {
 			"types": "./dist/gleam.d.ts",
-			"import": "./dist/gleam.esm.js"
+			"import": "./dist/esm/index.js"
 		}
 	},
 	"sideEffects": [
 		"./src/prototypes/*",
 		"./src/localization/Translator.ts",
-		"./dist/gleam.esm.js",
-		"./dist/gleam.js",
-		"./dist/gleam.min.js"
+		"./dist/esm/prototypes/*.js",
+		"./dist/esm/localization/Translator.js"
 	],
 	"files": [
 		"dist"
