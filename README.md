@@ -83,11 +83,18 @@ Add a canvas to the page:
 Subclass `Game`, register the canvas as `MAIN` on the `CanvasManager` instance `canman`, implement `init`/`update`/`draw`, and kick off `preInit()` from the constructor:
 
 ```ts
-import { Game, CANVAS_TYPES, type SettingsOverrides } from "@cosmoledo/gleam";
+import { Game, CANVAS_TYPES, Vec2, random2Pi } from "@cosmoledo/gleam";
 
 class MyGame extends Game {
-    constructor(overrides: SettingsOverrides = {}) {
-        super(overrides);
+    private pos = new Vec2(460, 250);
+    // Unit vector at a random angle, scaled to 180 px/s (fromAngle(rad, scale)).
+    private vel = Vec2.fromAngle(random2Pi(), 180);
+    private size = 40;
+
+    constructor() {
+        // SettingsOverrides. enableResize:false keeps the canvas at its
+        // declared 960x540; otherwise the lib stretches it to the window.
+        super({ fps: 1 / 60, backgroundColor: "#222", enableResize: false });
 
         this.canman.setupCanvas(CANVAS_TYPES.MAIN, "#game");
 
@@ -95,19 +102,33 @@ class MyGame extends Game {
     }
 
     public async init() {
-        // load assets, build the scene
+        // load assets / build the scene (runs once before the loop starts)
     }
 
     public update(dt: number) {
-        // advance simulation
+        // dt is the fixed step in seconds (= Settings.fps); scaling by it
+        // keeps motion frame-rate independent.
+        this.pos.add(this.vel.x * dt, this.vel.y * dt);
+
+        // Bounce off the walls by flipping the offending axis.
+        if (this.pos.x < 0 || this.pos.x > this.canman.width - this.size) {
+            this.vel.x *= -1;
+        }
+
+        if (this.pos.y < 0 || this.pos.y > this.canman.height - this.size) {
+            this.vel.y *= -1;
+        }
     }
 
     public draw(ctx: CanvasRenderingContext2D) {
-        // render the frame
+        // The loop clears the canvas before draw() — just paint the frame.
+        ctx.fillStyle = "#4ea1ff";
+        ctx.fillRect(this.pos.x, this.pos.y, this.size, this.size);
     }
 }
 
-new MyGame({ fps: 1 / 60, backgroundColor: "#222" });
+// Constructing the Game starts everything (constructor -> preInit -> init -> loop).
+new MyGame();
 ```
 
 `preInit()`:
