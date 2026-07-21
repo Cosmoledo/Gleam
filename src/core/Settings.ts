@@ -18,7 +18,7 @@ const LOCAL_STORAGE_KEY = "gleam";
 
 /** Engine-wide configuration. A static-class singleton — read/write top-level fields directly (`Settings.fps = 1 / 30`). Initialised once via {@link init} from `Game`'s constructor; calling `init` twice throws. */
 export default class Settings {
-	/** Enable smoothing on the main canvas context. Default `false` for crisp pixel art. */
+	/** Default image-smoothing state for canvas contexts Gleam sets up — those registered via {@link CanvasManager.setupCanvas} and those built by {@link createNewCanvas}. Default `false` for crisp pixel art. */
 	public static antialias = false;
 	/** Start the gameloop automatically after `init()` resolves. Disable to drive `gameloop.startLoop()` manually. Default `true`. */
 	public static autoloop = true;

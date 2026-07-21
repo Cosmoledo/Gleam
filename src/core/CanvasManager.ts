@@ -173,6 +173,7 @@ export default class CanvasManager {
 		newCanvas.context.fillStyle = "white";
 		newCanvas.context.strokeStyle = "white";
 		newCanvas.context.font = "12px Arial";
+		newCanvas.context.imageSmoothingEnabled = Settings.antialias;
 
 		this.canvasHolder[selector] = newCanvas;
 
