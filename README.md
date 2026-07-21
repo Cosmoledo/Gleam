@@ -41,6 +41,7 @@ Also bundled: asset loaders (`loadImage`, `loadCanvas`, `loadText`, `loadJson`, 
 - [Examples](#examples)
 - [API reference](#api-reference)
 - [Quick start](#quick-start)
+- [Prototype helpers](#prototype-helpers)
 - [Constraints](#constraints)
 - [How errors surface](#how-errors-surface)
 - [Build outputs](#build-outputs)
@@ -115,6 +116,18 @@ new MyGame({ fps: 1 / 60, backgroundColor: "#222" });
 - Wires global listeners and the game loop.
 - Starts the loop as soon as `init()` resolves (with the default `Settings.autoloop`).
 
+## Prototype helpers
+
+Gleam extends the built-in DOM prototypes with drawing/asset helpers — `ctx.drawCircle`, `ctx.fillBar`, `img.subImage`, `audio.stop`, `canvas.getPixelAt`, and more. Subclassing `Game` installs them automatically (the `Game` module imports them), and the IIFE/CDN bundle always has them.
+
+If you use Gleam without `Game` — say just `Vec2` and the canvas helpers, letting your bundler tree-shake the rest — opt in once at startup:
+
+```ts
+import "@cosmoledo/gleam/prototypes";
+```
+
+It's a side-effect import (binds nothing) and ships the matching global type augmentations, so `ctx.drawCircle(…)` type-checks.
+
 ## Constraints
 
 - **One `Game` per page.** The framework registers listeners on `window`/`document` and sets `history.scrollRestoration`; multiple instances will fight each other.
@@ -136,6 +149,7 @@ Two error sources, handled differently:
 - `gleam.js` — IIFE, exposes the `Gleam` global.
 - `gleam.min.js` — minified IIFE.
 - `gleam.d.ts` — bundled type definitions.
+- `gleam.prototypes.d.ts` — types for the `@cosmoledo/gleam/prototypes` side-effect entry (the global augmentations).
 
 ## Development
 

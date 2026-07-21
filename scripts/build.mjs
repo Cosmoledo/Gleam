@@ -130,5 +130,10 @@ function bundleTypes(entry, outfile) {
 }
 
 bundleTypes(BARREL, join(DIST, "gleam.d.ts"));
+// Focused type bundle for the `@cosmoledo/gleam/prototypes` subpath: the
+// prototype entry is side-effect-only at runtime, so its `.d.ts` exists to
+// carry the `declare global` augmentations (canvas/image/audio helpers) to
+// consumers who opt into them without importing `Game`.
+bundleTypes(join(SRC, "prototypes", "index.ts"), join(DIST, "gleam.prototypes.d.ts"));
 
 rmSync(BARREL, { force: true });

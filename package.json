@@ -15,11 +15,15 @@
 		".": {
 			"types": "./dist/gleam.d.ts",
 			"import": "./dist/esm/index.js"
+		},
+		"./prototypes": {
+			"types": "./dist/gleam.prototypes.d.ts",
+			"import": "./dist/esm/prototypes/index.js"
 		}
 	},
 	"sideEffects": [
-		"./dist/esm/prototypes/*.js",
-		"./dist/esm/localization/Translator.js"
+		"**/prototypes/*",
+		"**/localization/Translator.*"
 	],
 	"files": [
 		"dist"
