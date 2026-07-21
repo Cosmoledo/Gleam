@@ -16,8 +16,6 @@
 		}
 	},
 	"sideEffects": [
-		"./src/prototypes/*",
-		"./src/localization/Translator.ts",
 		"./dist/esm/prototypes/*.js",
 		"./dist/esm/localization/Translator.js"
 	],
