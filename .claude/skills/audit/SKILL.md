@@ -12,11 +12,9 @@ One unified audit of `src/`. Reports only deviations — never "compliant" entri
 - (none) — print findings to chat
 - `file` — write findings to root as `AUDIT.md` (gitignored) instead of chat; overwrites prior contents
 
-## Files to skip
+## Scope
 
-- `src/loader/TiledMap.ts`
-
-All other files under `src/**/*.ts` are in scope.
+All files under `src/**/*.ts` are in scope.
 
 ## Rules to enforce
 

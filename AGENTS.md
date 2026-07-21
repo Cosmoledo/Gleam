@@ -34,7 +34,7 @@ Browser tests that exercise canvas prototypes need `import "@/prototypes/index";
 | `src/audio/` | `Sound` |
 | `src/utilities/` | Pure helpers: `Array`, `Canvas`, `Color` (free fns), `DOM`, `Functions` (`delay`, `isTouchPrimary`), `Grid`, `Json`, `Math`, `Number`, `String` |
 | `src/prototypes/` | Side-effect imports extending `HTMLCanvasElement`, `HTMLImageElement`, `CanvasRenderingContext2D`, `Audio` |
-| `src/loader/` | Asset/data loaders (`UrlLoaders`, `TiledMap`) |
+| `src/loader/` | Asset/data loaders: `UrlLoaders.ts` — free fns `loadImage`, `loadCanvas`, `loadText`, `loadJson`, `loadBunch`, `safeLoad` |
 | `src/content/` | Game entities (`Animator`, `ControllerCursor`, `Particle`, `Projectile`) |
 | `src/effects/` | Visual effects (`Screenshake`) |
 | `src/localization/` | `Translator` |

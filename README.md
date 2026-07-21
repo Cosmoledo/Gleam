@@ -33,7 +33,7 @@ A TypeScript framework for 2D canvas games in the browser.
   - `Vec2`, `Rect`, `Polygon` (with collision) — geometry primitives
   - numeric utility helpers
 
-Also bundled: asset loaders (`UrlLoaders`, `TiledMap`), `Translator` for localization, and many pure utilities: `Array`, `Canvas`, `Color`, `DOM`, `Fetch` (buffer a `Response` while reporting download progress), `Functions`, `Grid`, `Json`, `Math`, `Number`, `String`).
+Also bundled: asset loaders (`loadImage`, `loadCanvas`, `loadText`, `loadJson`, `loadBunch`, …), `Translator` for localization, and many pure utilities: `Array`, `Canvas`, `Color`, `DOM`, `Fetch` (buffer a `Response` while reporting download progress), `Functions`, `Grid`, `Json`, `Math`, `Number`, `String`.
 
 ## Contents
 
