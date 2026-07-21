@@ -45,7 +45,7 @@ function collectEntryPoints(dir) {
 const preserveModules = {
 	name: "preserve-modules",
 	setup(pluginBuild) {
-		pluginBuild.onResolve({ filter: /^@\/|^\.\.?\// }, (args) => {
+		pluginBuild.onResolve({ filter: /^@\/|^\.\.?\// }, args => {
 			if (args.kind === "entry-point") {
 				return null;
 			}
@@ -123,7 +123,7 @@ function bundleTypes(entry, outfile) {
 	// so spaces survive both cmd.exe and POSIX shells. All parts are fixed
 	// literals or build-controlled paths — no untrusted input.
 	run(
-		`npx dts-bundle-generator --project "${TSCONFIG}" --inline-declare-global --no-check -o "${outfile}" "${entry}"`,
+		`npx dts-bundle-generator --project "${TSCONFIG}" --inline-declare-global -o "${outfile}" "${entry}"`,
 		[],
 		{ shell: true },
 	);
