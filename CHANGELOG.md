@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
-## [1.0.7] - Unreleased
+## [1.0.7] - 2026-07-21
 ### Changed
 - Published ESM is now emitted per-module under `dist/esm/` instead of a single pre-bundled file, so bundlers can tree-shake — importing e.g. `Vec2` no longer pulls in the whole engine (~57 kB → ~6 kB). The single-specifier import (`import { … } from "@cosmoledo/gleam"`) is unchanged, as are the `<script>`-tag IIFE bundles.
 - The bundled `dist/gleam.d.ts` is now type-checked during the build (dropped dts-bundle-generator's `--no-check`), so an invalid public type surface fails the build instead of shipping.
@@ -84,7 +84,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### Added
 - Initial release. TypeScript framework for 2D canvas games in the browser — graphics, loop, effects, audio, math. `npm install @cosmoledo/gleam`; see the README for quick start.
 
-[1.0.7]: https://github.com/Cosmoledo/Gleam/compare/v1.0.6...HEAD
+[1.0.7]: https://github.com/Cosmoledo/Gleam/compare/v1.0.6...v1.0.7
 [1.0.6]: https://github.com/Cosmoledo/Gleam/compare/v1.0.5...v1.0.6
 [1.0.5]: https://github.com/Cosmoledo/Gleam/compare/v1.0.4...v1.0.5
 [1.0.4]: https://github.com/Cosmoledo/Gleam/compare/v1.0.3...v1.0.4
