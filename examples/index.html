@@ -12,31 +12,91 @@
 			<a href="https://github.com/Cosmoledo/Gleam">github</a>
 		</header>
 
-		<ul class="examples">
-			<li>
-				<a href="./bouncing-ball.html">
+		<div class="gallery">
+			<nav class="picker">
+				<button data-name="Bouncing ball" data-src="./bouncing-ball.js">
 					<strong>Bouncing ball</strong>
 					<span>Vec2, levelTime-driven spawning, randomHex.</span>
-				</a>
-			</li>
-			<li>
-				<a href="./brick-breaker.html">
+				</button>
+				<button data-name="Brick breaker" data-src="./brick-breaker.js">
 					<strong>Brick breaker</strong>
 					<span>Keyboard input, Rect collision, game states.</span>
-				</a>
-			</li>
-			<li>
-				<a href="./screenshake.html">
+				</button>
+				<button data-name="Screenshake" data-src="./screenshake.js">
 					<strong>Screenshake</strong>
 					<span>Screenshake effect.</span>
-				</a>
-			</li>
-			<li>
-				<a href="./sprites.html">
-					<strong>Sprites &amp; animation</strong>
-					<span>loadBunch, splitSpriteSheet, Animator, tile atlas.</span>
-				</a>
-			</li>
-		</ul>
+				</button>
+				<button data-name="Sprites & animation" data-src="./sprites.js">
+					<strong>Sprites & animation</strong>
+					<span>
+						loadBunch, splitSpriteSheet, Animator, tile atlas.
+					</span>
+				</button>
+			</nav>
+
+			<div class="stage">
+				<header>
+					<h2></h2>
+					<span style="color: var(--muted)"></span>
+				</header>
+
+				<canvas id="game" width="640" height="360"></canvas>
+			</div>
+		</div>
+
+		<script type="importmap">
+			{
+				"imports": {
+					"@cosmoledo/gleam": "https://cdn.jsdelivr.net/npm/@cosmoledo/gleam/dist/esm/index.js"
+				}
+			}
+		</script>
+		<script defer>
+			const canvasElement = document.querySelector("#game");
+
+			const frameElement = document.querySelector(".stage");
+			const titleElement = frameElement.querySelector("header h2");
+			const descElement = frameElement.querySelector("header span");
+			const buttonElements = Array.from(
+				document.querySelectorAll(".picker button"),
+			);
+
+			async function showButtonGame(button) {
+				titleElement.innerHTML = button.dataset.name;
+
+				const { init } = await import(button.dataset.src);
+				init(desc => (descElement.innerHTML = desc), canvasElement);
+
+				buttonElements.forEach(b =>
+					b.setAttribute(
+						"aria-current",
+						b === button ? "true" : "false",
+					),
+				);
+			}
+
+			function updateQueryTo(button) {
+				const urlParams = new URLSearchParams(window.location.search);
+				urlParams.set("show", button.dataset.name);
+				window.location.search = urlParams.toString();
+			}
+
+			buttonElements.forEach(button =>
+				button.addEventListener("click", () => updateQueryTo(button)),
+			);
+
+			const urlParams = new URLSearchParams(window.location.search);
+			const showParam = urlParams.get("show");
+
+			const buttonIndex = buttonElements.findIndex(
+				ele => ele.dataset.name === showParam,
+			);
+
+			if (buttonIndex === -1) {
+				updateQueryTo(buttonElements[0]);
+			} else {
+				showButtonGame(buttonElements[buttonIndex]);
+			}
+		</script>
 	</body>
 </html>

@@ -1,0 +1,21 @@
+{
+	"compilerOptions": {
+		"target": "ES2022",
+		"module": "ESNext",
+		"moduleResolution": "bundler",
+		"lib": ["ES2022", "DOM", "DOM.Iterable"],
+		"checkJs": true,
+		"strict": true,
+		// Gleam games build their world in init()/reset(), not the
+		// constructor, so fields are assigned there — keep the rest of
+		// strict, but don't require constructor initialization.
+		"strictPropertyInitialization": false,
+		"noEmit": true,
+		"skipLibCheck": true,
+		"types": [],
+		"paths": {
+			"@cosmoledo/gleam": ["../dist/gleam.d.ts"]
+		}
+	},
+	"include": ["*.js"]
+}

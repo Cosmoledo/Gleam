@@ -26,3 +26,9 @@ npm run docs -- --treatWarningsAsErrors
 
 echo "Building project..."
 npm run build
+echo ""
+
+echo "Typechecking examples..."
+# Type-checks the examples/*.js (checkJs) against the freshly built
+# dist/gleam.d.ts that examples/jsconfig.json maps "@cosmoledo/gleam" to.
+npx tsc --noEmit -p examples/jsconfig.json
