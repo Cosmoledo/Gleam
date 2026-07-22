@@ -70,16 +70,16 @@ describe("Keyboard", () => {
 		const { default: Keyboard } = await import("@/input/Keyboard");
 		const kb = new Keyboard(mockGame);
 		keydownCb!({ code: "KeyA", type: "keydown" } as KeyboardEvent);
-		expect(kb.isPressed("KeyA")).toBe(true);
+		expect(kb.isActive("KeyA")).toBe(true);
 	});
 
 	it("sets pressed key to false on keyup", async () => {
 		const { default: Keyboard } = await import("@/input/Keyboard");
 		const kb = new Keyboard(mockGame);
 		keydownCb!({ code: "KeyA", type: "keydown" } as KeyboardEvent);
-		expect(kb.isPressed("KeyA")).toBe(true);
+		expect(kb.isActive("KeyA")).toBe(true);
 		keyupCb!({ code: "KeyA", type: "keyup" } as KeyboardEvent);
-		expect(kb.isPressed("KeyA")).toBe(false);
+		expect(kb.isActive("KeyA")).toBe(false);
 	});
 
 	it("dispatches KEY event on keydown with pressed=true", async () => {
@@ -89,7 +89,7 @@ describe("Keyboard", () => {
 		keydownCb!(event);
 		expect(dispatchSpy).toHaveBeenCalledWith(
 			"inputKeyboard",
-			kb.keys,
+			kb["keys"],
 			event,
 		);
 	});
@@ -101,7 +101,7 @@ describe("Keyboard", () => {
 		keyupCb!(event);
 		expect(dispatchSpy).toHaveBeenCalledWith(
 			"inputKeyboard",
-			kb.keys,
+			kb["keys"],
 			event,
 		);
 	});
@@ -137,19 +137,21 @@ describe("Keyboard", () => {
 			const { default: Keyboard } = await import("@/input/Keyboard");
 			const kb = new Keyboard(mockGame);
 			keydownCb!({ code: "KeyD", type: "keydown" } as KeyboardEvent);
-			expect(kb.isPressed("KeyD")).toBe(true);
+			expect(kb.isActive("KeyD")).toBe(true);
 		});
 
 		it("returns false when key is not pressed", async () => {
 			const { default: Keyboard } = await import("@/input/Keyboard");
 			const kb = new Keyboard(mockGame);
-			expect(kb.isPressed("KeyX")).toBe(false);
+			expect(kb.isActive("KeyX")).toBe(false);
 		});
 
 		it("returns false for undefined key entry (double negation)", async () => {
 			const { default: Keyboard } = await import("@/input/Keyboard");
 			const kb = new Keyboard(mockGame);
-			expect(kb.isPressed("NonExistent")).toBe(false);
+			// A code outside KEYBOARD_KEYS still returns false, not undefined —
+			// `as never` bypasses the KeyboardKey narrowing to probe that.
+			expect(kb.isActive("NonExistent" as never)).toBe(false);
 		});
 	});
 
@@ -160,16 +162,16 @@ describe("Keyboard", () => {
 			const { default: Keyboard } = await import("@/input/Keyboard");
 			const kb = new Keyboard(mockGame);
 			keydownCb!({ code: "KeyE", type: "keydown" } as KeyboardEvent);
-			expect(kb.isPressed("KeyE")).toBe(true);
-			kb.stopPress("KeyE");
-			expect(kb.isPressed("KeyE")).toBe(false);
+			expect(kb.isActive("KeyE")).toBe(true);
+			kb.stop("KeyE");
+			expect(kb.isActive("KeyE")).toBe(false);
 		});
 
 		it("sets a non-pressed key to false (no-op)", async () => {
 			const { default: Keyboard } = await import("@/input/Keyboard");
 			const kb = new Keyboard(mockGame);
-			kb.stopPress("KeyF");
-			expect(kb.isPressed("KeyF")).toBe(false);
+			kb.stop("KeyF");
+			expect(kb.isActive("KeyF")).toBe(false);
 		});
 	});
 
@@ -184,35 +186,35 @@ describe("Keyboard", () => {
 			keydownCb!({ code: "KeyA", type: "keydown" } as KeyboardEvent);
 			keydownCb!({ code: "KeyD", type: "keydown" } as KeyboardEvent);
 			kb.reset();
-			expect(kb.isPressed("KeyW")).toBe(false);
-			expect(kb.isPressed("KeyS")).toBe(false);
-			expect(kb.isPressed("KeyA")).toBe(false);
-			expect(kb.isPressed("KeyD")).toBe(false);
+			expect(kb.isActive("KeyW")).toBe(false);
+			expect(kb.isActive("KeyS")).toBe(false);
+			expect(kb.isActive("KeyA")).toBe(false);
+			expect(kb.isActive("KeyD")).toBe(false);
 		});
 
 		it("handles empty keys object", async () => {
 			const { default: Keyboard } = await import("@/input/Keyboard");
 			const kb = new Keyboard(mockGame);
 			kb.reset();
-			expect(kb.keys).toEqual({});
+			expect(kb["keys"]).toEqual({});
 		});
 
 		it("is called when the gameloopStopped event fires", async () => {
 			const { default: Keyboard } = await import("@/input/Keyboard");
 			const kb = new Keyboard(mockGame);
 			keydownCb!({ code: "KeyW", type: "keydown" } as KeyboardEvent);
-			expect(kb.isPressed("KeyW")).toBe(true);
+			expect(kb.isActive("KeyW")).toBe(true);
 			EventSystem.dispatchEvent("gameloopStopped");
-			expect(kb.isPressed("KeyW")).toBe(false);
+			expect(kb.isActive("KeyW")).toBe(false);
 		});
 
 		it("is called when the window blur event fires", async () => {
 			const { default: Keyboard } = await import("@/input/Keyboard");
 			const kb = new Keyboard(mockGame);
 			keydownCb!({ code: "KeyW", type: "keydown" } as KeyboardEvent);
-			expect(kb.isPressed("KeyW")).toBe(true);
+			expect(kb.isActive("KeyW")).toBe(true);
 			blurCb!();
-			expect(kb.isPressed("KeyW")).toBe(false);
+			expect(kb.isActive("KeyW")).toBe(false);
 		});
 	});
 });

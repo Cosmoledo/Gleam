@@ -1,7 +1,8 @@
 import EventSystem from "@/core/EventSystem";
 import Vec2 from "@/math/Vec2";
+import { type Control } from "./Control";
 
-/** Button indices for the standard gamepad mapping (W3C Gamepad spec). Use as the index into {@link Controller.buttons}. */
+/** Button indices for the standard gamepad mapping (W3C Gamepad spec). Pass to {@link Controller.isActive} / {@link Controller.stop}. */
 export const CONTROLLER_KEYS = {
 	/** Bottom face button — `A` on Xbox, `×` on PlayStation. */
 	A: 0,
@@ -39,19 +40,22 @@ export const CONTROLLER_KEYS = {
 	GUIDE: 16,
 } as const;
 
+/** A gamepad button index — one of the values of {@link CONTROLLER_KEYS} (`0`–`16`). */
+export type ControllerKey = (typeof CONTROLLER_KEYS)[keyof typeof CONTROLLER_KEYS];
+
 const DEADZONE = 0.25;
 
 /**
  * Gamepad input. The first connected gamepad becomes "our" gamepad; later ones are ignored until ours disconnects. Connection / disconnection fires {@link EventSystem} `"inputControllerConnected"` / `"inputControllerDisconnected"`.
  *
- * Poll {@link buttons} (indexed via {@link CONTROLLER_KEYS}) and {@link poll} from your `update`. State is cleared on `window` blur and on disconnect so held buttons / non-neutral sticks don't stay live across focus loss. Visualizing is not the controller's responsibility — see {@link ControllerCursor} for the built-in on-screen visualization, or read {@link poll} directly to drive your own.
+ * Read buttons via {@link isActive} (indexed by {@link CONTROLLER_KEYS}) and call {@link poll} for the sticks from your `update`. State is cleared on `window` blur and on disconnect so held buttons / non-neutral sticks don't stay live across focus loss. Visualizing is not the controller's responsibility — see {@link ControllerCursor} for the built-in on-screen visualization, or read {@link poll} directly to drive your own.
  *
  * Logs to `console.error` if the browser doesn't expose the Gamepad API.
  */
-export default class Controller {
-	/** Pressed-state per button, indexed in the same order as the underlying `Gamepad.buttons`. Index with {@link CONTROLLER_KEYS}. Updated by {@link poll}; empty until the first non-cached poll. */
-	public buttons: boolean[] = [];
+export default class Controller implements Control<ControllerKey> {
 	private axes: Vec2[] = [];
+	/** Pressed-state per button, indexed in the same order as the underlying `Gamepad.buttons`. Index with {@link CONTROLLER_KEYS}. Updated by {@link poll}; empty until the first non-cached poll. */
+	private buttons: boolean[] = [];
 	private index = -1;
 	private lastTime = 0;
 
@@ -97,7 +101,7 @@ export default class Controller {
 		window.addEventListener("blur", () => this.reset(), false);
 	}
 
-	/** Read the current gamepad state and return one {@link Vec2} per stick pair with a circular deadzone applied (`0.25` inner radius, output magnitude clamped to `[0, 1]`). The returned array (and each `Vec2` in it) is reused across calls — clone if you need to retain. Also refreshes {@link buttons}. Returns the cached array unchanged when the gamepad timestamp hasn't advanced. */
+	/** Read the current gamepad state and return one {@link Vec2} per stick pair with a circular deadzone applied (`0.25` inner radius, output magnitude clamped to `[0, 1]`). The returned array (and each `Vec2` in it) is reused across calls — clone if you need to retain. Also refreshes the button state read by {@link isActive}. Returns the cached array unchanged when the gamepad timestamp hasn't advanced. */
 	public poll(): Vec2[] {
 		const gp = this.getGamepad();
 
@@ -127,10 +131,20 @@ export default class Controller {
 		return this.axes;
 	}
 
-	/** Clear {@link buttons} and the cached stick axes. Called automatically on `window` blur and on gamepad disconnect. */
+	/** Mark every tracked control as released and clear the cached stick axes. Called automatically on `window` blur and on gamepad disconnect. */
 	public reset(): void {
 		this.buttons.length = 0;
 		this.axes.length = 0;
+	}
+
+	/** Force `button` to read as released. Only holds until the next {@link poll}: `buttons` is rebuilt from the live gamepad each poll, so a still-held button re-surfaces on the following frame. Reliable only if the button is released before the next poll. */
+	public stop(button: ControllerKey): void {
+		this.buttons[button] = false;
+	}
+
+	/** `true` when the control is active. Safe for untouched unknown controls (returns `false` rather than `undefined`). */
+	public isActive(button: ControllerKey): boolean {
+		return !!this.buttons[button];
 	}
 
 	/** Trigger a 400 ms full-strength dual-rumble pulse. Returns `false` when no gamepad is connected or the pad has no `vibrationActuator`; `true` when the effect was dispatched. */

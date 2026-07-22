@@ -54,14 +54,14 @@ class Paddle {
 	 * @param {number} maxX
 	 */
 	update(dt, keyboard, maxX) {
-		// keyboard.isPressed(code) takes a KeyboardEvent.code string.
+		// keyboard.isActive(code) takes a KeyboardEvent.code string.
 		// KEYBOARD_KEYS just spares you the magic strings.
 		const left =
-			keyboard.isPressed(KEYBOARD_KEYS.KEY_LEFT) ||
-			keyboard.isPressed(KEYBOARD_KEYS.KEY_A);
+			keyboard.isActive(KEYBOARD_KEYS.KEY_LEFT) ||
+			keyboard.isActive(KEYBOARD_KEYS.KEY_A);
 		const right =
-			keyboard.isPressed(KEYBOARD_KEYS.KEY_RIGHT) ||
-			keyboard.isPressed(KEYBOARD_KEYS.KEY_D);
+			keyboard.isActive(KEYBOARD_KEYS.KEY_RIGHT) ||
+			keyboard.isActive(KEYBOARD_KEYS.KEY_D);
 
 		if (left) {
 			this.rect.x -= Paddle.#SPEED * dt;
@@ -264,10 +264,10 @@ class BrickBreaker extends Game {
 	/** @param {number} dt */
 	update(dt) {
 		// R -> restart from any state
-		if (this.keyboard.isPressed(KEYBOARD_KEYS.KEY_R)) {
-			// stopPress() consumes the held state so we don't
+		if (this.keyboard.isActive(KEYBOARD_KEYS.KEY_R)) {
+			// stop() consumes the held state so we don't
 			// re-trigger on subsequent ticks while R is still down.
-			this.keyboard.stopPress(KEYBOARD_KEYS.KEY_R);
+			this.keyboard.stop(KEYBOARD_KEYS.KEY_R);
 			this.#reset();
 			return;
 		}
@@ -286,7 +286,7 @@ class BrickBreaker extends Game {
 				this.#paddle.rect.x + Paddle.W / 2,
 				this.#paddle.rect.y - Ball.R - 1,
 			);
-			if (this.keyboard.isPressed(KEYBOARD_KEYS.KEY_SPACE)) {
+			if (this.keyboard.isActive(KEYBOARD_KEYS.KEY_SPACE)) {
 				this.#launched = true;
 				this.#ball.launch(Ball.SPEED * 0.5, -Ball.SPEED);
 			}

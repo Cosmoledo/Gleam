@@ -93,8 +93,31 @@ function calcCoverage() {
 	return isCoverageOk ? 0 : 1;
 }
 
+/**
+ * Src files the coverage run found to have no executable statements — pure
+ * type/interface modules (e.g. an `interface`-only file like `Control.ts`).
+ * There is nothing to unit-test in them, so they are exempt from the
+ * co-located-test requirement. Returned as `src/…`-relative paths.
+ * @returns {Set<string>}
+ */
+function typeOnlyFiles() {
+	const data = JSON.parse(
+		fs.readFileSync("./coverage/coverage-final.json", "utf8"),
+	);
+	const out = new Set();
+
+	Object.entries(data).forEach(([p, file]) => {
+		if (Object.keys(file.statementMap).length === 0) {
+			out.add(p.replace(/\\/g, "/").replace(/.*\/src\//, "src/"));
+		}
+	});
+
+	return out;
+}
+
 function hasFileATest() {
 	const SKIP = /\.d\.ts$|(^|\/)index\.ts$/;
+	const typeOnly = typeOnlyFiles();
 
 	/**
 	 * @param {string} dir
@@ -117,6 +140,10 @@ function hasFileATest() {
 
 	const missing = [];
 	for (const src of walk("src")) {
+		if (typeOnly.has(src)) {
+			continue;
+		}
+
 		const rel = src.replace(/^src\//, "").replace(/\.ts$/, "");
 		const unit = `tests/unit/${rel}.test.ts`;
 		const browser = `tests/browser/${rel}.test.ts`;

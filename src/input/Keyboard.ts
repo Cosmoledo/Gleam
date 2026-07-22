@@ -1,8 +1,9 @@
 import EventSystem from "@/core/EventSystem";
 import Settings from "@/core/Settings";
 import type Game from "@/core/Game";
+import { type Control } from "./Control";
 
-/** `KeyboardEvent.code` constants for the keys Gleam tracks by name. Use as the argument to {@link Keyboard.isPressed} / {@link Keyboard.stopPress} or as a string key into {@link Keyboard.keys}. */
+/** `KeyboardEvent.code` constants for the keys Gleam tracks by name. Pass to {@link Keyboard.isActive} / {@link Keyboard.stop}. */
 export const KEYBOARD_KEYS = {
 	/** Digit row `0`. */
 	KEY_0: "Digit0",
@@ -94,14 +95,17 @@ export const KEYBOARD_KEYS = {
 	KEY_Z: "KeyZ",
 } as const;
 
+/** A tracked key's `KeyboardEvent.code` — one of the values of {@link KEYBOARD_KEYS}. */
+export type KeyboardKey = (typeof KEYBOARD_KEYS)[keyof typeof KEYBOARD_KEYS];
+
 /**
- * Keyboard state. Wired into `Game` automatically. The preferred way to consume input is to poll {@link isPressed} from `update` — game input is held-state-based ("is W held this frame?"), and combining with {@link stopPress} handles one-shot actions cleanly. The {@link EventSystem} `"inputKeyboard"` event (payload: `(keys, event)`) is available for cases that genuinely need edge-triggered handling.
+ * Keyboard state. Wired into `Game` automatically. The preferred way to consume input is to poll {@link isActive} from `update` — game input is held-state-based ("is W held this frame?"), and combining with {@link stop} handles one-shot actions cleanly. The {@link EventSystem} `"inputKeyboard"` event (payload: `(keys, event)`) is available for cases that genuinely need edge-triggered handling.
  *
  * State is cleared on `window` blur and on `gameloopStopped` so held keys don't stay "pressed" when focus or the loop is lost. In `Settings.debug` mode, pressing Escape stops the gameloop.
  */
-export default class Keyboard {
-	/** Live map of `KeyboardEvent.code` → pressed state. Codes only appear after the key has been touched at least once; missing codes read as `undefined` (use {@link isPressed} for a safe `boolean`). */
-	public keys: Record<string, boolean> = {};
+export default class Keyboard implements Control<KeyboardKey> {
+	/** Live map of `KeyboardEvent.code` → pressed state. Codes only appear after the key has been touched at least once; missing codes read as `undefined` (use {@link isActive} for a safe `boolean`). */
+	private keys: Record<string, boolean> = {};
 
 	constructor(game: Game) {
 		const keyEvent = (event: KeyboardEvent): void => {
@@ -130,20 +134,20 @@ export default class Keyboard {
 		});
 	}
 
-	/** Mark every tracked key as released. Called automatically on `window` blur and on `gameloopStopped`. */
+	/** Mark every tracked control as released. Called automatically on `window` blur and on `gameloopStopped`. */
 	public reset(): void {
 		for (const key in this.keys) {
 			this.keys[key] = false;
 		}
 	}
 
-	/** Mark a single key as released — used to consume a press so subsequent ticks don't re-trigger one-shot actions while the key is still held. */
-	public stopPress(code: string): void {
+	/** Force `code` to read as released. Holds until the next `keydown` for that key — so a momentary tap is consumed until it's pressed again, but a physically held key re-surfaces on the next OS auto-repeat `keydown`. */
+	public stop(code: KeyboardKey): void {
 		this.keys[code] = false;
 	}
 
-	/** `true` when `code` is currently held. Safe for untouched keys (returns `false` rather than `undefined`). */
-	public isPressed(code: string): boolean {
+	/** `true` when the control is active. Safe for untouched unknown controls (returns `false` rather than `undefined`). */
+	public isActive(code: KeyboardKey): boolean {
 		return !!this.keys[code];
 	}
 }

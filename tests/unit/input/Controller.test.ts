@@ -145,13 +145,13 @@ describe("Controller", () => {
 			const handlers = captureHandlers();
 			const controller = new Controller();
 			controller["index"] = 5;
-			controller.buttons = [true];
+			controller["buttons"] = [true];
 			controller["axes"] = [new Vec2(0.5, 0.5)];
 
 			handlers.disconnect!({ gamepad: mockGp } as GamepadEvent);
 
 			expect(controller["index"]).toBe(-1);
-			expect(controller.buttons).toHaveLength(0);
+			expect(controller["buttons"]).toHaveLength(0);
 			expect(controller["axes"]).toHaveLength(0);
 			expect(dispatchSpy).toHaveBeenCalledWith(
 				"inputControllerDisconnected",
@@ -180,7 +180,7 @@ describe("Controller", () => {
 			defineGamepadSupport(null);
 			const controller = new Controller();
 			expect(controller.poll()).toEqual([]);
-			expect(controller.buttons).toEqual([]);
+			expect(controller["buttons"]).toEqual([]);
 		});
 
 		it("returns cached axes when timestamp has not changed", () => {
@@ -191,7 +191,7 @@ describe("Controller", () => {
 			controller["axes"] = [new Vec2()];
 			controller["lastTime"] = 1000;
 			controller.poll();
-			expect(controller.buttons).toEqual([]);
+			expect(controller["buttons"]).toEqual([]);
 		});
 
 		it("updates buttons and lastTime on a fresh frame", () => {
@@ -207,7 +207,7 @@ describe("Controller", () => {
 			controller["axes"] = [new Vec2()];
 
 			controller.poll();
-			expect(controller.buttons).toEqual([true, false, true]);
+			expect(controller["buttons"]).toEqual([true, false, true]);
 			expect(controller["lastTime"]).toBe(2000);
 		});
 
@@ -331,10 +331,10 @@ describe("Controller", () => {
 		it("clears buttons and axes", () => {
 			defineGamepadSupport(null);
 			const controller = new Controller();
-			controller.buttons = [true, false];
+			controller["buttons"] = [true, false];
 			controller["axes"] = [new Vec2(1, 1)];
 			controller.reset();
-			expect(controller.buttons).toHaveLength(0);
+			expect(controller["buttons"]).toHaveLength(0);
 			expect(controller["axes"]).toHaveLength(0);
 		});
 
@@ -342,11 +342,29 @@ describe("Controller", () => {
 			defineGamepadSupport(createMockGamepad([], [0, 0]));
 			const handlers = captureHandlers();
 			const controller = new Controller();
-			controller.buttons = [true];
+			controller["buttons"] = [true];
 			controller["axes"] = [new Vec2(1, 1)];
 			handlers.blur!();
-			expect(controller.buttons).toHaveLength(0);
+			expect(controller["buttons"]).toHaveLength(0);
 			expect(controller["axes"]).toHaveLength(0);
+		});
+	});
+
+	describe("stop / isActive", () => {
+		it("isActive reflects button state and stop forces it false", () => {
+			defineGamepadSupport(null);
+			const controller = new Controller();
+			controller["buttons"] = [true, false];
+			expect(controller.isActive(CONTROLLER_KEYS.A)).toBe(true);
+			expect(controller.isActive(CONTROLLER_KEYS.B)).toBe(false);
+			controller.stop(CONTROLLER_KEYS.A);
+			expect(controller.isActive(CONTROLLER_KEYS.A)).toBe(false);
+		});
+
+		it("isActive returns false for an untouched button", () => {
+			defineGamepadSupport(null);
+			const controller = new Controller();
+			expect(controller.isActive(CONTROLLER_KEYS.GUIDE)).toBe(false);
 		});
 	});
 });

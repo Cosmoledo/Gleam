@@ -8,6 +8,9 @@ npm audit
 echo "Running ESLint..."
 npx eslint src tests --ext .ts --fix
 
+echo "Typechecking src + tests..."
+npx tsc --noEmit
+
 echo "Running comment checker"
 node scripts/checkCommentWrap.mjs
 

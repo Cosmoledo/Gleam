@@ -92,7 +92,7 @@ describe("Pointer", () => {
 	it("initializes pressed array", async () => {
 		const { default: Pointer } = await import("@/input/Pointer");
 		const pointer = new Pointer(mockGame);
-		expect(Array.isArray(pointer.pressed)).toBe(true);
+		expect(Array.isArray(pointer["pressed"])).toBe(true);
 	});
 
 	it("initializes hasMoved to false", async () => {
@@ -308,7 +308,7 @@ describe("Pointer", () => {
 			const { default: Pointer } = await import("@/input/Pointer");
 			const pointer = new Pointer(mockGame);
 			pointerdownCb!(evt(1));
-			expect(pointer.pressed[POINTER_KEYS.LEFT]).toBe(true);
+			expect(pointer.isActive(POINTER_KEYS.LEFT)).toBe(true);
 		});
 
 		it("maps the bitmask to POINTER_KEYS indices (middle/right swapped vs. bit order)", async () => {
@@ -316,38 +316,38 @@ describe("Pointer", () => {
 			const pointer = new Pointer(mockGame);
 			// bit 2 is the SECONDARY (right) button; bit 4 the AUXILIARY (middle)
 			pointerdownCb!(evt(2));
-			expect(pointer.pressed[POINTER_KEYS.RIGHT]).toBe(true);
-			expect(pointer.pressed[POINTER_KEYS.MIDDLE]).toBe(false);
+			expect(pointer.isActive(POINTER_KEYS.RIGHT)).toBe(true);
+			expect(pointer.isActive(POINTER_KEYS.MIDDLE)).toBe(false);
 			pointerdownCb!(evt(4));
-			expect(pointer.pressed[POINTER_KEYS.MIDDLE]).toBe(true);
-			expect(pointer.pressed[POINTER_KEYS.RIGHT]).toBe(false);
+			expect(pointer.isActive(POINTER_KEYS.MIDDLE)).toBe(true);
+			expect(pointer.isActive(POINTER_KEYS.RIGHT)).toBe(false);
 		});
 
 		it("sets every standard button when all bits are set", async () => {
 			const { default: Pointer } = await import("@/input/Pointer");
 			const pointer = new Pointer(mockGame);
 			pointerdownCb!(evt(1 | 2 | 4 | 8 | 16));
-			expect(pointer.pressed[POINTER_KEYS.LEFT]).toBe(true);
-			expect(pointer.pressed[POINTER_KEYS.MIDDLE]).toBe(true);
-			expect(pointer.pressed[POINTER_KEYS.RIGHT]).toBe(true);
-			expect(pointer.pressed[POINTER_KEYS.PREV]).toBe(true);
-			expect(pointer.pressed[POINTER_KEYS.FORWARD]).toBe(true);
+			expect(pointer.isActive(POINTER_KEYS.LEFT)).toBe(true);
+			expect(pointer.isActive(POINTER_KEYS.MIDDLE)).toBe(true);
+			expect(pointer.isActive(POINTER_KEYS.RIGHT)).toBe(true);
+			expect(pointer.isActive(POINTER_KEYS.PREV)).toBe(true);
+			expect(pointer.isActive(POINTER_KEYS.FORWARD)).toBe(true);
 		});
 
 		it("clears all buttons when buttons is 0 (last button released)", async () => {
 			const { default: Pointer } = await import("@/input/Pointer");
 			const pointer = new Pointer(mockGame);
 			pointerdownCb!(evt(1));
-			expect(pointer.pressed[POINTER_KEYS.LEFT]).toBe(true);
+			expect(pointer.isActive(POINTER_KEYS.LEFT)).toBe(true);
 			pointerupCb!(evt(0, "pointerup"));
-			expect(pointer.pressed[POINTER_KEYS.LEFT]).toBe(false);
+			expect(pointer.isActive(POINTER_KEYS.LEFT)).toBe(false);
 		});
 
 		it("ignores exotic buttons beyond the 5 standard bits", async () => {
 			const { default: Pointer } = await import("@/input/Pointer");
 			const pointer = new Pointer(mockGame);
 			pointerdownCb!(evt(32)); // hypothetical 6th button
-			expect(pointer.pressed.some(Boolean)).toBe(false);
+			expect(pointer["pressed"].some(Boolean)).toBe(false);
 		});
 	});
 
@@ -374,23 +374,23 @@ describe("Pointer", () => {
 
 			// left down
 			pointerdownCb!(evt("pointerdown", 1));
-			expect(pointer.pressed[POINTER_KEYS.LEFT]).toBe(true);
-			expect(pointer.pressed[POINTER_KEYS.RIGHT]).toBe(false);
+			expect(pointer.isActive(POINTER_KEYS.LEFT)).toBe(true);
+			expect(pointer.isActive(POINTER_KEYS.RIGHT)).toBe(false);
 
 			// right pressed while left held -> pointermove, buttons = 1|2
 			pointermoveCb!(evt("pointermove", 3));
-			expect(pointer.pressed[POINTER_KEYS.LEFT]).toBe(true);
-			expect(pointer.pressed[POINTER_KEYS.RIGHT]).toBe(true);
+			expect(pointer.isActive(POINTER_KEYS.LEFT)).toBe(true);
+			expect(pointer.isActive(POINTER_KEYS.RIGHT)).toBe(true);
 
 			// right released while left held -> pointermove, buttons = 1
 			pointermoveCb!(evt("pointermove", 1));
-			expect(pointer.pressed[POINTER_KEYS.LEFT]).toBe(true);
-			expect(pointer.pressed[POINTER_KEYS.RIGHT]).toBe(false);
+			expect(pointer.isActive(POINTER_KEYS.LEFT)).toBe(true);
+			expect(pointer.isActive(POINTER_KEYS.RIGHT)).toBe(false);
 
 			// left released (last button) -> pointerup, buttons = 0
 			pointerupCb!(evt("pointerup", 0));
-			expect(pointer.pressed[POINTER_KEYS.LEFT]).toBe(false);
-			expect(pointer.pressed[POINTER_KEYS.RIGHT]).toBe(false);
+			expect(pointer.isActive(POINTER_KEYS.LEFT)).toBe(false);
+			expect(pointer.isActive(POINTER_KEYS.RIGHT)).toBe(false);
 		});
 	});
 
@@ -411,19 +411,39 @@ describe("Pointer", () => {
 			const { default: Pointer } = await import("@/input/Pointer");
 			const pointer = new Pointer(mockGame);
 			pointerdownCb!(evt(1 | 2)); // left + right
-			expect(pointer.pressed[POINTER_KEYS.LEFT]).toBe(true);
-			expect(pointer.pressed[POINTER_KEYS.RIGHT]).toBe(true);
+			expect(pointer.isActive(POINTER_KEYS.LEFT)).toBe(true);
+			expect(pointer.isActive(POINTER_KEYS.RIGHT)).toBe(true);
 			pointer.reset();
-			expect(pointer.pressed.length).toBe(0);
+			expect(pointer["pressed"].length).toBe(0);
 		});
 
 		it("is called when the window blur event fires", async () => {
 			const { default: Pointer } = await import("@/input/Pointer");
 			const pointer = new Pointer(mockGame);
 			pointerdownCb!(evt(1));
-			expect(pointer.pressed[POINTER_KEYS.LEFT]).toBe(true);
+			expect(pointer.isActive(POINTER_KEYS.LEFT)).toBe(true);
 			blurCb!();
-			expect(pointer.pressed.length).toBe(0);
+			expect(pointer["pressed"].length).toBe(0);
+		});
+	});
+
+	// ==================== stop ====================
+
+	describe("stop", () => {
+		it("forces a pressed button to read as released", async () => {
+			const { default: Pointer } = await import("@/input/Pointer");
+			const pointer = new Pointer(mockGame);
+			pointerdownCb!({
+				type: "pointerdown",
+				buttons: 1,
+				clientX: 10,
+				clientY: 10,
+				target: mockGame.canman.canvas,
+				preventDefault: vi.fn(),
+			} as unknown as PointerEvent);
+			expect(pointer.isActive(POINTER_KEYS.LEFT)).toBe(true);
+			pointer.stop(POINTER_KEYS.LEFT);
+			expect(pointer.isActive(POINTER_KEYS.LEFT)).toBe(false);
 		});
 	});
 });

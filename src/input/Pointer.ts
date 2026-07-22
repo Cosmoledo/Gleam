@@ -2,8 +2,9 @@ import EventSystem from "@/core/EventSystem";
 import Vec2 from "@/math/Vec2";
 import type Game from "@/core/Game";
 import { clamp } from "@/utilities/Number";
+import { type Control } from "./Control";
 
-/** Button indices that match `PointerEvent.button` and index into {@link Pointer.pressed}. */
+/** Button indices that match `PointerEvent.button`; pass to {@link Pointer.isActive} / {@link Pointer.stop}. */
 export const POINTER_KEYS = {
 	/** Primary button (left for right-handers). */
 	LEFT: 0,
@@ -17,12 +18,15 @@ export const POINTER_KEYS = {
 	FORWARD: 4,
 } as const;
 
+/** A pointer button index — one of the values of {@link POINTER_KEYS} (`0`–`4`). */
+export type PointerKey = (typeof POINTER_KEYS)[keyof typeof POINTER_KEYS];
+
 /**
- * Pointer (mouse / pen / touch) state. Wired into `Game` automatically. The preferred way to consume input is to subscribe to the {@link EventSystem} `"inputPointer"` event — it fires on every move and button transition, with this `Pointer` instance as the payload. If you need the latest state on a frame boundary instead, poll `game.pointer.posScaled` and `game.pointer.pressed[POINTER_KEYS.LEFT]` from `update`.
+ * Pointer (mouse / pen / touch) state. Wired into `Game` automatically. The preferred way to consume input is to subscribe to the {@link EventSystem} `"inputPointer"` event — it fires on every move and button transition, with this `Pointer` instance as the payload. If you need the latest state on a frame boundary instead, poll `game.pointer.posScaled` and `game.pointer.isActive(POINTER_KEYS.LEFT)` from `update`.
  *
  * Suppresses the browser context menu on right-click globally.
  */
-export default class Pointer {
+export default class Pointer implements Control<PointerKey> {
 	/** Dirty bit set to `true` on every move and never cleared by the engine — flip it back to `false` after reading to detect "moved since last check". */
 	public hasMoved = false;
 	/** Last raw `PointerEvent` received. `null` until any pointer event fires. Use for properties not surfaced as Vec2/booleans (pressure, pointerType, etc.). */
@@ -35,9 +39,9 @@ export default class Pointer {
 	public posScaled = new Vec2();
 	/** Previous tick's {@link posScaled}. */
 	public posScaledLast = new Vec2();
-	/** Per-button pressed state. Index with {@link POINTER_KEYS} (e.g. `pressed[POINTER_KEYS.LEFT]`). Rebuilt in full from `PointerEvent.buttons` on every pointer event, so all five entries are real booleans once any event has fired (the array is empty — reads `undefined` — only before the first event and after {@link reset}). */
-	public pressed: boolean[] = [];
 	private game: Game;
+	/** Per-button pressed state. Index with {@link POINTER_KEYS} (e.g. `pressed[POINTER_KEYS.LEFT]`). Rebuilt in full from `PointerEvent.buttons` on every pointer event, so all five entries are real booleans once any event has fired (the array is empty — reads `undefined` — only before the first event and after {@link reset}). */
+	private pressed: boolean[] = [];
 
 	constructor(game: Game) {
 		this.game = game;
@@ -81,6 +85,16 @@ export default class Pointer {
 	/** Clear all pressed-button state. Called automatically on `window` blur so held buttons don't stay "pressed" forever when focus is lost. */
 	public reset(): void {
 		this.pressed.length = 0;
+	}
+
+	/** Force `button` to read as released. Only holds until the next pointer event: `pressed` is rebuilt from `PointerEvent.buttons` on every move/up/down, so a still-held button re-surfaces on the next mouse move. Reliable only if the button is released before the pointer next moves. */
+	public stop(button: PointerKey): void {
+		this.pressed[button] = false;
+	}
+
+	/** `true` when the control is active. Safe for untouched unknown controls (returns `false` rather than `undefined`). */
+	public isActive(button: PointerKey): boolean {
+		return !!this.pressed[button];
 	}
 
 	private update(event: PointerEvent): void {
