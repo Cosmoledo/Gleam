@@ -9,8 +9,7 @@ export interface CSSVariables {
 }
 
 /**
- * `querySelector` variant that throws when no element matches.
- * Optionally narrow the return type per tag, e.g. `getElement<HTMLCanvasElement>("canvas")`.
+ * `querySelector` variant that throws when no element matches. Optionally narrow the return type per tag, e.g. `getElement<HTMLCanvasElement>("canvas")`.
  */
 export function getElement<T extends Element = HTMLElement>(
 	query: string,
@@ -65,10 +64,7 @@ export function initCSSVariables(): CSSVariables {
 }
 
 /**
- * Calls `callback` on pointerdown of the matched element, then keeps calling it every `delay` ms
- * until pointerup or pointercancel. Uses pointer capture so the action persists while the cursor
- * drags off the element (and over descendants). Unifies mouse, touch, and pen. Throws if no element
- * matches. Returns a dispose function that removes the listeners and stops any in-flight interval.
+ * Calls `callback` on pointerdown of the matched element, then keeps calling it every `delay` ms until pointerup or pointercancel. Uses pointer capture so the action persists while the cursor drags off the element (and over descendants). Unifies mouse, touch, and pen. Throws if no element matches. Returns a dispose function that removes the listeners and stops any in-flight interval.
  */
 export function doWhilePressed(
 	querySelector: string,
@@ -123,8 +119,7 @@ export function doWhilePressed(
 }
 
 /**
- * Resolves the next time `type` fires on `element` (one-shot listener). Pass an `AbortSignal`
- * to cancel — rejects with `signal.reason` and removes the listener.
+ * Resolves the next time `type` fires on `element` (one-shot listener). Pass an `AbortSignal` to cancel — rejects with `signal.reason` and removes the listener.
  */
 export async function waitForEvent<K extends keyof HTMLElementEventMap>(
 	element: HTMLElement,

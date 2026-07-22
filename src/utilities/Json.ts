@@ -1,13 +1,5 @@
 /**
- * Recursively clone a value. Returns primitives and functions as-is (no copy).
- * Cyclic references resolve via an internal `WeakMap`. Explicit branches preserve
- * `Date`, `RegExp`, `Map`, `Set`, `Array`, `ArrayBuffer`, typed arrays, and `DataView`.
- * For plain objects / class instances the prototype is preserved via
- * `Object.create(...)` — the original constructor is *not* called, so no side
- * effects fire. Symbol keys and non-enumerable data properties are carried via descriptors.
- * Own accessor properties (`get`/`set`) are snapshotted to a data property by invoking
- * the getter on the source; this severs any closure binding to the original instance
- * but also drops live computation on the clone.
+ * Recursively clone a value. Returns primitives and functions as-is (no copy). Cyclic references resolve via an internal `WeakMap`. Explicit branches preserve `Date`, `RegExp`, `Map`, `Set`, `Array`, `ArrayBuffer`, typed arrays, and `DataView`. For plain objects / class instances the prototype is preserved via `Object.create(...)` — the original constructor is *not* called, so no side effects fire. Symbol keys and non-enumerable data properties are carried via descriptors. Own accessor properties (`get`/`set`) are snapshotted to a data property by invoking the getter on the source; this severs any closure binding to the original instance but also drops live computation on the clone.
  */
 export function deepClone<T>(obj: T): T {
 	return cloneInternal(obj, new WeakMap<object, unknown>());

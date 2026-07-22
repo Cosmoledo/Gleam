@@ -8,6 +8,9 @@ npm audit
 echo "Running ESLint..."
 npx eslint src tests --ext .ts --fix
 
+echo "Running comment checker"
+node scripts/checkCommentWrap.mjs
+
 echo "Validating CHANGELOG..."
 # Normalizes CHANGELOG.md in place and hard-fails on an invalid change type,
 # enforcing the standard Added/Changed/Deprecated/Removed/Fixed/Security

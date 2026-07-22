@@ -3,8 +3,7 @@ import { createNewCanvas } from "@/utilities/Canvas";
 const DEFAULT_TIMEOUT_MS = 10_000;
 
 /**
- * Validates URL format and protocol before any side effects.
- * Throws on invalid URLs or disallowed protocols.
+ * Validates URL format and protocol before any side effects. Throws on invalid URLs or disallowed protocols.
  */
 export function validateUrl(url: string): void {
 	const schemeMatch = url.trim().match(/^([a-z][a-z0-9+.-]*):/i);
@@ -26,12 +25,7 @@ export function validateUrl(url: string): void {
 }
 
 /**
- * Safe loading wrapper with global timeout and error handling.
- * Use this for any async loading operation that needs timeout protection.
- * Timeout rejects the returned promise but does not cancel the underlying
- * fetch/Image — the request continues until natural completion. Adding
- * AbortSignal support would require a full rewrite (factory-based API).
- * Maybe a future feature, though.
+ * Safe loading wrapper with global timeout and error handling. Use this for any async loading operation that needs timeout protection. Timeout rejects the returned promise but does not cancel the underlying fetch/Image — the request continues until natural completion. Adding AbortSignal support would require a full rewrite (factory-based API). Maybe a future feature, though.
  */
 export function safeLoad<T>(
 	promise: Promise<T>,

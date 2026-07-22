@@ -84,9 +84,7 @@ export function rotateHue(
 }
 
 /**
- * Recolor an opaque canvas in place using composite operations,
- * preserving the alpha mask of the source image. Wraps the body in `save`/`restore`
- * so `fillStyle` / `globalCompositeOperation` writes don't leak to the caller's context.
+ * Recolor an opaque canvas in place using composite operations, preserving the alpha mask of the source image. Wraps the body in `save`/`restore` so `fillStyle` / `globalCompositeOperation` writes don't leak to the caller's context.
  * https://stackoverflow.com/a/45201094
  */
 export function changeColor(
@@ -111,8 +109,7 @@ export function changeColor(
 }
 
 /**
- * Split a sprite-sheet image into individual sprite canvases laid out as `elementsX × elementsY`.
- * Throws if the image dimensions don't divide evenly — sheets are expected to be authored that way.
+ * Split a sprite-sheet image into individual sprite canvases laid out as `elementsX × elementsY`. Throws if the image dimensions don't divide evenly — sheets are expected to be authored that way.
  */
 export function splitSpriteSheet(
 	img: HTMLCanvasElement,
@@ -139,9 +136,7 @@ export function splitSpriteSheet(
 }
 
 /**
- * Count occurrences of each color in an image, keyed by `#rrggbb`.
- * `pixelAmount` multiplies each count and floors to int; values < 1 will drop low-count colors entirely (count rounds to 0).
- * `removeLowerThan` / `removeHigherThan` drop entries outside the range; `0` disables either bound.
+ * Count occurrences of each color in an image, keyed by `#rrggbb`. `pixelAmount` multiplies each count and floors to int; values < 1 will drop low-count colors entirely (count rounds to 0). `removeLowerThan` / `removeHigherThan` drop entries outside the range; `0` disables either bound.
  */
 export function getUsedColors(
 	image: HTMLCanvasElement,

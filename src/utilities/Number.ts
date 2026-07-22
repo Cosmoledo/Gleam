@@ -67,9 +67,7 @@ export function toDotted(value: number): string {
 }
 
 /**
- * Wrap `value` into `[min, max)` modulo the range size. Useful for cyclic ranges like angles.
- * Caller steps via `value + n`; this function handles the wrap-around.
- * Bounds are swapped if passed in reverse order. Throws when `min ≈ max` (degenerate range, via `approxEqual`).
+ * Wrap `value` into `[min, max)` modulo the range size. Useful for cyclic ranges like angles. Caller steps via `value + n`; this function handles the wrap-around. Bounds are swapped if passed in reverse order. Throws when `min ≈ max` (degenerate range, via `approxEqual`).
  */
 export function wrapValue(value: number, min: number, max: number): number {
 	if (approxEqual(min, max)) {

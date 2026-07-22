@@ -4,18 +4,14 @@ import { randomBetweenInt } from "./Math";
 export type RGB = [number, number, number];
 
 /**
- * Convert an `(r, g, b)` triple (0-255) to a `#rrggbb` hex string.
- * Low-level; prefer `Color.toHex()` outside hot per-pixel loops.
+ * Convert an `(r, g, b)` triple (0-255) to a `#rrggbb` hex string. Low-level; prefer `Color.toHex()` outside hot per-pixel loops.
  */
 export function rgb2hex(red: number, green: number, blue: number): string {
 	return int2hex(rgb2Int(red, green, blue));
 }
 
 /**
- * Pack `(r, g, b[, a])` channels into a single integer key.
- * RGB are 0-255. Alpha is 0-1 (CSS convention); divide canvas byte-alpha by 255 before passing.
- * Without alpha: 24-bit `RGB`. With alpha: 32-bit `RGBA` (forced unsigned).
- * Useful for fast per-pixel lookups: cheaper than building a hex string.
+ * Pack `(r, g, b[, a])` channels into a single integer key. RGB are 0-255. Alpha is 0-1 (CSS convention); divide canvas byte-alpha by 255 before passing. Without alpha: 24-bit `RGB`. With alpha: 32-bit `RGBA` (forced unsigned). Useful for fast per-pixel lookups: cheaper than building a hex string.
  */
 export function rgb2Int(
 	red: number,
@@ -32,16 +28,14 @@ export function rgb2Int(
 }
 
 /**
- * Format a packed 24-bit `RGB` integer (see {@link rgb2Int}) as a `#rrggbb` hex string.
- * Low-level; prefer `Color.toHex()` outside hot per-pixel loops.
+ * Format a packed 24-bit `RGB` integer (see {@link rgb2Int}) as a `#rrggbb` hex string. Low-level; prefer `Color.toHex()` outside hot per-pixel loops.
  */
 export function int2hex(int: number): string {
 	return "#" + (0x1000000 + int).toString(16).slice(1);
 }
 
 /**
- * Convert a `#rgb` or `#rrggbb` hex string to an `[r, g, b]` integer tuple.
- * Low-level; prefer `Color.fromHex()` outside hot per-pixel loops. Caller must pass a valid hex string.
+ * Convert a `#rgb` or `#rrggbb` hex string to an `[r, g, b]` integer tuple. Low-level; prefer `Color.fromHex()` outside hot per-pixel loops. Caller must pass a valid hex string.
  */
 export function hex2rgb(hex: string): RGB {
 	return hex

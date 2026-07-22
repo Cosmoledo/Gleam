@@ -44,9 +44,7 @@ const warnNonFinite = throttle(count =>
 );
 
 /**
- * 2D vector. Scalar args to `set`/`add`/`sub`/`mult`/`div`/`rem`/`mod`/`equals`
- * broadcast to both axes: `vec.add(5)` adds 5 to x and y, `vec.mult(-1)` negates
- * both. Pass `(x, y)` or a `Vector2` for per-axis values.
+ * 2D vector. Scalar args to `set`/`add`/`sub`/`mult`/`div`/`rem`/`mod`/`equals` broadcast to both axes: `vec.add(5)` adds 5 to x and y, `vec.mult(-1)` negates both. Pass `(x, y)` or a `Vector2` for per-axis values.
  */
 export default class Vec2 {
 	/** Unit vector at angle `rad` (radians), scaled per-axis. `scaleY` defaults to `scaleX`. */

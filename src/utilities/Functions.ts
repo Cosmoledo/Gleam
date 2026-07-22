@@ -21,18 +21,14 @@ export function delay(time: number): Promise<void> {
 }
 
 /**
- * Returns `true` when touch is the primary input right now (game-UI question: show touch controls?).
- * Mode-aware: a convertible in laptop mode returns `false`, in tablet mode returns `true`.
- * Snapshot at call time — won't auto-update if the user switches modes mid-game.
+ * Returns `true` when touch is the primary input right now (game-UI question: show touch controls?). Mode-aware: a convertible in laptop mode returns `false`, in tablet mode returns `true`. Snapshot at call time — won't auto-update if the user switches modes mid-game.
  */
 export function isTouchPrimary(): boolean {
 	return matchMedia("(pointer: coarse)").matches;
 }
 
 /**
- * Run `tick(dt)` on every animation frame; `dt` is seconds since the previous
- * frame (0 on the first call). Returns a cancel function that stops the loop —
- * no further ticks fire after it's called, even if one was already queued.
+ * Run `tick(dt)` on every animation frame; `dt` is seconds since the previous frame (0 on the first call). Returns a cancel function that stops the loop — no further ticks fire after it's called, even if one was already queued.
  */
 export function rafLoop(tick: (dt: number) => void): () => void {
 	let lastTime = 0;
@@ -60,8 +56,7 @@ export function rafLoop(tick: (dt: number) => void): () => void {
 }
 
 /**
- * Returns a throttled wrapper that runs `callback` at most once per `delay` ms (leading edge).
- * The callback receives the number of wrapper calls since the previous firing (inclusive of this one).
+ * Returns a throttled wrapper that runs `callback` at most once per `delay` ms (leading edge). The callback receives the number of wrapper calls since the previous firing (inclusive of this one).
  */
 export function throttle(
 	callback: (callCount: number) => void,
@@ -85,10 +80,7 @@ export function throttle(
 }
 
 /**
- * Like `throttle`, but tracks the last firing independently per `key` —
- * different keys never throttle each other. Use for de-duplicating repeated
- * error/warning logs by message identity. When the throttle fires, args from
- * the most recent call for that key are passed through alongside `callCount`.
+ * Like `throttle`, but tracks the last firing independently per `key` — different keys never throttle each other. Use for de-duplicating repeated error/warning logs by message identity. When the throttle fires, args from the most recent call for that key are passed through alongside `callCount`.
  */
 export function throttleByKey<T extends unknown[]>(
 	callback: (callCount: number, ...args: T) => void,
@@ -120,12 +112,9 @@ export function throttleByKey<T extends unknown[]>(
 export type Entries<T> = { [K in keyof T]-?: [K, T[K]] }[keyof T];
 
 /**
- * `Object.entries` retyped so each `[key, value]` tuple keeps the key↔value
- * relationship. Narrowing `key` in a branch narrows `value` to that key's type —
- * unlike the built-in `Object.entries`, which widens `value` to `any`.
+ * `Object.entries` retyped so each `[key, value]` tuple keeps the key↔value relationship. Narrowing `key` in a branch narrows `value` to that key's type — unlike the built-in `Object.entries`, which widens `value` to `any`.
  *
- * Runtime-identical to `Object.entries` (it *is* `Object.entries`); only the
- * return type is narrowed.
+ * Runtime-identical to `Object.entries` (it *is* `Object.entries`); only the return type is narrowed.
  *
  * @example
  * ```ts
@@ -152,8 +141,7 @@ export const typedEntries = Object.entries as <T extends object>(
 ) => Entries<T>[];
 
 /**
- * Filename component of a URL/path, without directory, extension, or query string.
- * Returns `null` when no usable name can be derived: a path ending in `/`, or a stem containing a malformed percent-escape that `decodeURIComponent` rejects.
+ * Filename component of a URL/path, without directory, extension, or query string. Returns `null` when no usable name can be derived: a path ending in `/`, or a stem containing a malformed percent-escape that `decodeURIComponent` rejects.
  */
 export function urlBasename(path: string): string | null {
 	const url = new URL(path, "http://_/");

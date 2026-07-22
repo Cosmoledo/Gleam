@@ -135,8 +135,7 @@ let largestCachedFactorial = 0;
 let factorialOverflowAt = Infinity;
 
 /**
- * Calculate factorial of a non-negative integer. Memoized — repeat calls reuse cached intermediates.
- * Returns `Infinity` once `n!` overflows the IEEE 754 double range (around `n = 171`).
+ * Calculate factorial of a non-negative integer. Memoized — repeat calls reuse cached intermediates. Returns `Infinity` once `n!` overflows the IEEE 754 double range (around `n = 171`).
  */
 export function getFactorial(n: number): number {
 	const intN = Math.floor(n);

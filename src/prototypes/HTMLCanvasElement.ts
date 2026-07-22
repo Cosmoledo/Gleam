@@ -30,8 +30,7 @@ defineMethod(HTMLCanvasElement.prototype, "hasAnyColor", function (): boolean {
 declare global {
 	interface HTMLCanvasElement {
 		/**
-		 * Read the pixel at `(x, y)`. Out-of-bounds reads return zero/transparent.
-		 * Not for hot paths — each call issues a fresh `getImageData`. For bulk reads, call `getImageData` once and index into the buffer.
+		 * Read the pixel at `(x, y)`. Out-of-bounds reads return zero/transparent. Not for hot paths — each call issues a fresh `getImageData`. For bulk reads, call `getImageData` once and index into the buffer.
 		 * @param output return format. Default `"integer"`.
 		 */
 		getPixelAt(x: number, y: number, output?: "integer"): number;

@@ -23,12 +23,13 @@ const BRIGHTNESS = 4;
 const CONTRAST = 5;
 
 /**
- * Used when hue-rotate does not work e.g. on dark images
+ * Used when hue-rotate does not work e.g. on dark images.
+ *
  * Based on https://codepen.io/sosuke/pen/Pjoqqp
  * https://stackoverflow.com/questions/42966641/how-to-transform-black-into-any-given-color-using-only-css-filters/43960991#43960991
  *
- * As the result does vary because of a Math.random(),
- * I would suggest console.log some filters, pick nice ones and hardcode them instead:
+ * As the result does vary because of a Math.random(), I would suggest console.log some filters, pick nice ones and hardcode them instead:
+ * @example
  * console.log(colorShifter(randomRgb(1, 10)));
  */
 export function colorShifter(rgb: RGB) {
