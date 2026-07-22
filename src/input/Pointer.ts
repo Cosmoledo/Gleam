@@ -35,14 +35,14 @@ export default class Pointer {
 	public posScaled = new Vec2();
 	/** Previous tick's {@link posScaled}. */
 	public posScaledLast = new Vec2();
-	/** Per-button pressed state. Index with {@link POINTER_KEYS} (e.g. `pressed[POINTER_KEYS.LEFT]`). Sparse — unindexed entries are `undefined`, not `false`. */
+	/** Per-button pressed state. Index with {@link POINTER_KEYS} (e.g. `pressed[POINTER_KEYS.LEFT]`). Rebuilt in full from `PointerEvent.buttons` on every pointer event, so all five entries are real booleans once any event has fired (the array is empty — reads `undefined` — only before the first event and after {@link reset}). */
 	public pressed: boolean[] = [];
 	private game: Game;
 
 	constructor(game: Game) {
 		this.game = game;
 
-		const pointerMoveEvent = (event: PointerEvent): void => {
+		const pointerUpdate = (event: PointerEvent): void => {
 			if (event.target === this.game.canman.canvas) {
 				event.preventDefault();
 			}
@@ -50,26 +50,21 @@ export default class Pointer {
 			this.lastEvent = event;
 			this.hasMoved = true;
 
+			const b = event.buttons;
+			this.pressed[POINTER_KEYS.LEFT] = (b & 1) !== 0;
+			this.pressed[POINTER_KEYS.RIGHT] = (b & 2) !== 0;
+			this.pressed[POINTER_KEYS.MIDDLE] = (b & 4) !== 0;
+			this.pressed[POINTER_KEYS.PREV] = (b & 8) !== 0;
+			this.pressed[POINTER_KEYS.FORWARD] = (b & 16) !== 0;
+
 			this.update(event);
 
 			EventSystem.dispatchEvent("inputPointer", this);
 		};
 
-		const pointerStateChangeEvent = (event: PointerEvent): void => {
-			if (event.target === this.game.canman.canvas) {
-				event.preventDefault();
-			}
-
-			this.lastEvent = event;
-
-			this.pressed[event.button] = event.type === "pointerdown";
-
-			EventSystem.dispatchEvent("inputPointer", this);
-		};
-
-		window.addEventListener("pointermove", pointerMoveEvent, false);
-		window.addEventListener("pointerdown", pointerStateChangeEvent, false);
-		window.addEventListener("pointerup", pointerStateChangeEvent, false);
+		window.addEventListener("pointermove", pointerUpdate, false);
+		window.addEventListener("pointerdown", pointerUpdate, false);
+		window.addEventListener("pointerup", pointerUpdate, false);
 		window.addEventListener("blur", () => this.reset(), false);
 
 		// Attach to `document` (not `canvas`) so HTML UI overlays and any

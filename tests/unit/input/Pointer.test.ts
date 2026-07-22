@@ -56,12 +56,16 @@ describe("Pointer", () => {
 		vi.restoreAllMocks();
 	});
 
-	it("registers pointermove, pointerdown, and pointerup event listeners", async () => {
+	it("registers pointermove, pointerdown, and pointerup on one shared handler", async () => {
 		const { default: Pointer } = await import("@/input/Pointer");
 		new Pointer(mockGame);
 		expect(pointermoveCb).toBeInstanceOf(Function);
-		expect(pointerdownCb).toBeInstanceOf(Function);
-		expect(pointerupCb).toBeInstanceOf(Function);
+		// All three events run the SAME handler (no branching on event.type),
+		// so the shared behavior — preventDefault, lastEvent, dispatch,
+		// hasMoved — is exercised once in the "pointermove" block below rather
+		// than duplicated per event type.
+		expect(pointerdownCb).toBe(pointermoveCb);
+		expect(pointerupCb).toBe(pointermoveCb);
 	});
 
 	it("registers a contextmenu listener on document that calls preventDefault", async () => {
@@ -157,7 +161,7 @@ describe("Pointer", () => {
 			expect(pointer.lastEvent).toBe(event);
 		});
 
-		it("dispatches MOUSE event", async () => {
+		it("dispatches the inputPointer event", async () => {
 			const { default: Pointer } = await import("@/input/Pointer");
 			const pointer = new Pointer(mockGame);
 			pointermoveCb!({
@@ -284,184 +288,131 @@ describe("Pointer", () => {
 		});
 	});
 
-	// ==================== pointerdown / pointerup ====================
+	// ==================== button state (event.buttons bitmask) ====================
 
-	describe("pointerdown / pointerup", () => {
-		it("sets pressed[button] to true on pointerdown", async () => {
-			const { default: Pointer } = await import("@/input/Pointer");
-			const pointer = new Pointer(mockGame);
-			pointerdownCb!({
-				type: "pointerdown",
-				button: 0,
+	describe("button state", () => {
+		// pressed[] is derived from the event.buttons BITMASK (not
+		// event.button), which is why it also works on pointermove — see the
+		// "chorded buttons" block below.
+		const evt = (buttons: number, type = "pointerdown"): PointerEvent =>
+			({
+				type,
+				buttons,
+				clientX: 10,
+				clientY: 10,
 				target: mockGame.canman.canvas,
 				preventDefault: vi.fn(),
-			} as unknown as PointerEvent);
-			expect(pointer.pressed[0]).toBe(true);
-		});
+			}) as unknown as PointerEvent;
 
-		it("sets pressed[button] to false on pointerup", async () => {
+		it("sets the left button from buttons bit 1", async () => {
 			const { default: Pointer } = await import("@/input/Pointer");
 			const pointer = new Pointer(mockGame);
-			pointerdownCb!({
-				type: "pointerdown",
-				button: 1,
+			pointerdownCb!(evt(1));
+			expect(pointer.pressed[POINTER_KEYS.LEFT]).toBe(true);
+		});
+
+		it("maps the bitmask to POINTER_KEYS indices (middle/right swapped vs. bit order)", async () => {
+			const { default: Pointer } = await import("@/input/Pointer");
+			const pointer = new Pointer(mockGame);
+			// bit 2 is the SECONDARY (right) button; bit 4 the AUXILIARY (middle)
+			pointerdownCb!(evt(2));
+			expect(pointer.pressed[POINTER_KEYS.RIGHT]).toBe(true);
+			expect(pointer.pressed[POINTER_KEYS.MIDDLE]).toBe(false);
+			pointerdownCb!(evt(4));
+			expect(pointer.pressed[POINTER_KEYS.MIDDLE]).toBe(true);
+			expect(pointer.pressed[POINTER_KEYS.RIGHT]).toBe(false);
+		});
+
+		it("sets every standard button when all bits are set", async () => {
+			const { default: Pointer } = await import("@/input/Pointer");
+			const pointer = new Pointer(mockGame);
+			pointerdownCb!(evt(1 | 2 | 4 | 8 | 16));
+			expect(pointer.pressed[POINTER_KEYS.LEFT]).toBe(true);
+			expect(pointer.pressed[POINTER_KEYS.MIDDLE]).toBe(true);
+			expect(pointer.pressed[POINTER_KEYS.RIGHT]).toBe(true);
+			expect(pointer.pressed[POINTER_KEYS.PREV]).toBe(true);
+			expect(pointer.pressed[POINTER_KEYS.FORWARD]).toBe(true);
+		});
+
+		it("clears all buttons when buttons is 0 (last button released)", async () => {
+			const { default: Pointer } = await import("@/input/Pointer");
+			const pointer = new Pointer(mockGame);
+			pointerdownCb!(evt(1));
+			expect(pointer.pressed[POINTER_KEYS.LEFT]).toBe(true);
+			pointerupCb!(evt(0, "pointerup"));
+			expect(pointer.pressed[POINTER_KEYS.LEFT]).toBe(false);
+		});
+
+		it("ignores exotic buttons beyond the 5 standard bits", async () => {
+			const { default: Pointer } = await import("@/input/Pointer");
+			const pointer = new Pointer(mockGame);
+			pointerdownCb!(evt(32)); // hypothetical 6th button
+			expect(pointer.pressed.some(Boolean)).toBe(false);
+		});
+	});
+
+	// ==================== chorded buttons ====================
+
+	describe("chorded buttons", () => {
+		// A 2nd button pressed while the 1st is held arrives as pointerMOVE
+		// (the full state is in event.buttons), never a 2nd pointerdown — and
+		// a non-last release is a pointermove too. This is the case the
+		// bitmask approach exists to handle.
+		const evt = (type: string, buttons: number): PointerEvent =>
+			({
+				type,
+				buttons,
+				clientX: 10,
+				clientY: 10,
 				target: mockGame.canman.canvas,
 				preventDefault: vi.fn(),
-			} as unknown as PointerEvent);
-			expect(pointer.pressed[1]).toBe(true);
-			pointerupCb!({
-				type: "pointerup",
-				button: 1,
-				target: mockGame.canman.canvas,
-				preventDefault: vi.fn(),
-			} as unknown as PointerEvent);
-			expect(pointer.pressed[1]).toBe(false);
-		});
+			}) as unknown as PointerEvent;
 
-		it("sets lastEvent to the event on pointerdown", async () => {
+		it("tracks a second button chorded in via pointermove", async () => {
 			const { default: Pointer } = await import("@/input/Pointer");
 			const pointer = new Pointer(mockGame);
-			const event = {
-				type: "pointerdown",
-				button: 0,
-				target: mockGame.canman.canvas,
-				preventDefault: vi.fn(),
-			} as unknown as PointerEvent;
-			pointerdownCb!(event);
-			expect(pointer.lastEvent).toBe(event);
-		});
 
-		it("sets lastEvent to the event on pointerup", async () => {
-			const { default: Pointer } = await import("@/input/Pointer");
-			const pointer = new Pointer(mockGame);
-			const event = {
-				type: "pointerup",
-				button: 2,
-				target: mockGame.canman.canvas,
-				preventDefault: vi.fn(),
-			} as unknown as PointerEvent;
-			pointerupCb!(event);
-			expect(pointer.lastEvent).toBe(event);
-		});
+			// left down
+			pointerdownCb!(evt("pointerdown", 1));
+			expect(pointer.pressed[POINTER_KEYS.LEFT]).toBe(true);
+			expect(pointer.pressed[POINTER_KEYS.RIGHT]).toBe(false);
 
-		it("dispatches MOUSE event on pointerdown", async () => {
-			const { default: Pointer } = await import("@/input/Pointer");
-			const pointer = new Pointer(mockGame);
-			pointerdownCb!({
-				type: "pointerdown",
-				button: 0,
-				target: mockGame.canman.canvas,
-				preventDefault: vi.fn(),
-			} as unknown as PointerEvent);
-			expect(dispatchSpy).toHaveBeenCalledWith("inputPointer", pointer);
-		});
+			// right pressed while left held -> pointermove, buttons = 1|2
+			pointermoveCb!(evt("pointermove", 3));
+			expect(pointer.pressed[POINTER_KEYS.LEFT]).toBe(true);
+			expect(pointer.pressed[POINTER_KEYS.RIGHT]).toBe(true);
 
-		it("dispatches MOUSE event on pointerup", async () => {
-			const { default: Pointer } = await import("@/input/Pointer");
-			const pointer = new Pointer(mockGame);
-			pointerupCb!({
-				type: "pointerup",
-				button: 0,
-				target: mockGame.canman.canvas,
-				preventDefault: vi.fn(),
-			} as unknown as PointerEvent);
-			expect(dispatchSpy).toHaveBeenCalledWith("inputPointer", pointer);
-		});
+			// right released while left held -> pointermove, buttons = 1
+			pointermoveCb!(evt("pointermove", 1));
+			expect(pointer.pressed[POINTER_KEYS.LEFT]).toBe(true);
+			expect(pointer.pressed[POINTER_KEYS.RIGHT]).toBe(false);
 
-		it("prevents default when target is canvas on pointerdown", async () => {
-			const { default: Pointer } = await import("@/input/Pointer");
-			const preventDefault = vi.fn();
-			new Pointer(mockGame);
-			pointerdownCb!({
-				type: "pointerdown",
-				button: 0,
-				target: mockGame.canman.canvas,
-				preventDefault,
-			} as unknown as PointerEvent);
-			expect(preventDefault).toHaveBeenCalled();
-		});
-
-		it("prevents default when target is canvas on pointerup", async () => {
-			const { default: Pointer } = await import("@/input/Pointer");
-			const preventDefault = vi.fn();
-			new Pointer(mockGame);
-			pointerupCb!({
-				type: "pointerup",
-				button: 0,
-				target: mockGame.canman.canvas,
-				preventDefault,
-			} as unknown as PointerEvent);
-			expect(preventDefault).toHaveBeenCalled();
-		});
-
-		it("does not prevent default when target is not canvas", async () => {
-			const { default: Pointer } = await import("@/input/Pointer");
-			new Pointer(mockGame);
-			const preventDefault = vi.fn();
-			pointerdownCb!({
-				type: "pointerdown",
-				button: 0,
-				target: null,
-				preventDefault,
-			} as unknown as PointerEvent);
-			expect(preventDefault).not.toHaveBeenCalled();
-		});
-
-		it("handles all button indices on pointerdown", async () => {
-			const { default: Pointer } = await import("@/input/Pointer");
-			const pointer = new Pointer(mockGame);
-			for (let btn = 0; btn <= 4; btn++) {
-				pointerdownCb!({
-					type: "pointerdown",
-					button: btn,
-					target: mockGame.canman.canvas,
-					preventDefault: vi.fn(),
-				} as unknown as PointerEvent);
-				expect(pointer.pressed[btn]).toBe(true);
-			}
-		});
-
-		it("handles all button indices on pointerup", async () => {
-			const { default: Pointer } = await import("@/input/Pointer");
-			const pointer = new Pointer(mockGame);
-			for (let btn = 0; btn <= 4; btn++) {
-				pointerdownCb!({
-					type: "pointerdown",
-					button: btn,
-					target: mockGame.canman.canvas,
-					preventDefault: vi.fn(),
-				} as unknown as PointerEvent);
-			}
-			for (let btn = 0; btn <= 4; btn++) {
-				pointerupCb!({
-					type: "pointerup",
-					button: btn,
-					target: mockGame.canman.canvas,
-					preventDefault: vi.fn(),
-				} as unknown as PointerEvent);
-				expect(pointer.pressed[btn]).toBe(false);
-			}
+			// left released (last button) -> pointerup, buttons = 0
+			pointerupCb!(evt("pointerup", 0));
+			expect(pointer.pressed[POINTER_KEYS.LEFT]).toBe(false);
+			expect(pointer.pressed[POINTER_KEYS.RIGHT]).toBe(false);
 		});
 	});
 
 	// ==================== reset ====================
 
 	describe("reset", () => {
+		const evt = (buttons: number): PointerEvent =>
+			({
+				type: "pointerdown",
+				buttons,
+				clientX: 10,
+				clientY: 10,
+				target: mockGame.canman.canvas,
+				preventDefault: vi.fn(),
+			}) as unknown as PointerEvent;
+
 		it("clears all pressed buttons", async () => {
 			const { default: Pointer } = await import("@/input/Pointer");
 			const pointer = new Pointer(mockGame);
-			pointerdownCb!({
-				type: "pointerdown",
-				button: 0,
-				target: mockGame.canman.canvas,
-				preventDefault: vi.fn(),
-			} as unknown as PointerEvent);
-			pointerdownCb!({
-				type: "pointerdown",
-				button: 2,
-				target: mockGame.canman.canvas,
-				preventDefault: vi.fn(),
-			} as unknown as PointerEvent);
+			pointerdownCb!(evt(1 | 2)); // left + right
+			expect(pointer.pressed[POINTER_KEYS.LEFT]).toBe(true);
+			expect(pointer.pressed[POINTER_KEYS.RIGHT]).toBe(true);
 			pointer.reset();
 			expect(pointer.pressed.length).toBe(0);
 		});
@@ -469,13 +420,8 @@ describe("Pointer", () => {
 		it("is called when the window blur event fires", async () => {
 			const { default: Pointer } = await import("@/input/Pointer");
 			const pointer = new Pointer(mockGame);
-			pointerdownCb!({
-				type: "pointerdown",
-				button: 0,
-				target: mockGame.canman.canvas,
-				preventDefault: vi.fn(),
-			} as unknown as PointerEvent);
-			expect(pointer.pressed[0]).toBe(true);
+			pointerdownCb!(evt(1));
+			expect(pointer.pressed[POINTER_KEYS.LEFT]).toBe(true);
 			blurCb!();
 			expect(pointer.pressed.length).toBe(0);
 		});
