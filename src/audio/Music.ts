@@ -10,10 +10,10 @@ import { randomItem, remove } from "@/utilities/Array";
  * Random track picking excludes the previous two songs to avoid back-to-back repeats. If only one track is registered, it's looped instead of faded.
  */
 export default class Music extends AudioBase {
-	private last: HTMLAudioElement | null = null;
 	private current: HTMLAudioElement | null = null;
-	private next: HTMLAudioElement | null = null;
 	private fadeCancel: (() => void) | null = null;
+	private last: HTMLAudioElement | null = null;
+	private next: HTMLAudioElement | null = null;
 
 	/** `true` while a fade is in progress OR the current track is actively playing. */
 	public get isPlaying(): boolean {
@@ -21,6 +21,15 @@ export default class Music extends AudioBase {
 			!!this.fadeCancel ||
 			(this.current instanceof window.Audio && !this.current.paused)
 		);
+	}
+
+	/** The track currently playing — the incoming one during a cross-fade, or `null` when nothing is playing (mirrors {@link isPlaying}). Read `.id` for its registered name; treat as read-only, mutating it desyncs Music. */
+	public get song(): HTMLAudioElement | null {
+		if (this.fadeCancel) {
+			return this.next;
+		}
+
+		return this.current && !this.current.paused ? this.current : null;
 	}
 
 	/** Whether music playback is permitted (inherited from {@link AudioBase}). */
@@ -38,7 +47,9 @@ export default class Music extends AudioBase {
 	}
 
 	/**
-	 * Cross-fade to `name` (or a random unplayed track when `null`) over `fadeTime` ms. `easing.cur` controls the outgoing track's volume curve, `easing.next` the incoming one. Cancels any in-progress fade. No-op when disabled. Throws on `fadeTime <= 0`, an empty registry, or an unknown `name`. When the new track ends, the next fade fires automatically — call {@link stop} to break the cycle.
+	 * Cross-fade to `name` (or a random unplayed track when `null`) over `fadeTime` ms. `easing.cur` controls the outgoing track's volume curve, `easing.next` the incoming one. Cancels any in-progress fade. Throws on `fadeTime <= 0`, an empty registry, or an unknown `name`. When the new track ends, the next fade fires automatically — call {@link stop} to break the cycle.
+	 *
+	 * Returns `true` if a fade (or single-track loop) was started, `false` for a no-op: when disabled, or when `name` is already the current or incoming track (so calling it repeatedly with the same track won't restart it).
 	 */
 	public fade(
 		name: string | null = null,
@@ -50,7 +61,7 @@ export default class Music extends AudioBase {
 			cur: "ease-in",
 			next: "ease-out",
 		},
-	): void {
+	): boolean {
 		if (fadeTime <= 0) {
 			throw new Error(`fadeTime must be > 0, got ${fadeTime}`);
 		}
@@ -63,8 +74,16 @@ export default class Music extends AudioBase {
 			throw new Error(`Music "${name}" not registered!`);
 		}
 
+		if (
+			name &&
+			(this.current === this.songs.get(name) ||
+				this.next === this.songs.get(name))
+		) {
+			return false;
+		}
+
 		if (!this.enabled) {
-			return;
+			return false;
 		}
 
 		if (this.fadeCancel) {
@@ -81,7 +100,7 @@ export default class Music extends AudioBase {
 			this.current = this.songs.values().next().value!;
 			this.current.loop = true;
 			this.current.play();
-			return;
+			return true;
 		}
 
 		if (name) {
@@ -142,6 +161,8 @@ export default class Music extends AudioBase {
 				this.next = null;
 			}
 		});
+
+		return true;
 	}
 
 	/** Stop everything immediately: cancels any in-flight fade, halts current and next tracks, and breaks the auto-cycle chain. Restart via {@link fade} or by flipping {@link enabled}. */

@@ -90,6 +90,41 @@ describe("Music.isPlaying", () => {
 	});
 });
 
+// ==================== Music.song ====================
+
+describe("Music.song", () => {
+	it("returns null on a fresh instance", () => {
+		const m = new Music();
+		expect(m.song).toBe(null);
+	});
+
+	it("returns the incoming (next) track during a fade", () => {
+		const m = new Music();
+		const a = new window.Audio();
+		internals(m).fadeCancel = () => {};
+		internals(m).next = a;
+		expect(m.song).toBe(a);
+	});
+
+	it("returns current when it is playing (not paused)", () => {
+		const m = new Music();
+		const a = new window.Audio();
+		Object.defineProperty(a, "paused", {
+			configurable: true,
+			get: () => false,
+		});
+		internals(m).current = a;
+		expect(m.song).toBe(a);
+	});
+
+	it("returns null when current exists but is paused (mirrors isPlaying)", () => {
+		const m = new Music();
+		internals(m).current = new window.Audio(); // defaults to paused = true
+		expect(m.song).toBe(null);
+		expect(m.isPlaying).toBe(false);
+	});
+});
+
 // ==================== Music.enabled setter ====================
 
 describe("Music.enabled setter", () => {
@@ -330,6 +365,61 @@ describe("Music.fade", () => {
 		noop.call(internals(m).current!, new Event("ended"));
 		expect(internals(m).next).toBe(beforeNext);
 		expect(internals(m).fadeCancel).toBe(beforeFadeCancel);
+	});
+});
+
+// ==================== Music.fade return value & same-track guard ====================
+
+describe("Music.fade return value", () => {
+	it("returns true when a fade starts", () => {
+		const m = new Music();
+		m.register(
+			1,
+			{ name: "a", path: "/a.mp3" },
+			{ name: "b", path: "/b.mp3" },
+		);
+		expect(m.fade("a")).toBe(true);
+	});
+
+	it("returns false when disabled", () => {
+		const m = new Music(false);
+		m.register(
+			1,
+			{ name: "a", path: "/a.mp3" },
+			{ name: "b", path: "/b.mp3" },
+		);
+		expect(m.fade("a")).toBe(false);
+	});
+
+	it("returns true when looping a single registered track", () => {
+		const m = new Music();
+		m.register(1, { name: "only", path: "/only.mp3" });
+		expect(m.fade("only")).toBe(true);
+	});
+
+	it("no-ops (returns false, no restart) when already on that track", () => {
+		const m = new Music();
+		m.register(
+			1,
+			{ name: "a", path: "/a.mp3" },
+			{ name: "b", path: "/b.mp3" },
+		);
+		m.fade("a");
+		flushUntilDone(m); // a settles as current
+		expect(m.fade("a")).toBe(false);
+		expect(internals(m).fadeCancel).toBe(null);
+	});
+
+	it("no-ops when the track is already the incoming one mid-fade", () => {
+		const m = new Music();
+		m.register(
+			1,
+			{ name: "a", path: "/a.mp3" },
+			{ name: "b", path: "/b.mp3" },
+		);
+		m.fade("a"); // fade in progress, next = a
+		expect(internals(m).next?.id).toBe("a");
+		expect(m.fade("a")).toBe(false);
 	});
 });
 
