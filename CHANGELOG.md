@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
-## [1.0.8] - Unreleased
+## [1.0.8] - 2026-07-26
 ### Added
 - `@cosmoledo/gleam/prototypes` subpath export — opt into the canvas/image/audio prototype helpers (`ctx.drawCircle`, `ctx.fillBar`, `img.subImage`, `audio.stop`, `canvas.getPixelAt`, …) without importing `Game`. Add `import "@cosmoledo/gleam/prototypes";` once at startup; it's a side-effect import that also ships the global type augmentations, so the helpers type-check. Previously the augmentations were reachable only as a side effect of importing `Game`, with no way for a `Game`-less consumer to opt in. `Game` users are unaffected — the helpers still install automatically.
 - `Control<T>` input contract (`src/input/Control.ts`) — the shared digital-input interface (`reset()`, `stop(id)`, `isActive(id)`) now implemented by `Keyboard` (`T` = key code), `Pointer`, and `Controller` (`T` = button index). The value-union key types `KeyboardKey`, `PointerKey`, and `ControllerKey` are now exported.
@@ -103,7 +103,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### Added
 - Initial release. TypeScript framework for 2D canvas games in the browser — graphics, loop, effects, audio, math. `npm install @cosmoledo/gleam`; see the README for quick start.
 
-[1.0.8]: https://github.com/Cosmoledo/Gleam/compare/v1.0.7...HEAD
+[1.0.8]: https://github.com/Cosmoledo/Gleam/compare/v1.0.7...v1.0.8
 [1.0.7]: https://github.com/Cosmoledo/Gleam/compare/v1.0.6...v1.0.7
 [1.0.6]: https://github.com/Cosmoledo/Gleam/compare/v1.0.5...v1.0.6
 [1.0.5]: https://github.com/Cosmoledo/Gleam/compare/v1.0.4...v1.0.5
