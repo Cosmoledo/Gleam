@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ## [1.0.8] - Unreleased
 ### Added
 - `@cosmoledo/gleam/prototypes` subpath export — opt into the canvas/image/audio prototype helpers (`ctx.drawCircle`, `ctx.fillBar`, `img.subImage`, `audio.stop`, `canvas.getPixelAt`, …) without importing `Game`. Add `import "@cosmoledo/gleam/prototypes";` once at startup; it's a side-effect import that also ships the global type augmentations, so the helpers type-check. Previously the augmentations were reachable only as a side effect of importing `Game`, with no way for a `Game`-less consumer to opt in. `Game` users are unaffected — the helpers still install automatically.
+- `Control<T>` input contract (`src/input/Control.ts`) — the shared digital-input interface (`reset()`, `stop(id)`, `isActive(id)`) now implemented by `Keyboard` (`T` = key code), `Pointer`, and `Controller` (`T` = button index). The value-union key types `KeyboardKey`, `PointerKey`, and `ControllerKey` are now exported.
+- `Music.song` getter — the currently playing track (the incoming track during a cross-fade, `null` when stopped), consistent with `isPlaying`.
+- New examples gallery — a typed-JS shell with sprites & animation, an audio demo (Sound SFX + Music cross-fade + live spectrum), and a pointer-input demo (poll vs. event), alongside the existing brick-breaker and screenshake examples.
+
+### Changed
+- **BREAKING:** `Keyboard.isPressed` / `Keyboard.stopPress` are renamed to `isActive` / `stop` (the `Control<T>` contract). Each input class now keeps its raw state (`keys` / `pressed` / `buttons`) private, read and consumed through `isActive` / `stop`.
+- `Music.fade()` now returns a boolean (`false` = nothing started) and guards against re-requesting the track already playing or fading in — that case is now a no-op instead of pointlessly restarting the track.
+- `Pointer` now tracks simultaneously held buttons. State is derived from the `event.buttons` bitmask on every pointer event (not just `pointerdown`/`pointerup`), so a second button chorded in while the first is held is recorded; the `pressed` array is now dense (all five entries always booleans).
+- Bare CDN URLs (`cdn.jsdelivr.net/npm/@cosmoledo/gleam`, `unpkg.com/@cosmoledo/gleam`) now resolve to the IIFE bundle (`dist/gleam.min.js`) via the `unpkg`/`jsdelivr` fields, so no-build `<script>`-tag users get `window.Gleam`. Previously the bare URL fell through to `main` (the ESM module), which a classic `<script>` can't execute. No effect on npm/bundler consumers.
+- Dev-dependency lockfile refreshed (transitive bumps).
+
+### Fixed
+- Pointer coordinates drifted by the scroll offset on a non-resizing game. The coord mapping used a bounding rect cached once at setup and only refreshed on resize; since the rect is viewport-relative, scrolling the page offset every pointer position. The cached rect is now refreshed on scroll (always) and on resize.
+- `Settings.antialias` had no effect on the main canvas registered via `setupCanvas`, which kept the browser default (`imageSmoothingEnabled = true`) — contradicting its JSDoc. `setupCanvas` now applies `Settings.antialias` to every registered canvas context.
+- Dropped dead `./src/prototypes/*` and `./src/localization/Translator.ts` globs from `package.json` `sideEffects` — `files: ["dist"]` means `src/` never ships, so those entries never matched anything in a consumer's `node_modules`.
 
 ## [1.0.7] - 2026-07-21
 ### Changed
