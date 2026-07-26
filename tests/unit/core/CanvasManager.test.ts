@@ -155,6 +155,40 @@ describe("CanvasManager.finishSetup", () => {
 		expect(cm.canvasBoundingClientRect).toBe(rect);
 	});
 
+	it("refreshes the bounding rect on window scroll (rect is viewport-relative)", () => {
+		const main = makeCanvasEl("main");
+		const before = { left: 5, top: 10, width: 800, height: 600 } as DOMRect;
+		const after = { left: 5, top: -90, width: 800, height: 600 } as DOMRect;
+		const spy = vi
+			.spyOn(main, "getBoundingClientRect")
+			.mockReturnValue(before);
+		const cm = new CanvasManager();
+		cm.setupCanvas(CANVAS_TYPES.MAIN, "#main");
+		cm.finishSetup();
+		expect(cm.canvasBoundingClientRect).toBe(before);
+
+		spy.mockReturnValue(after);
+		window.dispatchEvent(new Event("scroll"));
+		expect(cm.canvasBoundingClientRect).toBe(after);
+	});
+
+	it("refreshes the bounding rect on the resized event when enableResize is false", () => {
+		Settings.enableResize = false;
+		const main = makeCanvasEl("main");
+		const before = { left: 5, top: 10, width: 800, height: 600 } as DOMRect;
+		const after = { left: 40, top: 10, width: 800, height: 600 } as DOMRect;
+		const spy = vi
+			.spyOn(main, "getBoundingClientRect")
+			.mockReturnValue(before);
+		const cm = new CanvasManager();
+		cm.setupCanvas(CANVAS_TYPES.MAIN, "#main");
+		cm.finishSetup();
+
+		spy.mockReturnValue(after);
+		EventSystem.dispatchEvent("resized");
+		expect(cm.canvasBoundingClientRect).toBe(after);
+	});
+
 	it("subscribes resize() to RESIZED when Settings.enableResize is true", () => {
 		Settings.enableResize = true;
 		makeCanvasEl("main");

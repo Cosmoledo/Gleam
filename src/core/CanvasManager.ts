@@ -76,7 +76,7 @@ export default class CanvasManager {
 		this.canvas.width = width;
 	}
 
-	/** Finalize the canvas registry. Called once by `Game.preInit()`. Validates that exactly one `CANVAS_TYPES.MAIN` canvas is registered and that its buffer is non-zero, caches its bounding rect, and wires the `"resized"` listener if `Settings.enableResize`. Throws on duplicate calls or invalid registry state. */
+	/** Finalize the canvas registry. Called once by `Game.preInit()`. Validates that exactly one `CANVAS_TYPES.MAIN` canvas is registered and that its buffer is non-zero, caches its bounding rect, and wires listeners to keep that rect fresh: a `"scroll"` refresh always, plus a `"resized"` listener that runs the full {@link resize} when `Settings.enableResize` or just a bounding-rect refresh otherwise. Throws on duplicate calls or invalid registry state. */
 	public finishSetup(): void {
 		if (this.mainHolder) {
 			throw new Error("Already set up.");
@@ -100,13 +100,39 @@ export default class CanvasManager {
 			throw new Error("Main canvas has zero width or height.");
 		}
 
-		this.canvasBoundingClientRect = this.canvas.getBoundingClientRect();
+		this.refreshBoundingRect();
+
+		// The cached rect is viewport-relative, so it goes stale on scroll or
+		// reflow — which would offset pointer coordinate mapping by the scroll
+		// delta. Refresh it on scroll (capture phase, so scrolls inside nested
+		// containers are caught too, since scroll doesn't bubble).
+		window.addEventListener(
+			"scroll",
+			(): void => this.refreshBoundingRect(),
+			{ capture: true, passive: true },
+		);
 
 		if (Settings.enableResize) {
 			EventSystem.addEventListener("resized", (): void => this.resize(), {
 				priority: true,
 			});
+		} else {
+			// When resizing is off, resize() never runs, but a "resized" event
+			// (Game's debounced window.resize) can still mean the canvas
+			// reflowed and its rect moved — keep it fresh.
+			EventSystem.addEventListener(
+				"resized",
+				(): void => this.refreshBoundingRect(),
+				{
+					priority: true,
+				},
+			);
 		}
+	}
+
+	/** Re-read the main canvas's `getBoundingClientRect()` into {@link canvasBoundingClientRect}. Kept fresh on scroll/resize so pointer coordinate mapping stays correct; also called by {@link resize}. */
+	public refreshBoundingRect(): void {
+		this.canvasBoundingClientRect = this.canvas.getBoundingClientRect();
 	}
 
 	/** Rescale every opt-in canvas (`holder.resize === true`) to fit the window while preserving its buffer aspect ratio. Updates `style.width`/`style.height` only — buffer dimensions don't change. Refreshes {@link canvasBoundingClientRect}, {@link resizedSize}, and {@link ratio} from the main canvas. */
@@ -139,7 +165,7 @@ export default class CanvasManager {
 			ch.canvas.style.height = height + "px";
 		});
 
-		this.canvasBoundingClientRect = this.canvas.getBoundingClientRect();
+		this.refreshBoundingRect();
 	}
 
 	/** Set the main context's `font` to `${size}px "${font}"`. Defaults the family to `Settings.font`. */
