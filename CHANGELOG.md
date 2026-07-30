@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
-## [1.0.9] - Unreleased
+## [1.0.9] - 2026-07-30
 ### Added
 - `randomHslHex(s, lMin, lMax)` (`src/utilities/Color.ts`) — a random-hue `#rrggbb` at controlled vividness: saturation fixed at `s`, lightness uniform in `[lMin, lMax]`. Unlike `randomHex`, the defaults (`s = 80`, `l ∈ [50, 100]`) stay vivid and readable on dark backgrounds instead of landing near-black. Uses the same HSL→RGB math as `Color.fromHSL`, with no `Color` dependency, and ships unit tests.
 - New examples — particle spray, particle world, ambient particle drift, an i18n `Translator` demo, and a projectile homing-missile demo, added to the gallery.
@@ -112,7 +112,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### Added
 - Initial release. TypeScript framework for 2D canvas games in the browser — graphics, loop, effects, audio, math. `npm install @cosmoledo/gleam`; see the README for quick start.
 
-[1.0.9]: https://github.com/Cosmoledo/Gleam/compare/v1.0.8...HEAD
+[1.0.9]: https://github.com/Cosmoledo/Gleam/compare/v1.0.8...v1.0.9
 [1.0.8]: https://github.com/Cosmoledo/Gleam/compare/v1.0.7...v1.0.8
 [1.0.7]: https://github.com/Cosmoledo/Gleam/compare/v1.0.6...v1.0.7
 [1.0.6]: https://github.com/Cosmoledo/Gleam/compare/v1.0.5...v1.0.6
