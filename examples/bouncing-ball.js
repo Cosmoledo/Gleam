@@ -63,7 +63,7 @@ class Ball {
 
 // Subclass Game and the engine gives us this.canman (CanvasManager),
 // this.keyboard, this.pointer, and this.gameloop for free.
-class BouncingBall extends Game {
+class BouncingBallDemo extends Game {
 	static #MAX_BALLS = 100;
 	static #SPAWN_INTERVAL = 200; // ms between spawns
 
@@ -91,7 +91,7 @@ class BouncingBall extends Game {
 
 	// First ball spawns one interval after the loop starts.
 	async init() {
-		this.#nextSpawnAt = BouncingBall.#SPAWN_INTERVAL;
+		this.#nextSpawnAt = BouncingBallDemo.#SPAWN_INTERVAL;
 	}
 
 	// Fixed step. dt = Settings.fps (seconds). Multiplying speed
@@ -102,10 +102,10 @@ class BouncingBall extends Game {
 		// started. Use it for time-driven events.
 		if (
 			this.gameloop.levelTime >= this.#nextSpawnAt &&
-			this.#balls.length < BouncingBall.#MAX_BALLS
+			this.#balls.length < BouncingBallDemo.#MAX_BALLS
 		) {
 			this.#spawn();
-			this.#nextSpawnAt += BouncingBall.#SPAWN_INTERVAL;
+			this.#nextSpawnAt += BouncingBallDemo.#SPAWN_INTERVAL;
 		}
 
 		this.#balls.forEach(ball =>
@@ -148,5 +148,5 @@ export function init(setDesc) {
 
 	// Constructing the Game starts everything (constructor -> preInit
 	// -> init -> loop).
-	new BouncingBall();
+	new BouncingBallDemo();
 }

@@ -190,7 +190,7 @@ class Brick {
 // The game itself. Subclass Game and implement init/update/draw.
 // Gleam injects `this.canman` (CanvasManager), `this.keyboard`,
 // `this.pointer`, and `this.gameloop` into every instance.
-class BrickBreaker extends Game {
+class BrickBreakerDemo extends Game {
 	/** @type {Paddle} */
 	#paddle;
 	/** @type {Ball} */
@@ -370,5 +370,5 @@ export function init(setDesc, canvas) {
 
 	// Instantiating the Game starts everything (constructor calls
 	// preInit, which awaits init, then kicks off the loop).
-	new BrickBreaker();
+	new BrickBreakerDemo();
 }
