@@ -111,6 +111,20 @@ header {
 			flex-wrap: wrap;
 			gap: 0.5rem;
 
+			label {
+				align-items: center;
+				background: #545454;
+				border-radius: 8px;
+				display: flex;
+				gap: 0.5rem;
+				padding: 0.4rem 0.9rem;
+
+				span {
+					color: var(--muted);
+					min-width: 5rem;
+				}
+			}
+
 			button {
 				background: #545454;
 				border: 1px solid #545454;
