@@ -35,6 +35,8 @@ A TypeScript framework for 2D canvas games in the browser.
 
 Also bundled: asset loaders (`loadImage`, `loadCanvas`, `loadText`, `loadJson`, `loadBunch`, …), `Translator` for localization, and many pure utilities: `Array`, `Canvas`, `Color`, `DOM`, `Fetch` (buffer a `Response` while reporting download progress), `Functions`, `Grid`, `Json`, `Math`, `Number`, `String`.
 
+> **The `content/` classes are starting points, not fixed APIs.** `Animator`, `Particle`, `Projectile`, and `ControllerCursor` are deliberately minimal — they give you a working baseline to subclass and override for your own game rather than a final implementation. Take a look at the `Particle` examples.
+
 ## Contents
 
 - [Install](#install)
