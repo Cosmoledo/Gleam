@@ -7,6 +7,7 @@ import {
 	hue2rgb,
 	int2hex,
 	randomHex,
+	randomHslHex,
 	randomRgb,
 	rgb2hex,
 	rgb2Int,
@@ -342,5 +343,66 @@ describe("randomRgb", () => {
 		}
 		// With 500 draws from 4 values, should see all of them
 		expect(results.size).toBe(4);
+	});
+});
+
+// ==================== randomHslHex ====================
+
+describe("randomHslHex", () => {
+	it("returns a #rrggbb string", () => {
+		for (let i = 0; i < 50; i++) {
+			expect(randomHslHex()).toMatch(/^#[a-f\d]{6}$/);
+		}
+	});
+
+	it("is greyscale at saturation 0 (hue irrelevant)", () => {
+		// s=0 → r=g=b; lightness 50% → mid-grey. Deterministic regardless
+		// of the random hue.
+		for (let i = 0; i < 20; i++) {
+			expect(randomHslHex(0, 50, 50)).toBe("#808080");
+		}
+	});
+
+	it("is white at lightness 100 regardless of hue/saturation", () => {
+		for (let i = 0; i < 20; i++) {
+			expect(randomHslHex(80, 100, 100)).toBe("#ffffff");
+		}
+	});
+
+	it("is black at lightness 0 regardless of hue/saturation", () => {
+		for (let i = 0; i < 20; i++) {
+			expect(randomHslHex(80, 0, 0)).toBe("#000000");
+		}
+	});
+
+	it("stays vivid with the defaults — never near-black", () => {
+		// Defaults are sat 80, lightness [50, 100]; in HSL the brightest
+		// channel equals the `q` peak, which is >= ~230/255 once lightness
+		// is >= 50%. So no default color can land near-black.
+		for (let i = 0; i < 200; i++) {
+			const [r, g, b] = hex2rgb(randomHslHex());
+			expect(Math.max(r, g, b)).toBeGreaterThanOrEqual(220);
+		}
+	});
+
+	it("respects a fixed lightness across random hues", () => {
+		// lMin === lMax pins lightness; only the hue varies. Every sample
+		// shares the same brightest-channel value (the `q` peak).
+		const peaks = new Set<number>();
+		for (let i = 0; i < 100; i++) {
+			const [r, g, b] = hex2rgb(randomHslHex(80, 60, 60));
+			peaks.add(Math.max(r, g, b));
+		}
+		expect(peaks.size).toBe(1);
+	});
+
+	it("randomizes the hue across calls", () => {
+		// Fixed saturation + lightness, so distinct outputs can only come
+		// from the random hue.
+		const results = new Set<string>();
+		for (let i = 0; i < 200; i++) {
+			results.add(randomHslHex(80, 60, 60));
+		}
+		expect(results.size).toBeGreaterThan(10);
 	});
 });

@@ -17,8 +17,8 @@ import {
 	CANVAS_TYPES,
 	Particle,
 	Vec2,
-	Color,
 	clamp,
+	randomHslHex,
 	randomBetweenInt,
 	randomBetweenFloat,
 } from "@cosmoledo/gleam";
@@ -40,8 +40,7 @@ class FloatParticle extends Particle {
 				randomBetweenInt(MARGIN, bounds.w - MARGIN),
 				randomBetweenInt(MARGIN, bounds.h - MARGIN),
 			),
-			// Soft, low-saturation pastel for a calm ambient look.
-			Color.fromHSL(randomBetweenInt(0, 360), 50, 70).toHex(),
+			randomHslHex(),
 			randomBetweenInt(4, 8),
 		);
 

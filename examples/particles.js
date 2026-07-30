@@ -16,8 +16,8 @@ import {
 	CANVAS_TYPES,
 	Particle,
 	Vec2,
-	Color,
 	POINTER_KEYS,
+	randomHslHex,
 	randomBetweenInt,
 } from "@cosmoledo/gleam";
 
@@ -98,16 +98,8 @@ class ParticleDemo extends Game {
 	 */
 	#burst(pos, count) {
 		for (let i = 0; i < count; i++) {
-			// Random hue, high saturation, lightness in [50, 100] so every
-			// spark stays vivid on the dark background.
-			const color = Color.fromHSL(
-				randomBetweenInt(0, 360),
-				80,
-				randomBetweenInt(50, 100),
-			).toHex();
-
 			this.#particles.push(
-				new Particle(pos, color, randomBetweenInt(2, 5)),
+				new Particle(pos, randomHslHex(), randomBetweenInt(2, 5)),
 			);
 		}
 	}

@@ -21,7 +21,7 @@ import {
 	CANVAS_TYPES,
 	Particle,
 	Vec2,
-	Color,
+	randomHslHex,
 	randomBetweenInt,
 } from "@cosmoledo/gleam";
 
@@ -37,15 +37,6 @@ import {
 // New sparks emitted per simulation tick.
 const EMIT_PER_TICK = 4;
 
-/** A vivid random color that reads on the dark background. */
-function randomColor() {
-	return Color.fromHSL(
-		randomBetweenInt(0, 360),
-		80,
-		randomBetweenInt(50, 100),
-	).toHex();
-}
-
 class WorldParticle extends Particle {
 	/** Live world params, shared with every other particle. @type {World} */
 	#world;
@@ -55,7 +46,7 @@ class WorldParticle extends Particle {
 	 * @param {World} world
 	 */
 	constructor(pos, world) {
-		super(pos, randomColor(), randomBetweenInt(2, 5));
+		super(pos, randomHslHex(), randomBetweenInt(2, 5));
 		this.#world = world;
 		// Override the base's random 0.5-1.5s cap with the world's setting.
 		this.maxLifeTime = world.lifetime;

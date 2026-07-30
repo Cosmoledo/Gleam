@@ -17,8 +17,7 @@ import {
 	POINTER_KEYS,
 	Rect,
 	KEYBOARD_KEYS,
-	Color,
-	randomBetweenInt,
+	randomHslHex,
 } from "@cosmoledo/gleam";
 
 // A spawned circle that fades out over its lifetime.
@@ -186,21 +185,8 @@ class PointerDemo extends Game {
 	 * @param {"circle" | "rect"} form
 	 */
 	#spawn(x, y, form) {
-		// Random hue, fixed high saturation, lightness kept in [40, 100] —
-		// always vivid and readable on the dark background (randomHex can
-		// land near-black).
 		this.#blips.push(
-			new Blip(
-				x,
-				y,
-				this.gameloop.levelTime,
-				Color.fromHSL(
-					randomBetweenInt(0, 360),
-					80,
-					randomBetweenInt(40, 100),
-				).toHex(),
-				form,
-			),
+			new Blip(x, y, this.gameloop.levelTime, randomHslHex(), form),
 		);
 	}
 

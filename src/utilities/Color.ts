@@ -94,3 +94,26 @@ export function randomRgb(min = 0, max = 255): RGB {
 		randomBetweenInt(min, max),
 	];
 }
+
+/**
+ * Random `#rrggbb` with a random hue at a controlled vividness: saturation is fixed at `s`, lightness is uniform in `[lMin, lMax]` (pass equal bounds for a fixed lightness). Unlike {@link randomHex}, the defaults stay vivid and readable on dark backgrounds instead of landing near-black. Uses the same HSL→RGB math as `Color.fromHSL`.
+ */
+export function randomHslHex(s = 80, lMin = 50, lMax = 100): string {
+	const hNorm = Math.random();
+	const sNorm = s / 100;
+	const lNorm = randomBetweenInt(lMin, lMax) / 100;
+
+	if (sNorm === 0) {
+		const v = Math.round(lNorm * 255);
+		return rgb2hex(v, v, v);
+	}
+
+	const q = lNorm < 0.5 ? lNorm * (1 + sNorm) : lNorm + sNorm - lNorm * sNorm;
+	const p = 2 * lNorm - q;
+
+	return rgb2hex(
+		Math.round(hue2rgb(p, q, hNorm + 1 / 3) * 255),
+		Math.round(hue2rgb(p, q, hNorm) * 255),
+		Math.round(hue2rgb(p, q, hNorm - 1 / 3) * 255),
+	);
+}

@@ -2,15 +2,8 @@
 //   Game           - abstract base; subclass and override init/update/draw
 //   CANVAS_TYPES   - canvas role symbols (MAIN, BACKGROUND, ...)
 //   Vec2           - 2D vector with chainable mutators (add, set, ...)
-//   Color          - color builder/transforms; fromHSL for vivid hues
-//   randomBetweenInt - random integer in [min, max]
-import {
-	Game,
-	CANVAS_TYPES,
-	Vec2,
-	Color,
-	randomBetweenInt,
-} from "@cosmoledo/gleam";
+//   randomHslHex   - random vivid hex color (random hue, controlled S/L)
+import { Game, CANVAS_TYPES, Vec2, randomHslHex } from "@cosmoledo/gleam";
 
 // A moving ball that bounces inside an axis-aligned box.
 class Ball {
@@ -128,15 +121,7 @@ class BouncingBallDemo extends Game {
 		const speed = () =>
 			(100 + Math.random() * 200) * (Math.random() < 0.5 ? -1 : 1);
 
-		// Random hue, fixed high saturation + lightness — always vivid and
-		// readable on the dark background (randomHex can land near-black).
-		const color = Color.fromHSL(
-			Math.random() * 360,
-			80,
-			randomBetweenInt(40, 100),
-		).toHex();
-
-		this.#balls.push(new Ball(x, y, speed(), speed(), r, color));
+		this.#balls.push(new Ball(x, y, speed(), speed(), r, randomHslHex()));
 	}
 }
 
