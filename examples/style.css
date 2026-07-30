@@ -141,6 +141,51 @@ header {
 				&:active {
 					background: #636363;
 				}
+
+				&[aria-current="true"] {
+					border-color: var(--accent);
+					background: #636363;
+				}
+			}
+		}
+
+		.json-editor {
+			display: flex;
+			flex-direction: column;
+			gap: 0.5rem;
+			margin-top: 0.5rem;
+
+			textarea {
+				background: #1a1a1e;
+				border: 1px solid #545454;
+				border-radius: 8px;
+				color: var(--fg);
+				font-family: ui-monospace, monospace;
+				font-size: 12px;
+				min-height: 160px;
+				padding: 0.6rem;
+				resize: vertical;
+				width: 100%;
+			}
+		}
+
+		.console-log {
+			font-family: ui-monospace, monospace;
+			font-size: 12px;
+			margin-top: 0.5rem;
+			white-space: pre-wrap;
+
+			&:not(:has(.log-entry)) {
+				display: none;
+			}
+
+			.log-note {
+				color: var(--muted);
+				margin-bottom: 0.25rem;
+			}
+
+			.log-entry {
+				color: #ff8a8a;
 			}
 		}
 	}
