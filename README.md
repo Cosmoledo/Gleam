@@ -33,7 +33,7 @@ A TypeScript framework for 2D canvas games in the browser.
   - `Vec2`, `Rect`, `Polygon` (with collision) — geometry primitives
   - numeric utility helpers
 
-Also bundled: asset loaders (`loadImage`, `loadCanvas`, `loadText`, `loadJson`, `loadBunch`, …), `Translator` for localization, and many pure utilities: `Array`, `Canvas`, `Color`, `DOM`, `Fetch` (buffer a `Response` while reporting download progress), `Functions`, `Grid`, `Json`, `Math`, `Number`, `String`.
+Also bundled: asset loaders (`loadImage`, `loadCanvas`, `loadText`, `loadJson`, `loadBunch`, …), `Translator` for localization, and many pure utilities: `Array`, `Canvas`, `Color`, `DOM`, `Fetch`, `Functions`, `Grid`, `Json`, `Math`, `Number`, `String`.
 
 > **The `content/` classes are starting points, not fixed APIs.** `Animator`, `Particle`, `Projectile`, and `ControllerCursor` are deliberately minimal — they give you a working baseline to subclass and override for your own game rather than a final implementation. Take a look at the `Particle` examples.
 
@@ -68,7 +68,7 @@ Or drop the IIFE bundle into a page and use the `Gleam` global:
 
 ## Examples
 
-Live demos: [cosmoledo.github.io/Gleam/examples/](https://cosmoledo.github.io/Gleam/examples/). Source under [`examples/`](https://github.com/Cosmoledo/Gleam/tree/main/examples) — each demo is a single self-contained HTML file that imports the published bundle via jsdelivr, so you can also open them directly with any static server (`npx serve examples`).
+Live demos: [cosmoledo.github.io/Gleam/examples/](https://cosmoledo.github.io/Gleam/examples/). Source under [`examples/`](https://github.com/Cosmoledo/Gleam/tree/main/examples) — a single `index.html` gallery picks between demos, and each demo is a self-contained `.js` module that imports `@cosmoledo/gleam` (mapped by an import map to the published ESM build on jsdelivr). Run it from any static server: `npx serve examples`.
 
 ## API reference
 
