@@ -9,8 +9,8 @@
 //
 // Fallbacks (both log a throttled console.warn): an unregistered language
 // falls back to the default; a missing key returns the key itself. This
-// demo shows the latter on purpose — `de` omits the `options` key, so
-// prepareLanguage logs a coverage error at startup and t("options")
+// demo shows the latter on purpose — `de` omits the `quit` key, so
+// prepareLanguage logs a coverage error at startup and t("quit")
 // renders the raw key while German is active.
 //
 // The demo UI is interactive: language buttons (built from the config keys)
@@ -24,7 +24,7 @@ import {
 	prepareLanguage,
 } from "@cosmoledo/gleam";
 
-// languageCode → key → text. `de` deliberately has no `options` entry.
+// languageCode → key → text. `de` deliberately has no `quit` entry.
 const LANGUAGES = {
 	en: {
 		title: "PARAGON",
@@ -36,8 +36,8 @@ const LANGUAGES = {
 	de: {
 		title: "PARAGON",
 		start: "Starten",
-		// options: intentionally missing — demonstrates the key fallback.
-		quit: "Beenden",
+		options: "Optionen",
+		// quit: intentionally missing — demonstrates the key fallback.
 		highscore: "Bestwert",
 	},
 	es: {
@@ -69,7 +69,7 @@ class I18nDemo extends Game {
 
 		// Install window.t before the loop's first draw. t() reads the active
 		// language from Settings (which super() just initialised) only when
-		// called, so the constructor is a fine place. `de` omits `options`,
+		// called, so the constructor is a fine place. `de` omits `quit`,
 		// so prepareLanguage logs a coverage error here.
 		prepareLanguage(LANGUAGES, "en");
 

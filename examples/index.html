@@ -101,12 +101,14 @@
 				const { init } = await import(button.dataset.src);
 				init(desc => (descElement.innerHTML = desc), canvasElement);
 
-				buttonElements.forEach(b =>
-					b.setAttribute(
-						"aria-current",
-						b === button ? "true" : "false",
-					),
-				);
+				buttonElements.forEach(b => {
+					if (b === button) {
+						b.scrollIntoView();
+						b.setAttribute("aria-current", "true");
+					} else {
+						b.setAttribute("aria-current", "false");
+					}
+				});
 			}
 
 			function updateQueryTo(button) {
