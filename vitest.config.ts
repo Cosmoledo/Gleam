@@ -3,7 +3,7 @@ import { playwright } from "@vitest/browser-playwright";
 import path from "path";
 
 const alias = {
-	"@": path.resolve(__dirname, "./src"),
+	"@": path.resolve(import.meta.dirname, "./src"),
 };
 
 export default defineConfig({

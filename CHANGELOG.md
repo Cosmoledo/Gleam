@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### Added
 - `Keyboard.preventBrowserOnThisKeys` — a `Set<KeyboardKey>` of codes to call `preventDefault()` for on `keydown`/`keyup`, blocking the browser's default action (e.g. Space scrolling the page, Tab moving focus). Empty by default.
 
+### Changed
+- Dev-dependency lockfile refreshed (transitive bumps).
+
 ## [1.0.9] - 2026-07-30
 ### Added
 - `randomHslHex(s, lMin, lMax)` (`src/utilities/Color.ts`) — a random-hue `#rrggbb` at controlled vividness: saturation fixed at `s`, lightness uniform in `[lMin, lMax]`. Unlike `randomHex`, the defaults (`s = 80`, `l ∈ [50, 100]`) stay vivid and readable on dark backgrounds instead of landing near-black. Uses the same HSL→RGB math as `Color.fromHSL`, with no `Color` dependency, and ships unit tests.
