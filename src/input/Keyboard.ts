@@ -104,12 +104,18 @@ export type KeyboardKey = (typeof KEYBOARD_KEYS)[keyof typeof KEYBOARD_KEYS];
  * State is cleared on `window` blur and on `gameloopStopped` so held keys don't stay "pressed" when focus or the loop is lost. In `Settings.debug` mode, pressing Escape stops the gameloop.
  */
 export default class Keyboard implements Control<KeyboardKey> {
+	/** `KeyboardEvent.code`s to call `preventDefault()` for on `keydown`/`keyup`, blocking the browser's default action (e.g. Space scrolling the page, Tab moving focus). Empty by default. */
+	public preventBrowserOnThisKeys: Set<KeyboardKey> = new Set();
 	/** Live map of `KeyboardEvent.code` → pressed state. Codes only appear after the key has been touched at least once; missing codes read as `undefined` (use {@link isActive} for a safe `boolean`). */
 	private keys: Record<string, boolean> = {};
 
 	constructor(game: Game) {
 		const keyEvent = (event: KeyboardEvent): void => {
 			const code = event.code;
+
+			if (this.preventBrowserOnThisKeys.has(code as KeyboardKey)) {
+				event.preventDefault();
+			}
 
 			const pressed = event.type === "keydown";
 			this.keys[code] = pressed;

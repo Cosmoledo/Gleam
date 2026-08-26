@@ -130,6 +130,62 @@ describe("Keyboard", () => {
 		expect(mockGame.gameloop.stopLoop).not.toHaveBeenCalled();
 	});
 
+	// ==================== preventBrowserOnThisKeys ====================
+
+	describe("preventBrowserOnThisKeys", () => {
+		it("calls preventDefault on keydown for a listed code", async () => {
+			const { default: Keyboard } = await import("@/input/Keyboard");
+			const kb = new Keyboard(mockGame);
+			kb.preventBrowserOnThisKeys.add("Space");
+			const event = {
+				code: "Space",
+				type: "keydown",
+				preventDefault: vi.fn(),
+			} as unknown as KeyboardEvent;
+			keydownCb!(event);
+			expect(event.preventDefault).toHaveBeenCalled();
+		});
+
+		it("calls preventDefault on keyup for a listed code", async () => {
+			const { default: Keyboard } = await import("@/input/Keyboard");
+			const kb = new Keyboard(mockGame);
+			kb.preventBrowserOnThisKeys.add("Tab");
+			const event = {
+				code: "Tab",
+				type: "keyup",
+				preventDefault: vi.fn(),
+			} as unknown as KeyboardEvent;
+			keyupCb!(event);
+			expect(event.preventDefault).toHaveBeenCalled();
+		});
+
+		it("does not call preventDefault for a code not listed", async () => {
+			const { default: Keyboard } = await import("@/input/Keyboard");
+			const kb = new Keyboard(mockGame);
+			kb.preventBrowserOnThisKeys.add("Space");
+			const event = {
+				code: "KeyA",
+				type: "keydown",
+				preventDefault: vi.fn(),
+			} as unknown as KeyboardEvent;
+			keydownCb!(event);
+			expect(event.preventDefault).not.toHaveBeenCalled();
+		});
+
+		it("is empty by default, so no keys are prevented", async () => {
+			const { default: Keyboard } = await import("@/input/Keyboard");
+			const kb = new Keyboard(mockGame);
+			expect(kb.preventBrowserOnThisKeys.size).toBe(0);
+			const event = {
+				code: "Space",
+				type: "keydown",
+				preventDefault: vi.fn(),
+			} as unknown as KeyboardEvent;
+			keydownCb!(event);
+			expect(event.preventDefault).not.toHaveBeenCalled();
+		});
+	});
+
 	// ==================== isPressed ====================
 
 	describe("isPressed", () => {
