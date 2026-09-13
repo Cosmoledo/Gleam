@@ -57,7 +57,7 @@
 		"@typescript-eslint/eslint-plugin": "^8.64.0",
 		"@typescript-eslint/parser": "^8.64.0",
 		"@vitest/browser": "^4.1.10",
-		"@vitest/browser-playwright": "^4.1.10",
+		"@vitest/browser-playwright": "^5.0.0",
 		"@vitest/coverage-v8": "^4.1.10",
 		"dts-bundle-generator": "^9.5.1",
 		"esbuild": "^0.28.1",
